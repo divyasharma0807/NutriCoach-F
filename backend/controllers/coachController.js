@@ -1,0 +1,356 @@
+import Coach from '../models/Coach.js';
+import Client from '../models/Client.js';
+import Session from '../models/Session.js';
+import Prospect from '../models/Prospect.js';
+import Referral from '../models/Referral.js';
+import Result from '../models/Result.js';
+import Notification from '../models/Notification.js';
+import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinaryService.js';
+
+// Get local date string YYYY-MM-DD
+const getLocalTodayString = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getRecursiveSubCoachIds = async (coachId) => {
+  const subCoaches = await Coach.find({ seniorCoach: coachId });
+  let ids = subCoaches.map(c => c._id);
+  for (const subCoach of subCoaches) {
+    const subIds = await getRecursiveSubCoachIds(subCoach._id);
+    ids = ids.concat(subIds);
+  }
+  return ids;
+};
+
+// @desc    Coach adds a client (initially without password)
+// @route   POST /api/coaches/clients
+// @access  Private (Coach)
+export const addClient = async (req, res, next) => {
+  const { name, email, phone, city, clientPlan, age, gender, weight, height, password } = req.body;
+  const coachId = req.user._id;
+
+  try {
+    if (!name || !email || !phone || !clientPlan || !password) {
+      res.status(400);
+      throw new Error('Please enter name, email, phone number, plan, and password');
+    }
+
+    // Check if client with this phone number already exists
+    const existingClient = await Client.findOne({ phone });
+    if (existingClient) {
+      res.status(400);
+      throw new Error('A client with this phone number is already registered');
+    }
+
+    // Expiry calculation: Expiry = Start Date + 30 Days
+    const subscriptionStartDate = new Date();
+    const subscriptionExpiryDate = new Date();
+    subscriptionExpiryDate.setDate(subscriptionStartDate.getDate() + 30);
+
+    const client = await Client.create({
+      name,
+      email,
+      phone,
+      password,
+      city,
+      clientPlan,
+      age: age ? Number(age) : undefined,
+      gender: gender || '',
+      height: height ? Number(height) : undefined,
+      coach: coachId,
+      coachName: req.user.name,
+      subscriptionStartDate,
+      subscriptionExpiryDate,
+      profileComplete: false // will be completed when client logs in and finishes onboarding
+    });
+
+    // Notify Admin
+    await Notification.create({
+      recipientType: 'admin',
+      text: `Coach ${req.user.name} added a new client: ${name}.`,
+      type: 'new_client'
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Client added successfully',
+      data: client
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Coach dashboard stats
+// @route   GET /api/coaches/dashboard
+// @access  Private (Coach)
+export const getDashboardStats = async (req, res, next) => {
+  const coachId = req.user._id;
+  const {
+    clientPlan,
+    clientCity,
+    clientSearch,
+    prospectGender,
+    prospectCity,
+    prospectWeight
+  } = req.query;
+
+  try {
+    const subCoachIds = await getRecursiveSubCoachIds(coachId);
+    const allCoachIds = [coachId, ...subCoachIds];
+
+    const clientsCount = await Client.countDocuments({ coach: { $in: allCoachIds } });
+    const sessionsCount = await Session.countDocuments({ coach: { $in: allCoachIds }, status: 'approved' });
+    const prospectsCount = await Prospect.countDocuments({ addedByCoach: { $in: allCoachIds } });
+    const resultsCount = await Result.countDocuments({ coach: { $in: allCoachIds } });
+
+    // Build client query
+    const clientQuery = { coach: { $in: allCoachIds } };
+    if (clientPlan && clientPlan !== 'All') {
+      clientQuery.clientPlan = clientPlan;
+    }
+    if (clientCity && clientCity !== 'All') {
+      clientQuery.city = new RegExp('^' + clientCity + '$', 'i');
+    }
+    if (clientSearch && clientSearch.trim() !== '') {
+      clientQuery.$or = [
+        { name: new RegExp(clientSearch, 'i') },
+        { phone: new RegExp(clientSearch, 'i') },
+        { city: new RegExp(clientSearch, 'i') }
+      ];
+    }
+
+    // Get list of clients
+    const clients = await Client.find(clientQuery).select('-password');
+
+    // Get sessions
+    const sessions = await Session.find({ coach: { $in: allCoachIds } })
+      .populate('client', 'name phone')
+      .sort({ date: 1, time: 1 });
+
+    // Build prospect query
+    const prospectQuery = { addedByCoach: { $in: allCoachIds } };
+    if (prospectGender && prospectGender !== 'All') {
+      prospectQuery.gender = prospectGender;
+    }
+    if (prospectCity && prospectCity !== 'All') {
+      prospectQuery.city = new RegExp('^' + prospectCity + '$', 'i');
+    }
+    if (prospectWeight && prospectWeight !== 'All') {
+      prospectQuery.weightRange = prospectWeight;
+    }
+
+    // Get prospects
+    const prospects = await Prospect.find(prospectQuery);
+
+    // Get referrals of clients associated with this coach
+    const allClients = await Client.find({ coach: { $in: allCoachIds } });
+    const clientIds = allClients.map(c => c._id);
+    const referrals = await Referral.find({ client: { $in: clientIds } }).populate('client', 'name');
+
+    // Get sub-coaches (Hierarchy)
+    const coaches = await Coach.find({ seniorCoach: { $in: allCoachIds } });
+
+    // Get results
+    const results = await Result.find({ coach: { $in: allCoachIds } });
+
+    // Get base diet plan
+    const dietPlan = await DietPlan.findOne({ coach: coachId, client: null });
+
+    // Get notifications
+    const notifications = await Notification.find({
+      recipientType: 'coach',
+      recipientId: coachId
+    }).sort({ createdAt: -1 }).limit(10);
+
+
+    res.json({
+      success: true,
+      data: {
+        stats: {
+          clients: clientsCount,
+          sessions: sessionsCount,
+          prospects: prospectsCount,
+          results: resultsCount
+        },
+        dietPlan: dietPlan || { beginner: '', intermediate: '', advanced: '', weightLoss: '' },
+        clients,
+        sessions: sessions.map(s => ({
+          id: s._id,
+          type: s.scheduledBy,
+          participantName: s.client ? s.client.name : 'Unknown',
+          date: s.date,
+          time: s.time,
+          status: s.status
+        })),
+        prospects,
+        referrals: referrals.map(r => ({
+          id: r._id,
+          name: r.name,
+          city: r.city,
+          email: r.email,
+          phone: r.phone,
+          age: r.age,
+          gender: r.gender,
+          clientName: r.client ? r.client.name : 'Unknown'
+        })),
+        coaches: coaches.map(c => ({
+          id: c._id,
+          name: c.name,
+          clientsCount: 0, // In future could aggregate clients under this subcoach
+          level: c.level,
+          status: c.activeStatus.toLowerCase()
+        })),
+        results: results.map(r => ({
+          id: r._id,
+          clientName: r.clientName,
+          description: r.description,
+          image: r.image
+        })),
+        notifications: notifications.map(n => ({ id: n._id, text: n.text, read: n.read }))
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Add a prospect
+// @route   POST /api/coaches/prospects
+// @access  Private (Coach)
+export const addProspect = async (req, res, next) => {
+  const { name, email, phone, city, age, gender, weight } = req.body;
+  const coachId = req.user._id;
+
+  try {
+    if (!name || !email || !phone) {
+      res.status(400);
+      throw new Error('Please provide name, email, and phone number');
+    }
+
+    const existingProspect = await Prospect.findOne({ phone });
+    if (existingProspect) {
+      res.status(400);
+      throw new Error('A prospect with this phone number already exists');
+    }
+
+    const prospect = await Prospect.create({
+      name,
+      email,
+      phone,
+      city,
+      age,
+      gender,
+      weightRange: weight || '',
+      addedByCoach: coachId
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Prospect added successfully',
+      data: prospect
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const addCoach = async (req, res, next) => {
+  const { name, phone, email, city, gender, experience, level, password } = req.body;
+  const seniorCoachId = req.user._id;
+
+  try {
+    if (!name || !phone || !email || !level || !password) {
+      res.status(400);
+      throw new Error('Please enter name, phone, email, level, and password');
+    }
+
+    const existingCoach = await Coach.findOne({ phone });
+    if (existingCoach) {
+      res.status(400);
+      throw new Error('A coach with this phone number is already registered');
+    }
+
+    const coach = await Coach.create({
+      name,
+      email,
+      phone,
+      password,
+      city,
+      gender,
+      experience,
+      level,
+      seniorCoach: seniorCoachId,
+      activeStatus: 'Active',
+      role: 'coach',
+      profileComplete: true
+    });
+
+    // Notify Admin
+    await Notification.create({
+      recipientType: 'admin',
+      text: `Senior Coach ${req.user.name} added a new Coach: ${name}.`,
+      type: 'new_coach'
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Coach added successfully',
+      data: coach
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Upload transformation result
+// @route   POST /api/coaches/results
+// @access  Private (Coach)
+export const uploadResult = async (req, res, next) => {
+  const { clientName, description } = req.body;
+  const coachId = req.user._id;
+
+  try {
+    if (!clientName || !description) {
+      res.status(400);
+      throw new Error('Please provide client name and description');
+    }
+
+    if (!req.file) {
+      res.status(400);
+      throw new Error('Please upload a transformation image');
+    }
+
+    const uploadResult = await uploadToCloudinary(req.file.path, 'transformations');
+
+    const result = await Result.create({
+      coach: coachId,
+      clientName,
+      description,
+      image: {
+        secure_url: uploadResult.secure_url,
+        public_id: uploadResult.public_id
+      }
+    });
+
+    // Notify Admin
+    await Notification.create({
+      recipientType: 'admin',
+      text: `Coach ${req.user.name} uploaded transformation results for ${clientName}.`,
+      type: 'new_referral' // mapped as results/referral updates in notifications
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Result uploaded successfully',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
