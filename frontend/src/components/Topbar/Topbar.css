@@ -1,0 +1,24 @@
+.topbar { position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: var(--topbar-h); background-color: var(--white); border-bottom: 1px solid var(--grey-200); display: flex; align-items: center; justify-content: space-between; padding: 0 var(--space-8); z-index: 50; }
+.topbar-left { display: flex; align-items: center; gap: var(--space-4); }
+.topbar-menu-btn { display: none; width: 36px; height: 36px; background-color: var(--grey-100); border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 1.2rem; color: var(--grey-600); }
+.topbar-menu-btn:hover { background-color: var(--grey-200); }
+.topbar-title-group { display: flex; flex-direction: column; }
+.topbar-title { font-size: 1.1rem; font-weight: 700; color: var(--dark); margin: 0; }
+.topbar-breadcrumb { font-size: 0.8rem; color: var(--grey-400); }
+.topbar-right { display: flex; align-items: center; gap: var(--space-4); }
+.topbar-icon-btn { width: 36px; height: 36px; background-color: var(--grey-100); border: none; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+.topbar-icon-btn:hover { background-color: var(--grey-200); }
+.topbar-notification { position: relative; }
+.notification-badge { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; background-color: var(--danger); border-radius: 50%; }
+.topbar-avatar { width: 40px; height: 40px; background-color: var(--green); border: none; border-radius: 50%; cursor: pointer; color: var(--white); font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
+.topbar-avatar:hover { box-shadow: 0 0 0 3px rgba(45, 122, 58, 0.2); }
+.topbar-text-btn { background: none; border: none; font-size: 0.9rem; font-weight: 600; color: var(--grey-600); cursor: pointer; padding: 0.5rem; transition: color 0.2s; }
+.topbar-text-btn:hover { color: var(--green); }
+.notification-container { position: relative; display: flex; align-items: center; }
+.notification-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 300px; background: var(--white); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); border: 1px solid var(--grey-200); z-index: 100; overflow: hidden; }
+.notification-dropdown-header { padding: var(--space-4); font-weight: 700; border-bottom: 1px solid var(--grey-100); background: var(--grey-50); }
+.notification-dropdown-content { padding: var(--space-4); text-align: center; color: var(--grey-500); font-size: 0.9rem; }
+@media (max-width: 1024px) {
+  .topbar { left: 0; padding: 0 var(--space-4); }
+  .topbar-menu-btn { display: flex; align-items: center; justify-content: center; }
+}
