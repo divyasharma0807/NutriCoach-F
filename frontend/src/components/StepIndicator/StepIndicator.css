@@ -1,0 +1,10 @@
+.step-indicator { display: flex; align-items: center; justify-content: center; padding: var(--space-8) 0; max-width: 480px; margin: 0 auto; }
+.step-item { display: flex; flex-direction: column; align-items: center; }
+.step-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; transition: all var(--transition); }
+.step-item.completed .step-circle, .step-item.current .step-circle { background-color: var(--dark); color: var(--white); }
+.step-item.current .step-circle { box-shadow: 0 0 0 4px rgba(15, 17, 23, 0.12); }
+.step-item.upcoming .step-circle { background-color: var(--white); border: 2px solid var(--grey-300); color: var(--grey-400); }
+.step-label { font-size: 0.75rem; color: var(--grey-500); margin-top: var(--space-2); text-align: center; }
+.step-item.current .step-label, .step-item.completed .step-label { color: var(--dark); }
+.step-line { flex: 1; height: 2px; background-color: var(--grey-300); margin: 0 var(--space-2); margin-bottom: var(--space-10); transition: background-color var(--transition); }
+.step-line.completed { background-color: var(--dark); }

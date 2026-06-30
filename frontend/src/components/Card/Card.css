@@ -1,0 +1,2 @@
+.card { background-color: var(--white); border: 1px solid var(--grey-200); border-radius: var(--radius-lg); padding: var(--space-6); transition: transform var(--transition), box-shadow var(--transition); }
+.card-hover:hover { cursor: pointer; transform: translateY(-4px); box-shadow: var(--shadow-md); }
