@@ -11,13 +11,14 @@ export const getDashboardStats = async (req, res, next) => {
   const { coachLevel, coachStatus } = req.query;
 
   try {
-    const coachesCount = await Coach.countDocuments();
-    const clientsCount = await Client.countDocuments();
-    const sessionsCount = await Session.countDocuments({ status: 'approved' });
-    const referralsCount = await Referral.countDocuments();
+    const adminId = req.user._id;
 
+    const coachesCount = await Coach.countDocuments({ seniorCoach: adminId });
+    const clientsCount = await Client.countDocuments({ coach: adminId });
+    const sessionsCount = await Session.countDocuments({ coachId: adminId, status: 'Confirmed' });
+    
     // Build coach query
-    const coachQuery = {};
+    const coachQuery = { seniorCoach: adminId };
     if (coachLevel && coachLevel !== 'All') {
       coachQuery.level = coachLevel;
     }
@@ -26,9 +27,13 @@ export const getDashboardStats = async (req, res, next) => {
     }
 
     const coaches = await Coach.find(coachQuery).populate('seniorCoach', 'name');
-    const clients = await Client.find({}).populate('coach', 'name');
-    const sessions = await Session.find({}).populate('client coach');
-    const referrals = await Referral.find({}).populate('client', 'name');
+    const clients = await Client.find({ coach: adminId }).populate('coach', 'name');
+    const sessions = await Session.find({ coachId: adminId }).populate('clientId coachId');
+    
+    // Referrals filtering by clients of adminId
+    const clientIds = clients.map(c => c._id);
+    const referrals = await Referral.find({ client: { $in: clientIds } }).populate('client', 'name');
+    const referralsCount = await Referral.countDocuments({ client: { $in: clientIds } });
 
     // Get notifications
     const notifications = await Notification.find({ recipientType: 'admin' })
@@ -61,13 +66,13 @@ export const getDashboardStats = async (req, res, next) => {
           phone: c.phone,
           city: c.city,
           clientPlan: c.clientPlan,
-          coachName: c.coach ? c.coach.name : 'N/A',
+          coachName: (c.coach && c.coach.name) ? c.coach.name : (c.coachName || 'N/A'),
           profileComplete: c.profileComplete
         })),
         sessions: sessions.map(s => ({
           id: s._id,
-          clientName: s.client ? s.client.name : 'Unknown',
-          coachName: s.coach ? s.coach.name : 'Unknown',
+          clientName: s.clientId ? s.clientId.name : 'Unknown',
+          coachName: s.coachId ? s.coachId.name : 'Unknown',
           date: s.date,
           time: s.time,
           status: s.status
