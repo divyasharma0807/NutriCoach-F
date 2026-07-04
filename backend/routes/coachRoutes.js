@@ -13,10 +13,10 @@ const router = express.Router();
 
 router.use(protect);
 
-router.post('/clients', authorize('coach'), addClient);
-router.get('/dashboard', authorize('coach'), getDashboardStats);
-router.post('/prospects', authorize('coach'), addProspect);
+router.post('/clients', authorize('coach', 'admin'), addClient);
+router.get('/dashboard', authorize('coach', 'admin'), getDashboardStats);
+router.post('/prospects', authorize('coach', 'admin'), addProspect);
 router.post('/sub-coaches', authorize('coach', 'admin'), addCoach);
-router.post('/results', authorize('coach'), upload.single('image'), uploadResult);
+router.post('/results', authorize('coach', 'admin'), upload.single('image'), uploadResult);
 
 export default router;
