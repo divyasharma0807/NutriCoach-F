@@ -247,10 +247,11 @@ export const getDashboardStats = async (req, res, next) => {
     // Find upcoming sessions (approved and today or future)
     const todayStr = getLocalTodayString();
     const sessions = await Session.find({
-      client: clientId,
-      status: 'approved',
-      date: { $gte: todayStr }
+      participants: { $in: [clientId] },
+      status: 'APPROVED'
     }).sort({ date: 1, time: 1 });
+    console.log('[DEBUG] Client Dashboard - ClientId:', clientId);
+    console.log('[DEBUG] Client Dashboard - Sessions found:', sessions.length);
 
     // Get latest approved diet plan
     const dietPlan = await DietPlan.findOne({ client: clientId, approved: true });
@@ -269,7 +270,7 @@ export const getDashboardStats = async (req, res, next) => {
         activeGoal: client.activeGoal || 'N/A',
         subscriptionDays,
         upcomingSessionsCount: sessions.length,
-        sessions: sessions.map(s => ({ id: s._id, date: s.date, time: s.time, status: s.status })),
+        sessions: sessions.map(s => ({ id: s._id, date: s.date, time: s.time, status: s.status, title: s.title })),
         dietPlan: dietPlan || null,
         parameterHistory,
         measurementHistory,
