@@ -1,4 +1,3 @@
-// [DRAFT] Initial design prototype. Responsiveness and final polishes to follow.
 import React, { useState, useEffect } from 'react';
 import { LandingPage } from './pages/Landing/LandingPage';
 import { LoginPage } from './pages/Login/LoginPage';

@@ -1,4 +1,3 @@
-// [DRAFT] Initial design prototype. Responsiveness and final polishes to follow.
 import React, { useState, useEffect, useRef } from 'react';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 import { Topbar } from '../../components/Topbar/Topbar';
