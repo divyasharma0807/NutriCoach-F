@@ -10,12 +10,12 @@ export const protect = async (req, res, next) => {
   // Read token from cookie or Authorization header
   if (req.cookies && req.cookies.token) {
     token = req.cookies.token;
-  } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  } else if (req.headers.authorization && req.headers.authorization.toLowerCase().startsWith('bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
 
   // Make sure token exists
-  if (!token) {
+  if (!token || token === 'undefined' || token === 'null') {
     res.status(401);
     return next(new Error('Not authorized to access this route, token missing'));
   }
