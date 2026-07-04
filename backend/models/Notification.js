@@ -5,7 +5,8 @@ const NotificationSchema = new mongoose.Schema({
   recipientId: { type: mongoose.Schema.Types.ObjectId, default: null }, // Null if sent to all Admins
   text: { type: String, required: true },
   read: { type: Boolean, default: false },
-  type: { type: String } // e.g. 'diet_uploaded', 'session_request', 'session_approved', 'weekly_reminder', etc.
+  type: { type: String }, // e.g. 'diet_uploaded', 'session_request', 'session_approved', 'weekly_reminder', etc.
+  relatedMeetingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Session', default: null }
 }, { timestamps: true });
 
 export default mongoose.model('Notification', NotificationSchema);
