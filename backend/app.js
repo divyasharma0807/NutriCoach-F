@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
+import { debugLog } from './middleware/debugMiddleware.js';
 
 // Import Routes
 import authRoutes from './routes/authRoutes.js';
@@ -44,6 +45,7 @@ app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
+app.use('/api', debugLog);
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/coaches', coachRoutes);
