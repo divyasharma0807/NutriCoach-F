@@ -1,12 +1,16 @@
 import mongoose from 'mongoose';
 
 const SessionSchema = new mongoose.Schema({
-  client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', required: true },
-  coach: { type: mongoose.Schema.Types.ObjectId, ref: 'Coach', required: true },
-  date: { type: String, required: true }, // Format YYYY-MM-DD
-  time: { type: String, required: true }, // Format: "HH:MM AM/PM" or slot name
-  status: { type: String, enum: ['pending_approval', 'approved', 'rejected'], default: 'pending_approval' },
-  scheduledBy: { type: String, enum: ['coach', 'client'], required: true }
+  organizerId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  organizerRole: { type: String, enum: ['coach', 'client', 'admin'], required: true },
+  coachId: { type: mongoose.Schema.Types.ObjectId, ref: 'Coach', required: true },
+  clientId: { type: mongoose.Schema.Types.ObjectId, ref: 'Client', default: null },
+  parentCoachId: { type: mongoose.Schema.Types.ObjectId, ref: 'Coach', default: null },
+  participants: [{ type: mongoose.Schema.Types.ObjectId }],
+  date: { type: String, required: true },
+  time: { type: String, required: true },
+  title: { type: String, default: 'Session' },
+  status: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' }
 }, { timestamps: true });
 
 export default mongoose.model('Session', SessionSchema);
