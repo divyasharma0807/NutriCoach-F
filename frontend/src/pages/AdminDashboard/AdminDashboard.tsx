@@ -403,7 +403,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
     try {
       const res = await api.updateCoachStatus(coachId, nextStatus);
       if (res.success) {
-        fetchAdminData();
+        await fetchAdminData();
       }
     } catch (err: any) {
       alert(err.message || 'Failed to toggle status');
@@ -893,7 +893,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                       password: newClientPassword
                     });
                     if (res.success) {
-                      fetchAdminData();
+                      await fetchAdminData();
                       setIsAddClientOpen(false);
                     }
                   } catch (err: any) {
@@ -1695,7 +1695,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                      password: newCoachPassword
                    });
                    if (res.success) {
-                     fetchAdminData();
+                     await fetchAdminData();
                      setIsAddCoachOpen(false);
                    }
                  } catch (err: any) {
