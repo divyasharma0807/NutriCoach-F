@@ -5,7 +5,9 @@ import Prospect from '../models/Prospect.js';
 import Referral from '../models/Referral.js';
 import Result from '../models/Result.js';
 import Notification from '../models/Notification.js';
+import DietPlan from '../models/DietPlan.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinaryService.js';
+
 
 // Get local date string YYYY-MM-DD
 const getLocalTodayString = () => {
@@ -16,15 +18,7 @@ const getLocalTodayString = () => {
   return `${year}-${month}-${day}`;
 };
 
-const getRecursiveSubCoachIds = async (coachId) => {
-  const subCoaches = await Coach.find({ seniorCoach: coachId });
-  let ids = subCoaches.map(c => c._id);
-  for (const subCoach of subCoaches) {
-    const subIds = await getRecursiveSubCoachIds(subCoach._id);
-    ids = ids.concat(subIds);
-  }
-  return ids;
-};
+
 
 // @desc    Coach adds a client (initially without password)
 // @route   POST /api/coaches/clients
@@ -100,16 +94,16 @@ export const getDashboardStats = async (req, res, next) => {
   } = req.query;
 
   try {
-    const subCoachIds = await getRecursiveSubCoachIds(coachId);
-    const allCoachIds = [coachId, ...subCoachIds];
-
-    const clientsCount = await Client.countDocuments({ coach: { $in: allCoachIds } });
-    const sessionsCount = await Session.countDocuments({ coach: { $in: allCoachIds }, status: 'approved' });
-    const prospectsCount = await Prospect.countDocuments({ addedByCoach: { $in: allCoachIds } });
-    const resultsCount = await Result.countDocuments({ coach: { $in: allCoachIds } });
+    const clientsCount = await Client.countDocuments({ coach: coachId });
+    const sessionsCount = await Session.countDocuments({ 
+      $or: [{ coachId: coachId }, { parentCoachId: coachId }], 
+      status: 'APPROVED' 
+    });
+    const prospectsCount = await Prospect.countDocuments({ addedByCoach: coachId });
+    const resultsCount = await Result.countDocuments({ coach: coachId });
 
     // Build client query
-    const clientQuery = { coach: { $in: allCoachIds } };
+    const clientQuery = { coach: coachId };
     if (clientPlan && clientPlan !== 'All') {
       clientQuery.clientPlan = clientPlan;
     }
@@ -128,12 +122,16 @@ export const getDashboardStats = async (req, res, next) => {
     const clients = await Client.find(clientQuery).select('-password');
 
     // Get sessions
-    const sessions = await Session.find({ coach: { $in: allCoachIds } })
-      .populate('client', 'name phone')
+    const sessions = await Session.find({ 
+      participants: { $in: [coachId] },
+      status: 'APPROVED'
+    })
+      .populate('clientId', 'name phone')
+      .populate('coachId', 'name phone')
       .sort({ date: 1, time: 1 });
 
     // Build prospect query
-    const prospectQuery = { addedByCoach: { $in: allCoachIds } };
+    const prospectQuery = { addedByCoach: coachId };
     if (prospectGender && prospectGender !== 'All') {
       prospectQuery.gender = prospectGender;
     }
@@ -148,15 +146,15 @@ export const getDashboardStats = async (req, res, next) => {
     const prospects = await Prospect.find(prospectQuery);
 
     // Get referrals of clients associated with this coach
-    const allClients = await Client.find({ coach: { $in: allCoachIds } });
+    const allClients = await Client.find({ coach: coachId });
     const clientIds = allClients.map(c => c._id);
     const referrals = await Referral.find({ client: { $in: clientIds } }).populate('client', 'name');
 
     // Get sub-coaches (Hierarchy)
-    const coaches = await Coach.find({ seniorCoach: { $in: allCoachIds } });
+    const coaches = await Coach.find({ seniorCoach: coachId });
 
     // Get results
-    const results = await Result.find({ coach: { $in: allCoachIds } });
+    const results = await Result.find({ coach: coachId });
 
     // Get base diet plan
     const dietPlan = await DietPlan.findOne({ coach: coachId, client: null });
@@ -179,14 +177,31 @@ export const getDashboardStats = async (req, res, next) => {
         },
         dietPlan: dietPlan || { beginner: '', intermediate: '', advanced: '', weightLoss: '' },
         clients,
-        sessions: sessions.map(s => ({
-          id: s._id,
-          type: s.scheduledBy,
-          participantName: s.client ? s.client.name : 'Unknown',
-          date: s.date,
-          time: s.time,
-          status: s.status
-        })),
+        sessions: sessions.map(s => {
+          let participantName = 'Unknown';
+          let participantPhone = '';
+          if (s.organizerRole === 'client' && s.clientId) {
+            participantName = s.clientId.name;
+            participantPhone = s.clientId.phone;
+          } else if (s.organizerRole === 'coach' && s.clientId) {
+            participantName = s.clientId.name;
+            participantPhone = s.clientId.phone;
+          } else if (s.organizerRole === 'coach' && s.parentCoachId) {
+            participantName = s.coachId ? s.coachId.name : 'Parent Coach';
+            participantPhone = '';
+          }
+
+          return {
+            id: s._id,
+            type: s.organizerRole, // Map to frontend 'type'
+            participantName,
+            participantPhone,
+            date: s.date,
+            time: s.time,
+            status: s.status,
+            title: s.title
+          };
+        }),
         prospects,
         referrals: referrals.map(r => ({
           id: r._id,
@@ -211,7 +226,7 @@ export const getDashboardStats = async (req, res, next) => {
           description: r.description,
           image: r.image
         })),
-        notifications: notifications.map(n => ({ id: n._id, text: n.text, read: n.read }))
+        notifications: notifications.map(n => ({ id: n._id, text: n.text, read: n.read, type: n.type, relatedMeetingId: n.relatedMeetingId }))
       }
     });
   } catch (error) {
