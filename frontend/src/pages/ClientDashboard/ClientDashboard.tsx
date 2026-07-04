@@ -76,7 +76,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
   const [scheduleError, setScheduleError] = useState('');
-  const [upcomingSessions, setUpcomingSessions] = useState<{id?: string, date: string, time: string}[]>([]);
+  const [upcomingSessions, setUpcomingSessions] = useState<{id?: string, date: string, time: string, title?: string, status?: string}[]>([]);
   const [hoveredPoint, setHoveredPoint] = useState<{x: number, y: number, date: string, metric: string, val: number, color: string} | null>(null);
   
   const [parameterHistory, setParameterHistory] = useState<any[]>([]);
@@ -185,6 +185,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
 
   useEffect(() => {
     fetchDashboardData();
+    const interval = setInterval(fetchDashboardData, 10000); // 10s poll
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -461,7 +463,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
     try {
       const res = await api.createReferral({ name: refName, email: refEmail, phone: refPhone, city: refCity, age: refAge, gender: refGender });
       if (res.success) {
-        fetchDashboardData();
+        await fetchDashboardData();
         setIsReferralModalOpen(false);
         setRefName(''); setRefEmail(''); setRefPhone(''); setRefCity(''); setRefAge(''); setRefGender('');
       }
@@ -849,7 +851,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                try {
                  const res = await api.addBodyParameter(currentParams);
                  if (res.success) {
-                   fetchDashboardData();
+                   await fetchDashboardData();
                    setCurrentParams({});
                  }
                } catch (err: any) {
@@ -870,7 +872,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                try {
                  const res = await api.addBodyMeasurement(currentMeasurements);
                  if (res.success) {
-                   fetchDashboardData();
+                   await fetchDashboardData();
                    setCurrentMeasurements({});
                  }
                } catch (err: any) {
@@ -943,14 +945,14 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                   <div key={idx} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                     <div style={{ fontSize: '2rem' }}>📅</div>
                     <div>
-                      <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>1-on-1 Consultation</div>
+                      <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>{session.title || 'Client Session'}</div>
                       <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>{session.date} at {session.time}</div>
                     </div>
                   </div>
                 ))
               ) : (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                  <EmptyState icon="📅" title="No sessions scheduled" subtitle="Book your first consultation with a coach." ctaLabel="Find a Coach" onCta={() => {}} />
+                  <EmptyState icon="📅" title="No sessions scheduled" subtitle="Book your first consultation with a coach." />
                 </div>
               )}
             </div>
