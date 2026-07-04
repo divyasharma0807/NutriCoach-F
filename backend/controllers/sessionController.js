@@ -46,7 +46,7 @@ const validateSessionDateTime = (dateStr, timeStr) => {
 // @route   POST /api/sessions/schedule
 // @access  Private (Client/Coach)
 export const scheduleSession = async (req, res, next) => {
-  const { date, time, clientPhone, clientId } = req.body;
+  const { date, time, clientPhone, clientId, withParentCoach } = req.body;
   const user = req.user;
 
   try {
@@ -66,20 +66,33 @@ export const scheduleSession = async (req, res, next) => {
       }
 
       const session = await Session.create({
-        client: user._id,
-        coach: client.coach,
+        organizerId: user._id,
+        organizerRole: 'client',
+        coachId: client.coach,
+        clientId: user._id,
+        parentCoachId: null,
+        participants: [user._id, client.coach],
         date,
         time,
-        status: 'pending_approval',
-        scheduledBy: 'client'
+        title: 'Client Session Request',
+        status: 'PENDING'
       });
 
       // Notify Coach
       await Notification.create({
         recipientType: 'coach',
         recipientId: client.coach,
-        text: `Client ${client.name} requested a session for ${date} at ${time}.`,
-        type: 'session_request'
+        text: `Client ${client.name} requested a meeting on ${date} at ${time}.`,
+        type: 'session_request',
+        relatedMeetingId: session._id
+      });
+
+      // Notify Client that the request was sent
+      await Notification.create({
+        recipientType: 'client',
+        recipientId: user._id,
+        text: `Your meeting request has been sent to your coach for approval.`,
+        type: 'info'
       });
 
       res.status(201).json({
@@ -90,47 +103,98 @@ export const scheduleSession = async (req, res, next) => {
 
     } else if (user.role === 'coach') {
       // Coach schedules a session
-      let targetClient;
-      if (clientId) {
-        targetClient = await Client.findById(clientId);
-      } else if (clientPhone) {
-        targetClient = await Client.findOne({ phone: clientPhone });
+      if (withParentCoach) {
+        const coach = await Coach.findById(user._id);
+        if (!coach.seniorCoach) {
+          res.status(400);
+          throw new Error('You do not have a parent coach assigned.');
+        }
+
+        const session = await Session.create({
+          organizerId: user._id,
+          organizerRole: 'coach',
+          coachId: user._id,
+          clientId: null,
+          parentCoachId: coach.seniorCoach,
+          participants: [user._id, coach.seniorCoach],
+          date,
+          time,
+          title: 'Sub-Coach Session Request',
+          status: 'PENDING'
+        });
+
+        // Notify Parent Coach
+        await Notification.create({
+          recipientType: 'coach',
+          recipientId: coach.seniorCoach,
+          text: `Your sub-coach ${user.name} requested a meeting on ${date} at ${time}.`,
+          type: 'session_request',
+          relatedMeetingId: session._id
+        });
+
+        // Notify Child Coach
+        await Notification.create({
+          recipientType: 'coach',
+          recipientId: user._id,
+          text: `Meeting request sent.`,
+          type: 'info'
+        });
+
+        res.status(201).json({
+          success: true,
+          message: 'Meeting with parent coach scheduled successfully.',
+          data: session
+        });
+      } else {
+        let targetClient;
+        if (clientId) {
+          targetClient = await Client.findById(clientId);
+        } else if (clientPhone) {
+          targetClient = await Client.findOne({ phone: clientPhone });
+        }
+
+        if (!targetClient) {
+          res.status(404);
+          throw new Error('Target client not found');
+        }
+
+        const session = await Session.create({
+          organizerId: user._id,
+          organizerRole: 'coach',
+          coachId: user._id,
+          clientId: targetClient._id,
+          parentCoachId: null,
+          participants: [user._id, targetClient._id],
+          date,
+          time,
+          title: 'Coach-Scheduled Session',
+          status: 'APPROVED'
+        });
+
+        // Notify Client
+        await Notification.create({
+          recipientType: 'client',
+          recipientId: targetClient._id,
+          text: `Your coach has scheduled a meeting on ${date} at ${time}.`,
+          type: 'session_approved',
+          relatedMeetingId: session._id
+        });
+
+        // Notify Coach
+        await Notification.create({
+          recipientType: 'coach',
+          recipientId: user._id,
+          text: `Meeting scheduled successfully.`,
+          type: 'session_approved',
+          relatedMeetingId: session._id
+        });
+
+        res.status(201).json({
+          success: true,
+          message: 'Session scheduled successfully.',
+          data: session
+        });
       }
-
-      if (!targetClient) {
-        res.status(404);
-        throw new Error('Target client not found');
-      }
-
-      const session = await Session.create({
-        client: targetClient._id,
-        coach: user._id,
-        date,
-        time,
-        status: 'approved',
-        scheduledBy: 'coach'
-      });
-
-      // Notify Client
-      await Notification.create({
-        recipientType: 'client',
-        recipientId: targetClient._id,
-        text: `Your coach ${user.name} scheduled a new session on ${date} at ${time}.`,
-        type: 'session_approved'
-      });
-
-      // Notify Admin
-      await Notification.create({
-        recipientType: 'admin',
-        text: `Coach ${user.name} scheduled a session for client ${targetClient.name}.`,
-        type: 'new_session'
-      });
-
-      res.status(201).json({
-        success: true,
-        message: 'Session scheduled successfully.',
-        data: session
-      });
     } else {
       res.status(403);
       throw new Error('Only clients and coaches can schedule sessions');
@@ -147,33 +211,51 @@ export const approveSession = async (req, res, next) => {
   const sessionId = req.params.id;
 
   try {
-    const session = await Session.findById(sessionId).populate('client coach');
+    const session = await Session.findById(sessionId).populate('clientId coachId');
     if (!session) {
       res.status(404);
       throw new Error('Session not found');
     }
 
-    if (session.coach._id.toString() !== req.user._id.toString()) {
+    const isCoach = session.coachId && session.coachId._id.toString() === req.user._id.toString();
+    const isParentCoach = session.parentCoachId && session.parentCoachId.toString() === req.user._id.toString();
+
+    if (!isCoach && !isParentCoach) {
       res.status(403);
       throw new Error('Not authorized to approve this session');
     }
 
-    session.status = 'approved';
+    session.status = 'APPROVED';
+    if (session.title === 'Client Session Request') {
+      session.title = 'Client Session';
+    } else if (session.title === 'Sub-Coach Session Request') {
+      session.title = 'Sub-Coach Session';
+    }
     await session.save();
 
-    // Notify Client
-    await Notification.create({
-      recipientType: 'client',
-      recipientId: session.client._id,
-      text: `Your coach ${session.coach.name} approved your session request for ${session.date} at ${session.time}.`,
-      type: 'session_approved'
+    // Delete the pending notification so it can't be processed twice
+    await Notification.deleteMany({
+      relatedMeetingId: session._id,
+      type: 'session_request'
     });
 
-    // Notify Admin
+    // Notify Requester
+    const requesterType = session.organizerRole === 'coach' ? 'coach' : 'client';
     await Notification.create({
-      recipientType: 'admin',
-      text: `Session approved between Coach ${session.coach.name} and Client ${session.client.name}.`,
-      type: 'session_approved'
+      recipientType: requesterType,
+      recipientId: session.organizerId,
+      text: `Your meeting request has been approved by ${req.user.name}.\n\nScheduled for ${session.date} at ${session.time}.`,
+      type: 'session_approved',
+      relatedMeetingId: session._id
+    });
+
+    // Notify Coach
+    await Notification.create({
+      recipientType: 'coach',
+      recipientId: req.user._id,
+      text: 'Meeting successfully confirmed.',
+      type: 'info',
+      relatedMeetingId: session._id
     });
 
     res.json({
@@ -193,26 +275,37 @@ export const rejectSession = async (req, res, next) => {
   const sessionId = req.params.id;
 
   try {
-    const session = await Session.findById(sessionId).populate('client coach');
+    const session = await Session.findById(sessionId).populate('clientId coachId');
     if (!session) {
       res.status(404);
       throw new Error('Session not found');
     }
 
-    if (session.coach._id.toString() !== req.user._id.toString()) {
+    const isCoach = session.coachId && session.coachId._id.toString() === req.user._id.toString();
+    const isParentCoach = session.parentCoachId && session.parentCoachId.toString() === req.user._id.toString();
+
+    if (!isCoach && !isParentCoach) {
       res.status(403);
       throw new Error('Not authorized to reject this session');
     }
 
-    session.status = 'rejected';
+    session.status = 'REJECTED';
     await session.save();
 
-    // Notify Client
+    // Delete the pending notification so it can't be processed twice
+    await Notification.deleteMany({
+      relatedMeetingId: session._id,
+      type: 'session_request'
+    });
+
+    // Notify Requester
+    const requesterType = session.organizerRole === 'coach' ? 'coach' : 'client';
     await Notification.create({
-      recipientType: 'client',
-      recipientId: session.client._id,
-      text: `Your coach ${session.coach.name} rejected your session request for ${session.date} at ${session.time}.`,
-      type: 'session_rejected'
+      recipientType: requesterType,
+      recipientId: session.organizerId,
+      text: `Your meeting request was rejected.`,
+      type: 'session_rejected',
+      relatedMeetingId: session._id
     });
 
     res.json({
@@ -234,21 +327,17 @@ export const getSessions = async (req, res, next) => {
   try {
     let sessions;
     if (user.role === 'client') {
-      // Client only sees approved sessions as per "After approval: Session becomes visible to both portals"
-      // Wait, let's also allow seeing pending ones if they requested them so they know it is pending,
-      // but let's strictly follow the instruction: "After approval: Session becomes visible to both portals"
-      // Let's return approved sessions for client.
       sessions = await Session.find({
-        client: user._id,
-        status: 'approved'
-      }).populate('coach', 'name email phone').sort({ date: 1, time: 1 });
+        clientId: user._id,
+        status: 'APPROVED'
+      }).populate('coachId', 'name email phone').sort({ date: 1, time: 1 });
     } else if (user.role === 'coach') {
-      // Coach sees all sessions (pending and approved) involving them
       sessions = await Session.find({
-        coach: user._id
-      }).populate('client', 'name email phone').sort({ date: 1, time: 1 });
+        $or: [{ coachId: user._id }, { parentCoachId: user._id }],
+        status: 'APPROVED'
+      }).populate('clientId', 'name email phone').sort({ date: 1, time: 1 });
     } else if (user.role === 'admin') {
-      sessions = await Session.find({}).populate('client coach').sort({ date: 1, time: 1 });
+      sessions = await Session.find({ coachId: user._id, status: 'APPROVED' }).populate('clientId coachId').sort({ date: 1, time: 1 });
     }
 
     res.json({
