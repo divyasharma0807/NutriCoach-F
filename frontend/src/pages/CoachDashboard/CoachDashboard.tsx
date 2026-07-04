@@ -160,7 +160,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [notifications, setNotifications] = useState<{id: number; text: string; read: boolean}[]>([]);
 
   // Input states for scheduling
-  const [scheduleType, setScheduleType] = useState<'client' | 'coach'>('client');
+  const [scheduleType, setScheduleType] = useState<'client' | 'coach' | 'parent_coach'>('client');
   const [scheduleClient, setScheduleClient] = useState('');
   const [scheduleCoach, setScheduleCoach] = useState('');
   const [scheduleDate, setScheduleDate] = useState('');
@@ -404,7 +404,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
     try {
       const res = await api.approveSession(sessionId);
       if (res.success) {
-        fetchCoachData();
+        await fetchCoachData();
       }
     } catch (err: any) {
       alert(err.message || 'Failed to approve session');
@@ -415,7 +415,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
     try {
       const res = await api.rejectSession(sessionId);
       if (res.success) {
-        fetchCoachData();
+        await fetchCoachData();
       }
     } catch (err: any) {
       alert(err.message || 'Failed to reject session');
@@ -424,6 +424,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
 
   useEffect(() => {
     fetchCoachData();
+    const interval = setInterval(fetchCoachData, 10000);
+    return () => clearInterval(interval);
   }, [
     clientPlanFilter,
     clientCityFilter,
@@ -565,6 +567,10 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                     <input type="radio" name="scheduleType" value="coach" checked={scheduleType === 'coach'} onChange={() => { setScheduleType('coach'); setScheduleClient(''); }} />
                     Coach
                   </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input type="radio" name="scheduleType" value="parent_coach" checked={scheduleType === 'parent_coach'} onChange={() => { setScheduleType('parent_coach'); setScheduleClient(''); setScheduleCoach(''); }} />
+                    My Coach
+                  </label>
                 </div>
               </div>
               {scheduleType === 'client' && (
@@ -664,7 +670,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                     const res = await api.scheduleSession({
                       date: scheduleDate,
                       time: scheduleTime,
-                      clientId: clientObj ? clientObj.id : undefined
+                      clientId: scheduleType === 'client' ? (clientObj ? clientObj.id : undefined) : undefined,
+                      withParentCoach: scheduleType === 'parent_coach'
                     });
                     if (res.success) {
                       await fetchCoachData();
@@ -688,22 +695,12 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                   sessions.map(session => (
                     <div key={session.id} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                       <div style={{ fontSize: '2rem' }}>📅</div>
-                      <div>
-                        {session.type === 'client' ? (
-                          <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>Client: {session.participantName}</div>
-                        ) : (
-                          <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>Coach: {session.participantName}</div>
-                        )}
-                        <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Date: {session.date}</div>
-                        <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Time: {session.time}</div>
-                        <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Status: {session.status || 'Scheduled'}</div>
-                      </div>
-                      {session.status === 'pending_approval' && (
-                        <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
-                          <Button size="sm" variant="primary" onClick={() => handleApproveSession(session.id)}>Approve</Button>
-                          <Button size="sm" variant="secondary" onClick={() => handleRejectSession(session.id)}>Reject</Button>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ fontWeight: 600, color: 'var(--dark)' }}>
+                          {session.title || (session.type === 'client' ? 'Client Session' : 'Coach Session')}
                         </div>
-                      )}
+                        <div style={{ fontSize: '0.875rem', color: 'var(--grey-500)' }}>{session.participantName} • {session.time}</div>
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -918,7 +915,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                        password: newClientPassword
                      });
                      if (res.success) {
-                       fetchCoachData();
+                       await fetchCoachData();
                        setIsAddClientOpen(false);
                      }
                    } catch (err: any) {
@@ -1078,7 +1075,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                        password: newCoachPassword
                      });
                      if (res.success) {
-                       fetchCoachData();
+                       await fetchCoachData();
                        setIsAddCoachOpen(false);
                      }
                    } catch (err: any) {
@@ -1239,7 +1236,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                        weight: newProspectWeight
                      });
                      if (res.success) {
-                       fetchCoachData();
+                       await fetchCoachData();
                        setIsAddProspectOpen(false);
                      }
                    } catch (err: any) {
@@ -1466,7 +1463,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                       file: newResultFile
                     });
                     if (res.success) {
-                      fetchCoachData();
+                      await fetchCoachData();
                       setNewResultClientName('');
                       setNewResultDescription('');
                       setNewResultImage('');
@@ -1556,7 +1553,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                         });
                         if (res.success) {
                           setIsEditingDiet(false);
-                          fetchCoachData();
+                          await fetchCoachData();
                         }
                       } catch (err: any) {
                         alert(err.message || 'Failed to save diet plan');
@@ -1823,6 +1820,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
           onNavigate={handleNavigate}
           notifications={notifications}
           onMarkAsRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
+          onApproveSession={handleApproveSession}
+          onRejectSession={handleRejectSession}
           role="coach"
         />
         <div className="dashboard-content page-enter">
