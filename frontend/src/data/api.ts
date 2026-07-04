@@ -112,7 +112,7 @@ export const api = {
   },
 
   // Sessions
-  scheduleSession: async (sessionData: { date: string; time: string; clientPhone?: string; clientId?: string }) => {
+  scheduleSession: async (sessionData: { date: string; time: string; clientPhone?: string; clientId?: string, withParentCoach?: boolean }) => {
     return fetchAPI('/sessions/schedule', {
       method: 'POST',
       headers: getHeaders(),
