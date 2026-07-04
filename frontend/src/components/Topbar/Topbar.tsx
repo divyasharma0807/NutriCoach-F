@@ -9,14 +9,16 @@ interface TopbarProps {
   onNavigateToProfile?: () => void;
   onNavigate?: (section: string) => void;
   profileComplete?: boolean;
-  notifications?: {id: number, text: string, read: boolean}[];
-  onMarkAsRead?: (id: number) => void;
+  notifications?: {id: number | string, text: string, read: boolean, type?: string, relatedMeetingId?: string}[];
+  onMarkAsRead?: (id: number | string) => void;
+  onApproveSession?: (meetingId: string, notificationId: number | string) => void;
+  onRejectSession?: (meetingId: string, notificationId: number | string) => void;
   role?: 'client' | 'coach';
 }
 
 export const Topbar: React.FC<TopbarProps> = ({ 
   title, userName, onMenuClick, onNavigateToDietPlan, onNavigateToProfile, onNavigate, profileComplete,
-  notifications = [], onMarkAsRead, role
+  notifications = [], onMarkAsRead, onApproveSession, onRejectSession, role
 }) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -57,7 +59,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const markAsRead = (id: number) => {
+  const markAsRead = (id: number | string) => {
     if (onMarkAsRead) onMarkAsRead(id);
   };
 
@@ -101,9 +103,17 @@ export const Topbar: React.FC<TopbarProps> = ({
               <div className="notification-dropdown-content" style={{ padding: 0 }}>
                 {notifications.filter(n => !n.read).length > 0 ? (
                   notifications.filter(n => !n.read).map(n => (
-                    <div key={n.id} style={{ padding: '0.75rem', borderBottom: '1px solid var(--grey-200)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--dark)', whiteSpace: 'pre-line' }}>{n.text}</p>
-                      <button onClick={() => markAsRead(n.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0.2rem' }} title="Mark as read">👁️</button>
+                    <div key={n.id} style={{ padding: '0.75rem', borderBottom: '1px solid var(--grey-200)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--dark)', whiteSpace: 'pre-line' }}>{n.text}</p>
+                        <button onClick={() => markAsRead(n.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0.2rem' }} title="Mark as read">👁️</button>
+                      </div>
+                      {n.type === 'session_request' && n.relatedMeetingId && (
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                          <button onClick={() => onApproveSession && onApproveSession(n.relatedMeetingId!, n.id)} style={{ flex: 1, padding: '0.4rem', fontSize: '0.75rem', background: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Approve</button>
+                          <button onClick={() => onRejectSession && onRejectSession(n.relatedMeetingId!, n.id)} style={{ flex: 1, padding: '0.4rem', fontSize: '0.75rem', background: '#F44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Reject</button>
+                        </div>
+                      )}
                     </div>
                   ))
                 ) : (
