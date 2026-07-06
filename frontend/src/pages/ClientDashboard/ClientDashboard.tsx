@@ -106,9 +106,12 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
 
   const fetchDashboardData = async () => {
     try {
-      const [dashRes, refRes] = await Promise.all([
+      const [dashRes, refRes, dietRes, sessionRes, notifRes] = await Promise.all([
         api.getClientDashboard(),
-        api.getReferrals()
+        api.getReferrals(),
+        api.getMyDietPlan(),
+        api.getSessions(),
+        api.getNotifications()
       ]);
 
       if (dashRes.success && dashRes.data) {
@@ -117,7 +120,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           currentWeight: d.currentWeight,
           activeGoal: d.activeGoal,
           subscriptionDays: d.subscriptionDays,
-          upcomingSessionsCount: d.upcomingSessionsCount
+          upcomingSessionsCount: (sessionRes.data || []).length
         });
 
         if (d.parameterHistory) {
@@ -154,18 +157,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           setMeasurementHistory(mapped);
         }
 
-        if (d.sessions) {
-          setUpcomingSessions(d.sessions);
-        }
-
-        if (d.dietPlan) {
-          setDietPlan(d.dietPlan);
-        }
-
-        if (d.notifications) {
-          setNotifications(d.notifications);
-        }
-
         if (d.results) {
           setCoachResults(d.results.map((r: any) => ({
             id: r.id || r._id,
@@ -174,6 +165,20 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             image: r.image && r.image.secure_url ? r.image.secure_url : r.image
           })));
         }
+      }
+
+      if (sessionRes.success && sessionRes.data) {
+        setUpcomingSessions(sessionRes.data);
+      }
+
+      if (dietRes.success && dietRes.data) {
+        setDietPlan(dietRes.data);
+      } else {
+        setDietPlan(null);
+      }
+
+      if (notifRes.success && notifRes.data) {
+        setNotifications(notifRes.data);
       }
 
       if (refRes.success && refRes.data) {
@@ -206,65 +211,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
   }, [currentSection]);
 
   const hasDietPlan = !!dietPlan;
-
-  useEffect(() => {
-  }, [notifications]);
-
-  useEffect(() => {
-    const dietPlanNotifId = 1001;
-    const hasNotif = notifications.some(n => n.id === dietPlanNotifId);
-    if (hasDietPlan && !hasNotif) {
-      setNotifications(prev => [
-        ...prev,
-        { id: dietPlanNotifId, text: 'Your diet plan has been uploaded.', read: false }
-      ]);
-    } else if (!hasDietPlan && hasNotif) {
-      setNotifications(prev => prev.filter(n => n.id !== dietPlanNotifId));
-    }
-  }, [hasDietPlan]);
-
-  useEffect(() => {
-    const todayStr = getLocalTodayString();
-    const todaySessions = upcomingSessions.filter(s => s.date === todayStr);
-    
-    todaySessions.forEach(session => {
-      const [timeStr, modifier] = session.time.split(' ');
-      let [hours, minutes] = timeStr.split(':').map(Number);
-      if (modifier === 'PM' && hours < 12) hours += 12;
-      if (modifier === 'AM' && hours === 12) hours = 0;
-      
-      const sessionTime = new Date();
-      sessionTime.setHours(hours, minutes, 0, 0);
-      
-      const now = new Date();
-      const diffMs = sessionTime.getTime() - now.getTime();
-      const diffMinutes = diffMs / (1000 * 60);
-      
-      if (diffMinutes > 0 && diffMinutes <= 60) {
-        const reminderId = 2000 + hours;
-        const alreadyHasReminder = notifications.some(n => n.id === reminderId);
-        if (!alreadyHasReminder) {
-          setNotifications(prev => [
-            ...prev,
-            { id: reminderId, text: `Reminder: Your session is scheduled for today at ${session.time}.`, read: false }
-          ]);
-        }
-      }
-    });
-  }, [upcomingSessions]);
-
-  useEffect(() => {
-    const today = new Date();
-    if (today.getDay() === 0) { // 0 is Sunday
-      const sundayNotifId = 3000 + today.getFullYear() * 100 + today.getMonth();
-      setNotifications(prev => {
-        if (!prev.some(n => n.id === sundayNotifId)) {
-          return [...prev, { id: sundayNotifId, text: 'Weekly reminder: Update your body parameters.', read: false }];
-        }
-        return prev;
-      });
-    }
-  }, []);
 
   const isTimeSlotInPastForToday = (timeSlot: string) => {
     if (!scheduleDate) return false;
@@ -579,34 +525,38 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             ))}
           </div>
           <div className="diet-card">
-            <div className="meal-section-header"><h3>{activeMealTab === 'beginner' ? '🟢 Beginner (1–7 Days)' : activeMealTab === 'intermediate' ? '🟡 Intermediate (8–20 Days)' : activeMealTab === 'advanced' ? '🔴 Advanced (21+ Days)' : '🔥 Weight Loss Challenge'}</h3><span className="meal-calories">{hasDietPlan ? '~ 1800 kcal/day' : '~ Phase Details'}</span></div>
+            <div className="meal-section-header"><h3>{activeMealTab === 'beginner' ? '🟢 Beginner (1–7 Days)' : activeMealTab === 'intermediate' ? '🟡 Intermediate (8–20 Days)' : activeMealTab === 'advanced' ? '🔴 Advanced (21+ Days)' : '🔥 Weight Loss Challenge'}</h3><span className="meal-calories">{hasDietPlan ? '~ Personalized Plan' : '~ Phase Details'}</span></div>
             {hasDietPlan ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '12px', background: 'var(--off-white)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <h4 style={{ margin: 0, color: 'var(--dark)' }}>🥗 Coach Approved Meal Plan</h4>
-                    <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--grey-500)' }}>PDF diet sheet successfully generated and linked by your nutritionist.</p>
+                {dietPlan?.fileUrl && (
+                  <div style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '12px', background: 'var(--off-white)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h4 style={{ margin: 0, color: 'var(--dark)' }}>🥗 Coach Approved Meal Plan</h4>
+                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--grey-500)' }}>PDF diet sheet successfully generated and linked by your nutritionist.</p>
+                    </div>
+                    <Button variant="secondary" size="sm" onClick={() => window.open(dietPlan.fileUrl, '_blank')}>Open PDF</Button>
                   </div>
-                  <Button variant="secondary" size="sm" onClick={() => window.open('https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', '_blank')}>Open PDF</Button>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.9rem' }}>
-                  <div style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', background: 'var(--white)' }}>
-                    <strong>🍳 Breakfast (08:30 AM)</strong>
-                    <p style={{ margin: '0.25rem 0 0 0', color: 'var(--grey-600)' }}>Oats with almond milk, chia seeds, sliced bananas, and a handful of almonds.</p>
-                  </div>
-                  <div style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', background: 'var(--white)' }}>
-                    <strong>🍲 Lunch (01:30 PM)</strong>
-                    <p style={{ margin: '0.25rem 0 0 0', color: 'var(--grey-600)' }}>Grilled chicken breast/tofu with quinoa, broccoli, cucumber, and olive oil dressing.</p>
-                  </div>
-                  <div style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', background: 'var(--white)' }}>
-                    <strong>🍎 Snack (05:00 PM)</strong>
-                    <p style={{ margin: '0.25rem 0 0 0', color: 'var(--grey-600)' }}>Greek yogurt or mixed berries with green tea.</p>
-                  </div>
-                  <div style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', background: 'var(--white)' }}>
-                    <strong>🥗 Dinner (08:00 PM)</strong>
-                    <p style={{ margin: '0.25rem 0 0 0', color: 'var(--grey-600)' }}>Baked salmon/lentils with sautéed spinach, asparagus, and sweet potato mash.</p>
-                  </div>
-                </div>
+                )}
+                
+                {(() => {
+                  const planText = activeMealTab === 'weight-loss' ? dietPlan.weightLoss : dietPlan[activeMealTab];
+                  if (planText) {
+                    return (
+                      <div style={{ padding: '1.5rem', backgroundColor: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.7', color: 'var(--dark)', fontSize: '0.95rem' }}>
+                        {planText}
+                      </div>
+                    );
+                  }
+                  
+                  if (!dietPlan?.fileUrl) {
+                    return (
+                      <div className="meal-empty">
+                        <EmptyState icon="📝" title="No text plan for this phase" subtitle="Your coach hasn't written a text plan for this specific phase yet." />
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             ) : (
               <div className="meal-empty"><EmptyState icon="🥗" title="No diet plan assigned yet" subtitle="Your coach will create a personalized meal plan for you." /></div>
