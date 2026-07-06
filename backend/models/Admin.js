@@ -6,6 +6,12 @@ const AdminSchema = new mongoose.Schema({
   phone: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, default: 'admin' },
+  email: { type: String, default: '' },
+  age: { type: String, default: '' },
+  gender: { type: String, default: '' },
+  city: { type: String, default: '' },
+  experience: { type: String, default: '' },
+  coachName: { type: String, default: '' }
 }, { timestamps: true });
 
 // Hash password before saving
