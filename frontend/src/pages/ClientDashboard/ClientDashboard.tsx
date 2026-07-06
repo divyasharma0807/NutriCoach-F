@@ -66,7 +66,10 @@ interface ClientDashboardProps { userName: string; onLogout: () => void; onNavig
 export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLogout, onNavigateApp, profileComplete, activeGoal, subscriptionStartDate, profileData }) => {
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeMealTab, setActiveMealTab] = useState('beginner');
+  const [activeMealTab, setActiveMealTab] = useState(() => localStorage.getItem('activeMealTab') || 'beginner');
+  useEffect(() => {
+    localStorage.setItem('activeMealTab', activeMealTab);
+  }, [activeMealTab]);
   const [settingsTab, setSettingsTab] = useState('profile');
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['All']);
   const [selectedMeasurements, setSelectedMeasurements] = useState<string[]>(['All']);
@@ -427,6 +430,42 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
     }
   };
 
+  const renderDietPlanDetails = () => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {dietPlan?.fileUrl && (
+          <div style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '12px', background: 'var(--off-white)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h4 style={{ margin: 0, color: 'var(--dark)' }}>🥗 Coach Approved Meal Plan</h4>
+              <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--grey-500)' }}>PDF diet sheet successfully generated and linked by your nutritionist.</p>
+            </div>
+            <Button variant="secondary" size="sm" onClick={() => window.open(dietPlan.fileUrl, '_blank')}>Open PDF</Button>
+          </div>
+        )}
+        
+        {(() => {
+          const planText = activeMealTab === 'weight-loss' ? dietPlan.weightLoss : dietPlan[activeMealTab];
+          if (planText) {
+            return (
+              <div style={{ padding: '1.5rem', backgroundColor: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.7', color: 'var(--dark)', fontSize: '0.95rem' }}>
+                {planText}
+              </div>
+            );
+          }
+          
+          if (!dietPlan?.fileUrl) {
+            return (
+              <div className="meal-empty">
+                <EmptyState icon="📝" title="No text plan for this phase" subtitle="Your coach hasn't written a text plan for this specific phase yet." />
+              </div>
+            );
+          }
+          return null;
+        })()}
+      </div>
+    );
+  };
+
   const renderContent = () => {
     if (currentSection === 'my-referrals') {
       return (
@@ -526,39 +565,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           </div>
           <div className="diet-card">
             <div className="meal-section-header"><h3>{activeMealTab === 'beginner' ? '🟢 Beginner (1–7 Days)' : activeMealTab === 'intermediate' ? '🟡 Intermediate (8–20 Days)' : activeMealTab === 'advanced' ? '🔴 Advanced (21+ Days)' : '🔥 Weight Loss Challenge'}</h3><span className="meal-calories">{hasDietPlan ? '~ Personalized Plan' : '~ Phase Details'}</span></div>
-            {hasDietPlan ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {dietPlan?.fileUrl && (
-                  <div style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '12px', background: 'var(--off-white)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ margin: 0, color: 'var(--dark)' }}>🥗 Coach Approved Meal Plan</h4>
-                      <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: 'var(--grey-500)' }}>PDF diet sheet successfully generated and linked by your nutritionist.</p>
-                    </div>
-                    <Button variant="secondary" size="sm" onClick={() => window.open(dietPlan.fileUrl, '_blank')}>Open PDF</Button>
-                  </div>
-                )}
-                
-                {(() => {
-                  const planText = activeMealTab === 'weight-loss' ? dietPlan.weightLoss : dietPlan[activeMealTab];
-                  if (planText) {
-                    return (
-                      <div style={{ padding: '1.5rem', backgroundColor: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.7', color: 'var(--dark)', fontSize: '0.95rem' }}>
-                        {planText}
-                      </div>
-                    );
-                  }
-                  
-                  if (!dietPlan?.fileUrl) {
-                    return (
-                      <div className="meal-empty">
-                        <EmptyState icon="📝" title="No text plan for this phase" subtitle="Your coach hasn't written a text plan for this specific phase yet." />
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-            ) : (
+            {hasDietPlan ? renderDietPlanDetails() : (
               <div className="meal-empty"><EmptyState icon="🥗" title="No diet plan assigned yet" subtitle="Your coach will create a personalized meal plan for you." /></div>
             )}
           </div>
@@ -894,7 +901,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                 <button key={m.id} className={`meal-tab ${activeMealTab === m.id ? 'active' : ''}`} onClick={() => setActiveMealTab(m.id)}>{m.label}</button>
               ))}
             </div>
-            <EmptyState icon="🥗" title="No diet plan assigned yet" subtitle="Your coach will create a personalized meal plan for you soon." />
+            {hasDietPlan ? (
+              <div style={{ marginTop: '1.5rem' }}>
+                {renderDietPlanDetails()}
+              </div>
+            ) : (
+              <EmptyState icon="🥗" title="No diet plan assigned yet" subtitle="Your coach will create a personalized meal plan for you soon." />
+            )}
           </div>
           <div className="main-card sessions-card" style={{ display: 'flex', flexDirection: 'column', padding: '2.5rem', gap: '1.5rem' }}>
             <div className="card-header"><h3>Upcoming Sessions</h3><button className="view-all-link" onClick={() => setIsScheduleModalOpen(true)}>Schedule +</button></div>
@@ -935,7 +948,16 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           onNavigate={handleNavigate}
           profileComplete={profileComplete}
           notifications={notifications}
-          onMarkAsRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
+          onMarkAsRead={async (id) => {
+            try {
+              const res = await api.markNotificationRead(id.toString());
+              if (res.success) {
+                setNotifications(prev => prev.map(n => (n._id || n.id) === id ? { ...n, read: true } : n));
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          }}
           role="client"
         />
         {renderContent()}

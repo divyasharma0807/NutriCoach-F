@@ -1899,7 +1899,16 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
           onMenuClick={() => setSidebarOpen(true)} 
           onNavigate={handleNavigate}
           notifications={notifications}
-          onMarkAsRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
+          onMarkAsRead={async (id) => {
+            try {
+              const res = await api.markNotificationRead(id.toString());
+              if (res.success) {
+                setNotifications(prev => prev.map(n => (n._id || n.id) === id ? { ...n, read: true } : n));
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          }}
           onApproveSession={handleApproveSession}
           onRejectSession={handleRejectSession}
           role="coach"
