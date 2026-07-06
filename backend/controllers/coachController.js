@@ -369,3 +369,88 @@ export const uploadResult = async (req, res, next) => {
   }
 };
 
+// @desc    Edit transformation result
+// @route   PUT /api/results/:id
+// @access  Private (Coach/Admin)
+export const editResult = async (req, res, next) => {
+  const resultId = req.params.id;
+  const { clientName, title, description } = req.body;
+  const userId = req.user._id;
+
+  try {
+    const result = await Result.findById(resultId);
+    if (!result) {
+      res.status(404);
+      throw new Error('Result not found');
+    }
+
+    // Verify ownership: only the coach who uploaded or admin can edit
+    if (result.coach.toString() !== userId.toString() && req.user.role !== 'admin') {
+      res.status(403);
+      throw new Error('Not authorized to edit this result');
+    }
+
+    result.clientName = clientName || title || result.clientName;
+    result.description = description !== undefined ? description : result.description;
+
+    if (req.file) {
+      // Delete old image from Cloudinary
+      if (result.image && result.image.public_id) {
+        await deleteFromCloudinary(result.image.public_id, 'image');
+      }
+      // Upload new image
+      const uploadRes = await uploadToCloudinary(req.file.path, 'transformations');
+      result.image = {
+        secure_url: uploadRes.secure_url,
+        public_id: uploadRes.public_id
+      };
+    }
+
+    await result.save();
+
+    res.json({
+      success: true,
+      message: 'Result updated successfully',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete transformation result
+// @route   DELETE /api/results/:id
+// @access  Private (Coach/Admin)
+export const deleteResult = async (req, res, next) => {
+  const resultId = req.params.id;
+  const userId = req.user._id;
+
+  try {
+    const result = await Result.findById(resultId);
+    if (!result) {
+      res.status(404);
+      throw new Error('Result not found');
+    }
+
+    // Verify ownership
+    if (result.coach.toString() !== userId.toString() && req.user.role !== 'admin') {
+      res.status(403);
+      throw new Error('Not authorized to delete this result');
+    }
+
+    // Delete from Cloudinary
+    if (result.image && result.image.public_id) {
+      await deleteFromCloudinary(result.image.public_id, 'image');
+    }
+
+    await Result.findByIdAndDelete(resultId);
+
+    res.json({
+      success: true,
+      message: 'Result deleted permanently'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
