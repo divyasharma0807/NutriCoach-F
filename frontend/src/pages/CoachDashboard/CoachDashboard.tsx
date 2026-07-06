@@ -199,6 +199,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [newResultDescription, setNewResultDescription] = useState('');
   const [newResultImage, setNewResultImage] = useState('');
   const [newResultFile, setNewResultFile] = useState<File | null>(null);
+  const [newResultError, setNewResultError] = useState('');
   const [selectedResult, setSelectedResult] = useState<any | null>(null);
 
   // Results Edit/Delete states
@@ -923,7 +924,16 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                        password: newClientPassword
                      });
                      if (res.success) {
-                       await fetchCoachData();
+                       setClients(prev => [...prev, {
+                         id: res.data._id,
+                         name: res.data.name,
+                         email: res.data.email,
+                         phone: res.data.phone,
+                         city: res.data.city || '',
+                         clientPlan: res.data.clientPlan || '',
+                         coachName: res.data.coachName || 'N/A',
+                         profileComplete: res.data.profileComplete || false
+                       }]);
                        setIsAddClientOpen(false);
                      }
                    } catch (err: any) {
@@ -1083,7 +1093,16 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                        password: newCoachPassword
                      });
                      if (res.success) {
-                       await fetchCoachData();
+                       setCoaches(prev => [...prev, {
+                         id: res.data._id,
+                         name: res.data.name,
+                         email: res.data.email,
+                         phone: res.data.phone,
+                         level: res.data.level,
+                         status: res.data.activeStatus?.toLowerCase() || 'active',
+                         activeStatus: res.data.activeStatus || 'Active',
+                         clientsCount: 0
+                       }]);
                        setIsAddCoachOpen(false);
                      }
                    } catch (err: any) {
@@ -1244,7 +1263,16 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                        weight: newProspectWeight
                      });
                      if (res.success) {
-                       await fetchCoachData();
+                       setProspects(prev => [...prev, {
+                         id: res.data._id,
+                         name: res.data.name,
+                         phone: res.data.phone,
+                         email: res.data.email,
+                         city: res.data.city || '',
+                         age: res.data.age || '',
+                         gender: res.data.gender || '',
+                         weightRange: res.data.weightRange || ''
+                       }]);
                        setIsAddProspectOpen(false);
                      }
                    } catch (err: any) {
@@ -1438,60 +1466,121 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
             </div>
           )}
           
-          <Modal isOpen={isAddResultOpen} onClose={() => setIsAddResultOpen(false)} title="Add Client Result">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Client Name</label>
-                <input type="text" className="control-input" value={newResultClientName} onChange={e => setNewResultClientName(e.target.value)} placeholder="e.g. Rahul Sharma" />
+          <Modal isOpen={isAddResultOpen} onClose={() => setIsAddResultOpen(false)} title="Add Client Result" customWidth="750px">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+              
+              {/* Client Name Field */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--dark)' }}>Client Name</label>
+                <input 
+                  type="text" 
+                  value={newResultClientName} 
+                  onChange={e => {
+                    setNewResultClientName(e.target.value);
+                    if (newResultError && e.target.value) setNewResultError("");
+                  }} 
+                  placeholder="e.g. Rahul Sharma"
+                  style={{ height: '48px', width: '100%', borderRadius: '12px', padding: '0 16px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)', outline: 'none', color: 'var(--dark)' }} 
+                />
+                {newResultError && <span style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '4px', fontWeight: 500 }}>⚠ {newResultError}</span>}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Description</label>
-                <textarea className="control-input" rows={4} value={newResultDescription} onChange={e => setNewResultDescription(e.target.value)} placeholder="Describe the transformation..." />
+
+              {/* Description Field */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--dark)' }}>Description</label>
+                <textarea 
+                  value={newResultDescription} 
+                  onChange={e => setNewResultDescription(e.target.value)} 
+                  placeholder="Describe the transformation..."
+                  style={{ height: '140px', width: '100%', borderRadius: '12px', padding: '16px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)', resize: 'vertical', outline: 'none', color: 'var(--dark)' }} 
+                />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Result Image Upload</label>
-                <input type="file" accept="image/*" onChange={e => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setNewResultFile(file);
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      setNewResultImage(reader.result as string);
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                }} style={{ padding: '0.5rem', border: '1px dashed var(--grey-300)', borderRadius: '8px' }} />
+
+              {/* Result Image Field */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--dark)' }}>Result Image</label>
+                
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                  <input 
+                    type="file" 
+                    id="coach-add-result-upload"
+                    accept="image/*" 
+                    style={{ display: 'none' }}
+                    onChange={e => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setNewResultFile(file);
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setNewResultImage(reader.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }} 
+                  />
+                  <label 
+                    htmlFor="coach-add-result-upload"
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 24px', height: '48px', backgroundColor: 'var(--grey-100)', color: 'var(--dark)', borderRadius: '12px', cursor: 'pointer', fontWeight: 500, transition: 'background-color 0.2s', border: '1px solid var(--grey-200)' }}
+                  >
+                    <span style={{ fontSize: '1.2rem' }}>📷</span> Upload Result Image
+                  </label>
+                  {newResultFile && <span style={{ color: 'var(--grey-600)', fontSize: '0.9rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '200px' }}>Selected: {newResultFile.name}</span>}
+                </div>
+
                 {newResultImage && (
-                  <div style={{ marginTop: '1rem', width: '100%', height: '120px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--grey-200)' }}>
-                    <img src={newResultImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ marginTop: '16px', width: '100%', height: '200px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--grey-200)', backgroundColor: 'var(--grey-50)' }}>
+                    <img src={newResultImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                   </div>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <Button variant="secondary" fullWidth onClick={() => setIsAddResultOpen(false)}>Cancel</Button>
-                <Button variant="primary" fullWidth onClick={async () => {
-                  if (!newResultClientName || !newResultFile) {
-                    alert("Please fill client name and upload an image");
-                    return;
-                  }
-                  try {
-                    const res = await api.uploadResult({
-                      clientName: newResultClientName,
-                      description: newResultDescription,
-                      file: newResultFile
-                    });
-                    if (res.success) {
-                      await fetchCoachData();
-                      setNewResultClientName('');
-                      setNewResultDescription('');
-                      setNewResultImage('');
-                      setNewResultFile(null);
-                      setIsAddResultOpen(false);
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '16px', marginTop: '32px', paddingTop: '24px', borderTop: '1px solid var(--grey-200)' }}>
+                <button 
+                  onClick={() => { setIsAddResultOpen(false); setNewResultError(""); }}
+                  style={{ flex: 1, height: '48px', backgroundColor: 'var(--grey-100)', color: 'var(--dark)', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', transition: 'background-color 0.2s' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={async () => {
+                    if (!newResultClientName) {
+                      setNewResultError("Client name is required.");
+                      return;
                     }
-                  } catch (err: any) {
-                    alert(err.message || 'Failed to upload result');
-                  }
-                }}>Save Result</Button>
+                    if (!newResultFile) {
+                      setNewResultError("Result image is required.");
+                      return;
+                    }
+                    
+                    try {
+                      const res = await api.uploadResult({
+                        clientName: newResultClientName,
+                        description: newResultDescription,
+                        file: newResultFile
+                      });
+                      if (res.success) {
+                        setResults(prev => [...prev, {
+                          id: res.data._id,
+                          clientName: res.data.clientName,
+                          description: res.data.description,
+                          image: res.data.image?.secure_url || res.data.image
+                        }]);
+                        setNewResultClientName('');
+                        setNewResultDescription('');
+                        setNewResultImage('');
+                        setNewResultFile(null);
+                        setNewResultError('');
+                        setIsAddResultOpen(false);
+                      }
+                    } catch (err: any) {
+                      alert(err.message || 'Failed to upload result');
+                    }
+                  }}
+                  style={{ flex: 1, height: '48px', backgroundColor: 'var(--dark)', color: 'var(--white)', border: 'none', borderRadius: '12px', fontWeight: 600, cursor: 'pointer', transition: 'opacity 0.2s' }}
+                >
+                  Save Result
+                </button>
               </div>
             </div>
           </Modal>
@@ -1895,18 +1984,18 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
           </div>
         </Modal>
         <Modal isOpen={isEditResultOpen} onClose={() => setIsEditResultOpen(false)} title="Edit Result">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Client Name</label>
+          <div className="settings-form">
+            <div className="form-group">
+              <label>Client Name</label>
               <input type="text" className="control-input" value={editResultClientName} onChange={e => setEditResultClientName(e.target.value)} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Description</label>
+            <div className="form-group">
+              <label>Description</label>
               <textarea className="control-input" rows={4} value={editResultDescription} onChange={e => setEditResultDescription(e.target.value)} />
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Result Image (Optional)</label>
-              <input type="file" accept="image/*" onChange={e => {
+            <div className="form-group">
+              <label>Result Image (Optional)</label>
+              <input type="file" className="control-input" accept="image/*" onChange={e => {
                 const file = e.target.files?.[0];
                 if (file) {
                   setEditResultFile(file);
@@ -1916,7 +2005,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                   };
                   reader.readAsDataURL(file);
                 }
-              }} style={{ padding: '0.5rem', border: '1px dashed var(--grey-300)', borderRadius: '8px' }} />
+              }} />
               {editResultImage && (
                 <div style={{ marginTop: '1rem', width: '100%', height: '120px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--grey-200)' }}>
                   <img src={editResultImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -1964,7 +2053,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                 try {
                   const res = await api.deleteResult(selectedResult.id);
                   if (res.success) {
-                    await fetchCoachData();
+                    setResults(prev => prev.filter(r => r.id !== selectedResult.id));
                     setSelectedResult(null);
                     setIsDeleteResultConfirmOpen(false);
                   }
