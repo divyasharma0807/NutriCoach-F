@@ -93,7 +93,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
   const [refCity, setRefCity] = useState('');
   const [refAge, setRefAge] = useState('');
   const [refGender, setRefGender] = useState('');
-  const coachResults: any[] = [];
+  const [coachResults, setCoachResults] = useState<any[]>([]);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   const [notifications, setNotifications] = useState<{id: any; text: string; read: boolean}[]>([]);
@@ -164,6 +164,15 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
 
         if (d.notifications) {
           setNotifications(d.notifications);
+        }
+
+        if (d.results) {
+          setCoachResults(d.results.map((r: any) => ({
+            id: r.id || r._id,
+            clientName: r.clientName,
+            description: r.description,
+            image: r.image && r.image.secure_url ? r.image.secure_url : r.image
+          })));
         }
       }
 

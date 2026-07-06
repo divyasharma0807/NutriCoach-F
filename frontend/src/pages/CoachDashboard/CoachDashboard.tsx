@@ -201,6 +201,14 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [newResultFile, setNewResultFile] = useState<File | null>(null);
   const [selectedResult, setSelectedResult] = useState<any | null>(null);
 
+  // Results Edit/Delete states
+  const [isEditResultOpen, setIsEditResultOpen] = useState(false);
+  const [editResultClientName, setEditResultClientName] = useState('');
+  const [editResultDescription, setEditResultDescription] = useState('');
+  const [editResultImage, setEditResultImage] = useState<string | null>(null);
+  const [editResultFile, setEditResultFile] = useState<File | null>(null);
+  const [isDeleteResultConfirmOpen, setIsDeleteResultConfirmOpen] = useState(false);
+
   // Diet Schedule
   const [dietPlans, setDietPlans] = useState<{ beginner: string; intermediate: string; advanced: string; weightLoss: string }>({ beginner: '', intermediate: '', advanced: '', weightLoss: '' });
   const [activeDietCategory, setActiveDietCategory] = useState<'beginner' | 'intermediate' | 'advanced' | 'weightLoss'>('beginner');
@@ -1388,6 +1396,16 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                   <img src={selectedResult.image} alt="Transformation" style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid var(--grey-200)' }} />
                 </div>
               )}
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                <Button variant="secondary" onClick={() => {
+                  setEditResultClientName(selectedResult.clientName);
+                  setEditResultDescription(selectedResult.description);
+                  setEditResultImage(selectedResult.image);
+                  setEditResultFile(null);
+                  setIsEditResultOpen(true);
+                }}>Edit Result</Button>
+                <Button variant="danger" onClick={() => setIsDeleteResultConfirmOpen(true)}>Delete Result</Button>
+              </div>
             </div>
           ) : (
             <div style={{ position: 'relative', minHeight: '400px' }}>
@@ -1873,6 +1891,87 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                 setIsUpdateSubscriptionModalOpen(false);
                 setSubscriptionStartDate('');
               }}>Save</Button>
+            </div>
+          </div>
+        </Modal>
+        <Modal isOpen={isEditResultOpen} onClose={() => setIsEditResultOpen(false)} title="Edit Result">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Client Name</label>
+              <input type="text" className="control-input" value={editResultClientName} onChange={e => setEditResultClientName(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Description</label>
+              <textarea className="control-input" rows={4} value={editResultDescription} onChange={e => setEditResultDescription(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Result Image (Optional)</label>
+              <input type="file" accept="image/*" onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setEditResultFile(file);
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setEditResultImage(reader.result as string);
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }} style={{ padding: '0.5rem', border: '1px dashed var(--grey-300)', borderRadius: '8px' }} />
+              {editResultImage && (
+                <div style={{ marginTop: '1rem', width: '100%', height: '120px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--grey-200)' }}>
+                  <img src={editResultImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+              <Button variant="secondary" fullWidth onClick={() => setIsEditResultOpen(false)}>Cancel</Button>
+              <Button variant="primary" fullWidth onClick={async () => {
+                if (!editResultClientName) {
+                  alert("Please provide a client name");
+                  return;
+                }
+                try {
+                  const formData = new FormData();
+                  formData.append('clientName', editResultClientName);
+                  formData.append('description', editResultDescription);
+                  if (editResultFile) {
+                    formData.append('image', editResultFile);
+                  }
+                  const res = await api.editResult(selectedResult.id, formData);
+                  if (res.success) {
+                    await fetchCoachData();
+                    setSelectedResult(res.data ? {
+                      id: res.data._id,
+                      clientName: res.data.clientName,
+                      description: res.data.description,
+                      image: res.data.image && res.data.image.secure_url ? res.data.image.secure_url : res.data.image
+                    } : null);
+                    setIsEditResultOpen(false);
+                  }
+                } catch (err: any) {
+                  alert(err.message || 'Failed to edit result');
+                }
+              }}>Save Changes</Button>
+            </div>
+          </div>
+        </Modal>
+        <Modal isOpen={isDeleteResultConfirmOpen} onClose={() => setIsDeleteResultConfirmOpen(false)} title="Delete Result">
+          <div style={{ padding: '1rem 0' }}>
+            <p style={{ margin: 0, fontSize: '1.1rem', color: 'var(--dark)' }}>Are you sure you want to delete this Result?</p>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={() => setIsDeleteResultConfirmOpen(false)}>Cancel</Button>
+              <Button variant="danger" onClick={async () => {
+                try {
+                  const res = await api.deleteResult(selectedResult.id);
+                  if (res.success) {
+                    await fetchCoachData();
+                    setSelectedResult(null);
+                    setIsDeleteResultConfirmOpen(false);
+                  }
+                } catch (err: any) {
+                  alert(err.message || 'Failed to delete result');
+                }
+              }}>Delete</Button>
             </div>
           </div>
         </Modal>

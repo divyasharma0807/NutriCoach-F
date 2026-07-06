@@ -142,11 +142,12 @@ export const api = {
   },
 
   // Diet Plans
-  uploadDietPlan: async (formData: FormData) => {
+  uploadDietPlan: async (data: any) => {
+    const isMultipart = data instanceof FormData;
     return fetchAPI('/diet-plans/upload', {
       method: 'POST',
-      headers: getHeaders(true),
-      body: formData
+      headers: getHeaders(isMultipart),
+      body: isMultipart ? data : JSON.stringify(data)
     });
   },
 
@@ -187,7 +188,13 @@ export const api = {
     });
   },
 
-  uploadResult: async (formData: FormData) => {
+  uploadResult: async (resultData: { clientName: string; description: string; file: File }) => {
+    const formData = new FormData();
+    formData.append('clientName', resultData.clientName);
+    formData.append('description', resultData.description);
+    if (resultData.file) {
+      formData.append('image', resultData.file);
+    }
     return fetchAPI('/results', {
       method: 'POST',
       headers: getHeaders(true),
@@ -235,6 +242,43 @@ export const api = {
   markNotificationRead: async (notifId: string) => {
     return fetchAPI(`/notifications/${notifId}/read`, {
       method: 'PUT',
+      headers: getHeaders()
+    });
+  },
+
+  updateAdminProfile: async (profileData: any) => {
+    return fetchAPI('/admin/profile', {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(profileData)
+    });
+  },
+
+  editResult: async (resultId: string, formData: FormData) => {
+    return fetchAPI(`/results/${resultId}`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: formData
+    });
+  },
+
+  deleteResult: async (resultId: string) => {
+    return fetchAPI(`/results/${resultId}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+  },
+
+  deleteCoach: async (coachId: string) => {
+    return fetchAPI(`/admin/coaches/${coachId}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+  },
+
+  deleteClient: async (clientId: string) => {
+    return fetchAPI(`/admin/clients/${clientId}`, {
+      method: 'DELETE',
       headers: getHeaders()
     });
   }
