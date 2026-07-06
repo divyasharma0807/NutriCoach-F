@@ -111,6 +111,13 @@ export const api = {
     });
   },
 
+  getReferrals: async () => {
+    return fetchAPI('/clients/referrals', {
+      method: 'GET',
+      headers: getHeaders()
+    });
+  },
+
   // Sessions
   scheduleSession: async (sessionData: { date: string; time: string; clientPhone?: string; clientId?: string, withParentCoach?: boolean }) => {
     return fetchAPI('/sessions/schedule', {
@@ -148,6 +155,13 @@ export const api = {
       method: 'POST',
       headers: getHeaders(isMultipart),
       body: isMultipart ? data : JSON.stringify(data)
+    });
+  },
+
+  getMyDietPlan: async () => {
+    return fetchAPI('/diet-plans/my-plan', {
+      method: 'GET',
+      headers: getHeaders()
     });
   },
 
