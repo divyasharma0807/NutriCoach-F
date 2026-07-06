@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import { createPortal } from 'react-dom';
 import './Modal.css';
 
 interface ModalProps { isOpen: boolean; onClose: () => void; title?: string; children: React.ReactNode; customWidth?: string; }
@@ -12,7 +12,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
 
   if (!isOpen) return null;
 
-  return ReactDOM.createPortal(
+  return createPortal(
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
       <div className="modal-content" onClick={e => e.stopPropagation()} style={customWidth ? { maxWidth: customWidth } : {}}>
         {title && (
