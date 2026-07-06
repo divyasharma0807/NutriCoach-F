@@ -924,16 +924,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                        password: newClientPassword
                      });
                      if (res.success) {
-                       setClients(prev => [...prev, {
-                         id: res.data._id,
-                         name: res.data.name,
-                         email: res.data.email,
-                         phone: res.data.phone,
-                         city: res.data.city || '',
-                         clientPlan: res.data.clientPlan || '',
-                         coachName: res.data.coachName || 'N/A',
-                         profileComplete: res.data.profileComplete || false
-                       }]);
+                       await fetchCoachData();
                        setIsAddClientOpen(false);
                      }
                    } catch (err: any) {
@@ -1093,16 +1084,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                        password: newCoachPassword
                      });
                      if (res.success) {
-                       setCoaches(prev => [...prev, {
-                         id: res.data._id,
-                         name: res.data.name,
-                         email: res.data.email,
-                         phone: res.data.phone,
-                         level: res.data.level,
-                         status: res.data.activeStatus?.toLowerCase() || 'active',
-                         activeStatus: res.data.activeStatus || 'Active',
-                         clientsCount: 0
-                       }]);
+                       await fetchCoachData();
                        setIsAddCoachOpen(false);
                      }
                    } catch (err: any) {
@@ -1263,16 +1245,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                        weight: newProspectWeight
                      });
                      if (res.success) {
-                       setProspects(prev => [...prev, {
-                         id: res.data._id,
-                         name: res.data.name,
-                         phone: res.data.phone,
-                         email: res.data.email,
-                         city: res.data.city || '',
-                         age: res.data.age || '',
-                         gender: res.data.gender || '',
-                         weightRange: res.data.weightRange || ''
-                       }]);
+                       await fetchCoachData();
                        setIsAddProspectOpen(false);
                      }
                    } catch (err: any) {
