@@ -199,7 +199,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
   const [newResultClientName, setNewResultClientName] = useState('');
   const [newResultDescription, setNewResultDescription] = useState('');
   const [newResultImage, setNewResultImage] = useState('');
+  const [newResultFile, setNewResultFile] = useState<File | null>(null);
   const [selectedResult, setSelectedResult] = useState<any | null>(null);
+  
+  // Results Edit/Delete states
+  const [isEditResultOpen, setIsEditResultOpen] = useState(false);
+  const [editResultClientName, setEditResultClientName] = useState('');
+  const [editResultDescription, setEditResultDescription] = useState('');
+  const [editResultImage, setEditResultImage] = useState<string | null>(null);
+  const [editResultFile, setEditResultFile] = useState<File | null>(null);
+  const [isDeleteResultConfirmOpen, setIsDeleteResultConfirmOpen] = useState(false);
+
+  // Password toggles
+  const [showClientPassword, setShowClientPassword] = useState(false);
+  const [showCoachPassword, setShowCoachPassword] = useState(false);
 
   // Diet Schedule
   const [dietPlans, setDietPlans] = useState<{ beginner: string; intermediate: string; advanced: string; weightLoss: string }>({ beginner: '', intermediate: '', advanced: '', weightLoss: '' });
@@ -410,6 +423,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
     }
   };
 
+  const fetchAdminProfile = async () => {
+    try {
+      const res = await api.getMe();
+      if (res.success && res.data) {
+        const u = res.data;
+        setCpName(u.name || '');
+        setCpPhone(u.phone || '');
+        setCpEmail(u.email || '');
+        setCpAge(u.age ? String(u.age) : '');
+        setCpGender(u.gender || '');
+        setCpCity(u.city || '');
+        setCpCoachName(u.coachName || '');
+        setCpExperience(u.experience || '');
+      }
+    } catch (error) {
+      console.error('Error fetching admin profile:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAdminProfile();
+  }, []);
+
   useEffect(() => {
     fetchAdminData();
   }, [clientPlanFilter, clientCityFilter]);
@@ -488,12 +524,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
   // =========================================================================
 
   const getGreeting = () => {
-    const name = "Admin";
+    const firstName = cpName ? cpName.trim().split(' ')[0] : 'Admin';
     const hour = new Date().getHours();
-    if (hour >= 5 && hour < 12) return `Good morning, ${name}! ☀️`;
-    if (hour >= 12 && hour < 17) return `Good afternoon, ${name}! 👋`;
-    if (hour >= 17 && hour < 21) return `Good evening, ${name}! 🌇`;
-    return `Good night, ${name}! 🌙`;
+    if (hour >= 5 && hour < 12) return `Good morning, ${firstName}! ☀️`;
+    if (hour >= 12 && hour < 17) return `Good afternoon, ${firstName}! 👋`;
+    if (hour >= 17 && hour < 21) return `Good evening, ${firstName}! 🌇`;
+    return `Good night, ${firstName}! 🌙`;
   };
 
   const renderContent = () => {
@@ -867,9 +903,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   </select>
                 </div>
               </div>
-              <div className="form-field">
+              <div className="form-field" style={{ position: 'relative' }}>
                 <label>Password *</label>
-                <input type="password" value={newClientPassword} onChange={e => setNewClientPassword(e.target.value)} placeholder="Mandatory password" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
+                <div style={{ position: 'relative', width: '100%' }}>
+                  <input 
+                    type={showClientPassword ? "text" : "password"} 
+                    value={newClientPassword} 
+                    onChange={e => setNewClientPassword(e.target.value)} 
+                    placeholder="Mandatory password" 
+                    style={{ width: '100%', padding: '0.75rem', paddingRight: '2.5rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowClientPassword(!showClientPassword)} 
+                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--grey-500)', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    {showClientPassword ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '20px', height: '20px' }}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '20px', height: '20px' }}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
               
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
@@ -1197,6 +1257,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   <img src={selectedResult.image} alt="Transformation" style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid var(--grey-200)' }} />
                 </div>
               )}
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                <Button variant="secondary" onClick={() => {
+                  setEditResultClientName(selectedResult.clientName);
+                  setEditResultDescription(selectedResult.description);
+                  setEditResultImage(selectedResult.image);
+                  setEditResultFile(null);
+                  setIsEditResultOpen(true);
+                }}>Edit Result</Button>
+                <Button variant="danger" onClick={() => setIsDeleteResultConfirmOpen(true)}>Delete Result</Button>
+              </div>
             </div>
           ) : (
             <div style={{ position: 'relative', minHeight: '400px' }}>
@@ -1244,6 +1314,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                 <input type="file" accept="image/*" onChange={e => {
                   const file = e.target.files?.[0];
                   if (file) {
+                    setNewResultFile(file);
                     const reader = new FileReader();
                     reader.onloadend = () => {
                       setNewResultImage(reader.result as string);
@@ -1259,13 +1330,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                 <Button variant="secondary" fullWidth onClick={() => setIsAddResultOpen(false)}>Cancel</Button>
-                <Button variant="primary" fullWidth onClick={() => {
-                  if (!newResultClientName) return;
-                  setResults([...results, { id: Date.now().toString(), clientName: newResultClientName, description: newResultDescription, image: newResultImage }]);
-                  setNewResultClientName('');
-                  setNewResultDescription('');
-                  setNewResultImage('');
-                  setIsAddResultOpen(false);
+                <Button variant="primary" fullWidth onClick={async () => {
+                  if (!newResultClientName || !newResultFile) {
+                    alert("Please provide a client name and choose an image file");
+                    return;
+                  }
+                  try {
+                    const res = await api.uploadResult({
+                      clientName: newResultClientName,
+                      description: newResultDescription,
+                      file: newResultFile
+                    });
+                    if (res.success) {
+                      await fetchAdminData();
+                      setNewResultClientName('');
+                      setNewResultDescription('');
+                      setNewResultImage('');
+                      setNewResultFile(null);
+                      setIsAddResultOpen(false);
+                    }
+                  } catch (err: any) {
+                    alert(err.message || 'Failed to upload result');
+                  }
                 }}>Save Result</Button>
               </div>
             </div>
@@ -1572,7 +1658,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               </div>
             </div>
             <div style={{ marginTop: '2rem' }}>
-              <Button variant="primary" onClick={() => setCurrentSection('my-profile')}>Save Profile</Button>
+              <Button variant="primary" onClick={async () => {
+                try {
+                  const res = await api.updateAdminProfile({
+                    name: cpName,
+                    phone: cpPhone,
+                    email: cpEmail,
+                    age: cpAge,
+                    gender: cpGender,
+                    city: cpCity,
+                    coachName: cpCoachName,
+                    experience: cpExperience
+                  });
+                  if (res.success) {
+                    setCurrentSection('my-profile');
+                  }
+                } catch (err: any) {
+                  alert(err.message || 'Failed to save profile');
+                }
+              }}>Save Profile</Button>
             </div>
           </div>
         </div>
@@ -1604,7 +1708,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
 
   return (
     <div className="coach-dashboard">
-      <Sidebar role="admin" currentSection={currentSection} onNavigate={handleNavigate} userName={userName} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar role="admin" currentSection={currentSection} onNavigate={handleNavigate} userName={cpName} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <main className="dashboard-main">
         <Topbar 
           title={
@@ -1672,9 +1776,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                 </select>
               </div>
             </div>
-            <div className="form-field">
+            <div className="form-field" style={{ position: 'relative' }}>
               <label>Password *</label>
-              <input type="password" value={newCoachPassword} onChange={e => setNewCoachPassword(e.target.value)} placeholder="Password for login" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
+              <div style={{ position: 'relative', width: '100%' }}>
+                <input 
+                  type={showCoachPassword ? "text" : "password"} 
+                  value={newCoachPassword} 
+                  onChange={e => setNewCoachPassword(e.target.value)} 
+                  placeholder="Password for login" 
+                  style={{ width: '100%', padding: '0.75rem', paddingRight: '2.5rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} 
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowCoachPassword(!showCoachPassword)} 
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--grey-500)', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {showCoachPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '20px', height: '20px' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: '20px', height: '20px' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
               <Button variant="ghost" fullWidth onClick={() => setIsAddCoachOpen(false)}>Cancel</Button>
@@ -1710,12 +1838,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
             <p style={{ margin: 0, fontSize: '1.1rem', color: 'var(--dark)' }}>Are you sure you want to delete this profile?<br/><br/>This action cannot be undone.</p>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-              <Button variant="danger" onClick={() => {
+              <Button variant="danger" onClick={async () => {
                 if (itemToDelete) {
-                  if (itemToDelete.type === 'client') { setClients(clients.filter(c => c.id !== itemToDelete.id)); setSelectedClient(null); }
-                  if (itemToDelete.type === 'coach') { setCoaches(coaches.filter(c => c.id !== itemToDelete.id)); }
-                  if (itemToDelete.type === 'prospect') { setProspects(prospects.filter(c => c.id !== itemToDelete.id)); setSelectedProspect(null); }
-                  if (itemToDelete.type === 'referral') { setReferrals(referrals.filter(c => c.id !== itemToDelete.id)); setSelectedReferral(null); }
+                  try {
+                    if (itemToDelete.type === 'client') {
+                      const res = await api.deleteClient(itemToDelete.id);
+                      if (res.success) {
+                        setClients(clients.filter(c => c.id !== itemToDelete.id));
+                        setSelectedClient(null);
+                      }
+                    } else if (itemToDelete.type === 'coach') {
+                      const res = await api.deleteCoach(itemToDelete.id);
+                      if (res.success) {
+                        setCoaches(coaches.filter(c => c.id !== itemToDelete.id));
+                      }
+                    } else if (itemToDelete.type === 'prospect') {
+                      setProspects(prospects.filter(c => c.id !== itemToDelete.id));
+                      setSelectedProspect(null);
+                    } else if (itemToDelete.type === 'referral') {
+                      setReferrals(referrals.filter(c => c.id !== itemToDelete.id));
+                      setSelectedReferral(null);
+                    }
+                  } catch (err: any) {
+                    alert(err.message || 'Failed to delete');
+                  }
                 }
                 setIsDeleteModalOpen(false);
                 setItemToDelete(null);
@@ -1751,6 +1897,87 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                 setIsUpdateSubscriptionModalOpen(false);
                 setSubscriptionStartDate('');
               }}>Save</Button>
+            </div>
+          </div>
+        </Modal>
+        <Modal isOpen={isEditResultOpen} onClose={() => setIsEditResultOpen(false)} title="Edit Result">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Client Name</label>
+              <input type="text" className="control-input" value={editResultClientName} onChange={e => setEditResultClientName(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Description</label>
+              <textarea className="control-input" rows={4} value={editResultDescription} onChange={e => setEditResultDescription(e.target.value)} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--grey-600)' }}>Result Image (Optional)</label>
+              <input type="file" accept="image/*" onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setEditResultFile(file);
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setEditResultImage(reader.result as string);
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }} style={{ padding: '0.5rem', border: '1px dashed var(--grey-300)', borderRadius: '8px' }} />
+              {editResultImage && (
+                <div style={{ marginTop: '1rem', width: '100%', height: '120px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--grey-200)' }}>
+                  <img src={editResultImage} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+              <Button variant="secondary" fullWidth onClick={() => setIsEditResultOpen(false)}>Cancel</Button>
+              <Button variant="primary" fullWidth onClick={async () => {
+                if (!editResultClientName) {
+                  alert("Please provide a client name");
+                  return;
+                }
+                try {
+                  const formData = new FormData();
+                  formData.append('clientName', editResultClientName);
+                  formData.append('description', editResultDescription);
+                  if (editResultFile) {
+                    formData.append('image', editResultFile);
+                  }
+                  const res = await api.editResult(selectedResult.id, formData);
+                  if (res.success) {
+                    await fetchAdminData();
+                    setSelectedResult(res.data ? {
+                      id: res.data._id,
+                      clientName: res.data.clientName,
+                      description: res.data.description,
+                      image: res.data.image && res.data.image.secure_url ? res.data.image.secure_url : res.data.image
+                    } : null);
+                    setIsEditResultOpen(false);
+                  }
+                } catch (err: any) {
+                  alert(err.message || 'Failed to edit result');
+                }
+              }}>Save Changes</Button>
+            </div>
+          </div>
+        </Modal>
+        <Modal isOpen={isDeleteResultConfirmOpen} onClose={() => setIsDeleteResultConfirmOpen(false)} title="Delete Result">
+          <div style={{ padding: '1rem 0' }}>
+            <p style={{ margin: 0, fontSize: '1.1rem', color: 'var(--dark)' }}>Are you sure you want to delete this Result?</p>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={() => setIsDeleteResultConfirmOpen(false)}>Cancel</Button>
+              <Button variant="danger" onClick={async () => {
+                try {
+                  const res = await api.deleteResult(selectedResult.id);
+                  if (res.success) {
+                    await fetchAdminData();
+                    setSelectedResult(null);
+                    setIsDeleteResultConfirmOpen(false);
+                  }
+                } catch (err: any) {
+                  alert(err.message || 'Failed to delete result');
+                }
+              }}>Delete</Button>
             </div>
           </div>
         </Modal>
