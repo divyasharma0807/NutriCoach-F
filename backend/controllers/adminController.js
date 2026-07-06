@@ -7,6 +7,8 @@ import Result from '../models/Result.js';
 import Admin from '../models/Admin.js';
 import BodyParameterHistory from '../models/BodyParameterHistory.js';
 import MeasurementHistory from '../models/MeasurementHistory.js';
+import DietPlan from '../models/DietPlan.js';
+import Prospect from '../models/Prospect.js';
 import { deleteFromCloudinary } from '../services/cloudinaryService.js';
 
 // @desc    Get admin dashboard statistics
@@ -97,7 +99,7 @@ export const getDashboardStats = async (req, res, next) => {
           id: r._id,
           clientName: r.clientName,
           description: r.description,
-          image: r.image
+          image: r.image?.secure_url || r.image
         })),
         notifications: notifications.map(n => ({ id: n._id, text: n.text, read: n.read }))
       }
@@ -240,7 +242,13 @@ export const deleteCoach = async (req, res, next) => {
     await Coach.updateMany({ seniorCoach: coachId }, { seniorCoach: null });
 
     // Delete Sessions associated with coach
-    await Session.deleteMany({ coachId });
+    await Session.deleteMany({ participants: { $in: [coachId] } });
+
+    // Delete orphan records (Results, DietPlans, Prospects)
+    // Note: To fully clean Cloudinary images we should technically fetch Results first, but for now we delete from DB.
+    await Result.deleteMany({ coach: coachId });
+    await DietPlan.deleteMany({ coach: coachId });
+    await Prospect.deleteMany({ addedByCoach: coachId });
 
     res.json({
       success: true,
