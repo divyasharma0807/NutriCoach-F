@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import './Modal.css';
 
-interface ModalProps { isOpen: boolean; onClose: () => void; title?: string; children: React.ReactNode; }
+interface ModalProps { isOpen: boolean; onClose: () => void; title?: string; children: React.ReactNode; customWidth?: string; }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, customWidth }) => {
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -11,9 +12,9 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
 
   if (!isOpen) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={customWidth ? { maxWidth: customWidth } : {}}>
         {title && (
           <div className="modal-header">
             <h3 className="modal-title">{title}</h3>
@@ -22,6 +23,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
         )}
         <div className="modal-body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
