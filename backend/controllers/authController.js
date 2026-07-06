@@ -132,12 +132,6 @@ export const login = async (req, res, next) => {
       throw new Error('Invalid phone or password');
     }
 
-    // Verify Active Status for Coach
-    if (role === 'coach' && user.activeStatus === 'Inactive') {
-      res.status(403);
-      throw new Error('Your coach account is currently inactive. Contact Admin.');
-    }
-
     const token = generateToken(res, user._id, role);
 
     res.json({
@@ -186,6 +180,11 @@ export const getMe = async (req, res, next) => {
         role: user.role,
         profileComplete: user.role === 'admin' ? true : user.profileComplete,
         activeGoal: user.role === 'client' ? (user.activeGoal || '') : '',
+        age: user.age || '',
+        gender: user.gender || '',
+        city: user.city || '',
+        experience: user.experience || '',
+        coachName: user.coachName || '',
       }
     });
   } catch (error) {

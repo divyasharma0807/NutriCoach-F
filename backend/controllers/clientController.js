@@ -4,6 +4,7 @@ import Session from '../models/Session.js';
 import DietPlan from '../models/DietPlan.js';
 import Referral from '../models/Referral.js';
 import Notification from '../models/Notification.js';
+import Result from '../models/Result.js';
 import BodyParameterHistory from '../models/BodyParameterHistory.js';
 import MeasurementHistory from '../models/MeasurementHistory.js';
 import path from 'path';
@@ -262,6 +263,12 @@ export const getDashboardStats = async (req, res, next) => {
       recipientId: clientId
     }).sort({ createdAt: -1 }).limit(10);
 
+    // Get results uploaded by the client's direct coach/admin
+    let results = [];
+    if (client.coach) {
+      results = await Result.find({ coach: client.coach });
+    }
+
     res.json({
       success: true,
       data: {
@@ -274,6 +281,12 @@ export const getDashboardStats = async (req, res, next) => {
         dietPlan: dietPlan || null,
         parameterHistory,
         measurementHistory,
+        results: results.map(r => ({
+          id: r._id,
+          clientName: r.clientName,
+          description: r.description,
+          image: r.image
+        })),
         notifications: notifications.map(n => ({ id: n._id, text: n.text, read: n.read }))
       }
     });
