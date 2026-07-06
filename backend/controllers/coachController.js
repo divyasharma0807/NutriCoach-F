@@ -6,6 +6,8 @@ import Referral from '../models/Referral.js';
 import Result from '../models/Result.js';
 import Notification from '../models/Notification.js';
 import DietPlan from '../models/DietPlan.js';
+import BodyParameterHistory from '../models/BodyParameterHistory.js';
+import MeasurementHistory from '../models/MeasurementHistory.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinaryService.js';
 
 
@@ -224,7 +226,7 @@ export const getDashboardStats = async (req, res, next) => {
           id: r._id,
           clientName: r.clientName,
           description: r.description,
-          image: r.image
+          image: r.image?.secure_url || r.image
         })),
         notifications: notifications.map(n => ({ id: n._id, text: n.text, read: n.read, type: n.type, relatedMeetingId: n.relatedMeetingId }))
       }
@@ -454,3 +456,52 @@ export const deleteResult = async (req, res, next) => {
   }
 };
 
+// @desc    Delete client permanently
+// @route   DELETE /api/coaches/clients/:id
+// @access  Private (Coach/Admin)
+export const deleteClient = async (req, res, next) => {
+  const clientId = req.params.id;
+  const userId = req.user._id;
+
+  try {
+    const client = await Client.findById(clientId);
+    if (!client) {
+      res.status(404);
+      throw new Error('Client not found');
+    }
+
+    // Verify ownership
+    if (client.coach && client.coach.toString() !== userId.toString() && req.user.role !== 'admin') {
+      res.status(403);
+      throw new Error('Not authorized to delete this client');
+    }
+
+    // Delete profile photo and medical PDF from Cloudinary if they exist
+    if (client.profilePhoto && client.profilePhoto.public_id) {
+      await deleteFromCloudinary(client.profilePhoto.public_id, 'image');
+    }
+    if (client.medicalPdf && client.medicalPdf.public_id) {
+      await deleteFromCloudinary(client.medicalPdf.public_id, 'raw');
+    }
+
+    // Delete from Client model
+    await Client.findByIdAndDelete(clientId);
+
+    // Delete parameter and measurement histories
+    await BodyParameterHistory.deleteMany({ client: clientId });
+    await MeasurementHistory.deleteMany({ client: clientId });
+
+    // Delete sessions
+    await Session.deleteMany({ participants: { $in: [clientId] } });
+
+    // Delete referrals
+    await Referral.deleteMany({ client: clientId });
+
+    res.json({
+      success: true,
+      message: 'Client and all related records deleted permanently'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
