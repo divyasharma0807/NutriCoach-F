@@ -277,7 +277,7 @@ export const api = {
   },
 
   deleteClient: async (clientId: string) => {
-    return fetchAPI(`/admin/clients/${clientId}`, {
+    return fetchAPI(`/coaches/clients/${clientId}`, {
       method: 'DELETE',
       headers: getHeaders()
     });
