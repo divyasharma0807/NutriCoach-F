@@ -417,7 +417,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
     try {
       const res = await api.updateCoachStatus(coachId, nextStatus);
       if (res.success) {
-        setCoaches(prev => prev.map(c => c.id === coachId ? { ...c, status: nextStatus.toLowerCase(), activeStatus: nextStatus } : c));
+        await fetchAdminData();
       }
     } catch (err: any) {
       alert(err.message || 'Failed to toggle status');
@@ -954,16 +954,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                       password: newClientPassword
                     });
                     if (res.success) {
-                      setClients(prev => [...prev, {
-                        id: res.data._id,
-                        name: res.data.name,
-                        email: res.data.email,
-                        phone: res.data.phone,
-                        city: res.data.city || '',
-                        clientPlan: res.data.clientPlan || '',
-                        coachName: res.data.coachName || 'N/A',
-                        profileComplete: res.data.profileComplete || false
-                      }]);
+                      await fetchAdminData();
                       setIsAddClientOpen(false);
                     }
                   } catch (err: any) {
@@ -1403,17 +1394,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                         file: newResultFile
                       });
                       if (res.success) {
-                        setResults(prev => [...prev, {
-                          id: res.data._id,
-                          clientName: res.data.clientName,
-                          description: res.data.description,
-                          image: res.data.image?.secure_url || res.data.image
-                        }]);
-                        setNewResultClientName('');
-                        setNewResultDescription('');
-                        setNewResultImage('');
-                        setNewResultFile(null);
-                        setNewResultError('');
+                        await fetchAdminData();
                         setIsAddResultOpen(false);
                       }
                     } catch (err: any) {
@@ -1894,16 +1875,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                      password: newCoachPassword
                    });
                    if (res.success) {
-                     setCoaches(prev => [...prev, {
-                       id: res.data._id,
-                       name: res.data.name,
-                       email: res.data.email,
-                       phone: res.data.phone,
-                       level: res.data.level,
-                       status: res.data.activeStatus?.toLowerCase() || 'active',
-                       activeStatus: res.data.activeStatus || 'Active',
-                       seniorCoachName: 'N/A'
-                     }]);
+                     await fetchAdminData();
                      setIsAddCoachOpen(false);
                    }
                  } catch (err: any) {
@@ -1924,13 +1896,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                     if (itemToDelete.type === 'client') {
                       const res = await api.deleteClient(itemToDelete.id);
                       if (res.success) {
-                        setClients(clients.filter(c => c.id !== itemToDelete.id));
-                        setSelectedClient(null);
+                        await fetchAdminData();
+                        setIsDeleteModalOpen(false);
                       }
                     } else if (itemToDelete.type === 'coach') {
                       const res = await api.deleteCoach(itemToDelete.id);
                       if (res.success) {
-                        setCoaches(coaches.filter(c => c.id !== itemToDelete.id));
+                        await fetchAdminData();
+                        setIsDeleteModalOpen(false);
                       }
                     } else if (itemToDelete.type === 'prospect') {
                       setProspects(prospects.filter(c => c.id !== itemToDelete.id));
@@ -2025,18 +1998,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   }
                   const res = await api.editResult(selectedResult.id, formData);
                   if (res.success) {
-                    setResults(prev => prev.map(r => r.id === selectedResult.id ? {
-                      ...r,
-                      clientName: res.data.clientName,
-                      description: res.data.description,
-                      image: res.data.image?.secure_url || res.data.image
-                    } : r));
-                    setSelectedResult(res.data ? {
-                      id: res.data._id,
-                      clientName: res.data.clientName,
-                      description: res.data.description,
-                      image: res.data.image && res.data.image.secure_url ? res.data.image.secure_url : res.data.image
-                    } : null);
+                    await fetchAdminData();
                     setIsEditResultOpen(false);
                   }
                 } catch (err: any) {
@@ -2055,8 +2017,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                 try {
                   const res = await api.deleteResult(selectedResult.id);
                   if (res.success) {
-                    setResults(prev => prev.filter(r => r.id !== selectedResult.id));
-                    setSelectedResult(null);
+                    await fetchAdminData();
                     setIsDeleteResultConfirmOpen(false);
                   }
                 } catch (err: any) {

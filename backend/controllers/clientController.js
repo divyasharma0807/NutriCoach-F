@@ -245,24 +245,6 @@ export const getDashboardStats = async (req, res, next) => {
       subscriptionDays = diffDays > 0 ? `${diffDays} Days` : 'Expired';
     }
 
-    // Find upcoming sessions (approved and today or future)
-    const todayStr = getLocalTodayString();
-    const sessions = await Session.find({
-      participants: { $in: [clientId] },
-      status: 'APPROVED'
-    }).sort({ date: 1, time: 1 });
-    console.log('[DEBUG] Client Dashboard - ClientId:', clientId);
-    console.log('[DEBUG] Client Dashboard - Sessions found:', sessions.length);
-
-    // Get latest approved diet plan
-    const dietPlan = await DietPlan.findOne({ client: clientId, approved: true });
-
-    // Get notifications
-    const notifications = await Notification.find({
-      recipientType: 'client',
-      recipientId: clientId
-    }).sort({ createdAt: -1 }).limit(10);
-
     // Get results uploaded by the client's direct coach/admin
     let results = [];
     if (client.coach) {
@@ -276,9 +258,6 @@ export const getDashboardStats = async (req, res, next) => {
         currentWeight: parameterHistory.length > 0 ? parameterHistory[parameterHistory.length - 1].bodyWeight : 'N/A',
         activeGoal: client.activeGoal || 'N/A',
         subscriptionDays,
-        upcomingSessionsCount: sessions.length,
-        sessions: sessions.map(s => ({ id: s._id, date: s.date, time: s.time, status: s.status, title: s.title })),
-        dietPlan: dietPlan || null,
         parameterHistory,
         measurementHistory,
         results: results.map(r => ({
@@ -286,8 +265,7 @@ export const getDashboardStats = async (req, res, next) => {
           clientName: r.clientName,
           description: r.description,
           image: r.image
-        })),
-        notifications: notifications.map(n => ({ id: n._id, text: n.text, read: n.read }))
+        }))
       }
     });
   } catch (error) {
