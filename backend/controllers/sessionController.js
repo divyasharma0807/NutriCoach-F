@@ -333,11 +333,10 @@ export const getSessions = async (req, res, next) => {
       }).populate('coachId', 'name email phone').sort({ date: 1, time: 1 });
     } else if (user.role === 'coach') {
       sessions = await Session.find({
-        $or: [{ coachId: user._id }, { parentCoachId: user._id }],
-        status: 'APPROVED'
+        coachId: user._id
       }).populate('clientId', 'name email phone').sort({ date: 1, time: 1 });
     } else if (user.role === 'admin') {
-      sessions = await Session.find({ coachId: user._id, status: 'APPROVED' }).populate('clientId coachId').sort({ date: 1, time: 1 });
+      sessions = await Session.find({ coachId: user._id }).populate('clientId coachId').sort({ date: 1, time: 1 });
     }
 
     res.json({

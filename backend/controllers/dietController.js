@@ -18,6 +18,10 @@ export const uploadDietPlan = async (req, res, next) => {
         res.status(404);
         throw new Error('Client not found');
       }
+      if (client.coach && client.coach.toString() !== coachId.toString()) {
+        res.status(403);
+        throw new Error('Not authorized. This client does not belong to you.');
+      }
       dietPlan = await DietPlan.findOne({ client: clientId });
     } else {
       // Coach-wide template plan
@@ -88,11 +92,11 @@ export const getMyDietPlan = async (req, res, next) => {
 
   try {
     const client = await Client.findById(clientId);
-    // Find client-specific plan first, fallback to coach-wide base plan
-    let dietPlan = await DietPlan.findOne({ client: clientId, approved: true });
+    // Find client-specific plan first
+    let dietPlan = await DietPlan.findOne({ client: clientId }).sort({ createdAt: -1 });
     
     if (!dietPlan && client && client.coach) {
-      dietPlan = await DietPlan.findOne({ coach: client.coach, client: null, approved: true });
+      dietPlan = await DietPlan.findOne({ coach: client.coach, client: null }).sort({ createdAt: -1 });
     }
 
     if (!dietPlan) {
