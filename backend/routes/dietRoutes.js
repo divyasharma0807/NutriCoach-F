@@ -9,7 +9,7 @@ router.use(protect);
 
 router.post(
   '/upload',
-  authorize('coach'),
+  authorize('coach', 'admin'),
   upload.single('dietFile'),
   uploadDietPlan
 );

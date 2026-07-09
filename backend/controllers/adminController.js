@@ -50,6 +50,8 @@ export const getDashboardStats = async (req, res, next) => {
     // Get admin-uploaded results
     const results = await Result.find({ coach: adminId });
 
+    const dietPlan = await DietPlan.findOne({ coach: adminId, client: null });
+
     res.json({
       success: true,
       data: {
