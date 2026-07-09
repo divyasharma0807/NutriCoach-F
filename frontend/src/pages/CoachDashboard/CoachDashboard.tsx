@@ -1833,8 +1833,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                 </div>
               ) : (
                 hasPlan ? (
-                  <div style={{ padding: '1.5rem', backgroundColor: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.7', color: 'var(--dark)', fontSize: '0.95rem' }}>
-                    {dietPlans[activeDietCategory]}
+                  <div style={{ padding: '1.5rem', backgroundColor: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.7', color: 'inherit', fontSize: '0.95rem' }}>
+                    {dietPlans[activeDietCategory] || 'No text entered for this diet plan phase.'}
                   </div>
                 ) : (
                   <div className="meal-empty">
