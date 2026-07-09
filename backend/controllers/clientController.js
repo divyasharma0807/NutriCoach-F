@@ -381,7 +381,7 @@ export const addMeasurementHistory = async (req, res, next) => {
 // @access  Private (Client)
 export const createReferral = async (req, res, next) => {
   const clientId = req.user._id;
-  const { name, email, phone, city, age, gender } = req.body;
+  const { name, email, phone, city, age, gender, weightRange, interest } = req.body;
 
   try {
     const client = await Client.findById(clientId);
@@ -393,7 +393,9 @@ export const createReferral = async (req, res, next) => {
       phone,
       city,
       age,
-      gender
+      gender,
+      weightRange,
+      interest
     });
 
     // Notify Coach

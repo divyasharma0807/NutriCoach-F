@@ -178,6 +178,13 @@ export const api = {
     });
   },
 
+  getClientDetails: async (clientId: string) => {
+    return fetchAPI(`/coaches/clients/${clientId}`, {
+      method: 'GET',
+      headers: getHeaders()
+    });
+  },
+
   addClient: async (clientData: any) => {
     return fetchAPI('/coaches/clients', {
       method: 'POST',

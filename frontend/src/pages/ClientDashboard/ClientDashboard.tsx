@@ -422,7 +422,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
   const handleSaveReferral = async () => {
     if (!refName || !refEmail) return;
     try {
-      const res = await api.createReferral({ name: refName, email: refEmail, phone: refPhone, city: refCity, age: refAge, gender: refGender });
+      const res = await api.createReferral({ name: refName, email: refEmail, phone: refPhone, city: refCity, age: refAge, gender: refGender, weightRange: refWeightRange, interest: refInterest });
       if (res.success) {
         await fetchDashboardData();
         setIsReferralModalOpen(false);
@@ -1114,6 +1114,16 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             <div className="form-field">
               <label>Age</label>
               <input type="number" value={refAge} onChange={e => setRefAge(e.target.value)} placeholder="Age" />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Weight Range</label>
+              <input type="text" value={refWeightRange} onChange={e => setRefWeightRange(e.target.value)} placeholder="e.g. 70-80 kg" />
+            </div>
+            <div className="form-field">
+              <label>Interest</label>
+              <input type="text" value={refInterest} onChange={e => setRefInterest(e.target.value)} placeholder="e.g. Weight Loss" />
             </div>
           </div>
           <div className="form-field">

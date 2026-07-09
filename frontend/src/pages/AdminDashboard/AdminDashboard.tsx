@@ -107,6 +107,9 @@ const SearchableSelect = ({ options, value, onChange, placeholder }: { options: 
 
 interface AdminDashboardProps { userName: string; onLogout: () => void; }
 
+const metricsOptions = ['Body Weight', 'Body Mass Index (BMI)', 'Body Fat Ratio', 'Muscle Rate', 'Body Water', 'Bone Mass', 'Basal Metabolic Rate', 'Metabolic Age', 'Visceral Fat', 'Subcutaneous Fat', 'Protein Mass', 'Muscle Mass', 'Weight Without Fat'];
+const measurementOptions = ['Belly', 'Waist', 'Thigh', 'Chest', 'Arm'];
+
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogout }) => {
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -120,6 +123,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
   const [clients, setClients] = useState<{ id: string; name: string; coachName?: string; plan: string; city: string; email?: string; phone?: string; age?: string; gender?: string; weight?: string; height?: string; createdAt?: string; subscriptionStartDate?: string; subscriptionExpiryDate?: string }[]>([]);
 
   const [selectedClient, setSelectedClient] = useState<any | null>(null);
+  const [clientDetails, setClientDetails] = useState<any>(null);
+  const [parameterHistory, setParameterHistory] = useState<any[]>([]);
+  const [measurementHistory, setMeasurementHistory] = useState<any[]>([]);
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['All']);
+  const [selectedMeasurements, setSelectedMeasurements] = useState<string[]>(['All']);
+  const [hoveredPoint, setHoveredPoint] = useState<any>(null);
+
 
   // Popup states for Add Client
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
@@ -400,7 +410,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
           gender: p.gender,
           weight: p.weightRange || p.weight
         })));
-        if (d.referrals) setReferrals(d.referrals);
+        if (d.referrals) setReferrals(d.referrals.map((r: any) => ({ ...r, weightRange: r.weightRange, interest: r.interest })));
         if (d.results) setResults(d.results);
         if (d.notifications) setNotifications(d.notifications);
       }
@@ -523,6 +533,128 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
   // =========================================================================
   // VIEW RENDERING
   // =========================================================================
+
+  
+  const fetchClientDetails = async (clientId: string) => {
+    try {
+      const res = await api.getClientDetails(clientId);
+      if (res.success && res.data) {
+        setClientDetails(res.data.client);
+        if (res.data.parameterHistory) {
+          setParameterHistory(res.data.parameterHistory.map((entry: any) => ({
+            date: entry.date, isProfileBaseline: entry.isProfileBaseline,
+            'Body Weight': entry.bodyWeight || '', 'Body Mass Index (BMI)': entry.bmi || '',
+            'Body Fat Ratio': entry.bodyFatRatio || '', 'Muscle Rate': entry.muscleRate || '',
+            'Body Water': entry.bodyWater || '', 'Bone Mass': entry.boneMass || '',
+            'Basal Metabolic Rate': entry.bmr || '', 'Metabolic Age': entry.metabolicAge || '',
+            'Visceral Fat': entry.visceralFat || '', 'Subcutaneous Fat': entry.subcutaneousFat || '',
+            'Protein Mass': entry.proteinMass || '', 'Muscle Mass': entry.muscleMass || '',
+            'Weight Without Fat': entry.weightWithoutFat || '',
+          })));
+        }
+        if (res.data.measurementHistory) {
+          setMeasurementHistory(res.data.measurementHistory.map((entry: any) => ({
+            date: entry.date, isProfileBaseline: entry.isProfileBaseline,
+            'Belly': entry.belly || '', 'Waist': entry.waist || '',
+            'Thigh': entry.thigh || '', 'Chest': entry.chest || '',
+            'Arm': entry.arm || '',
+          })));
+        }
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  useEffect(() => {
+    if (selectedClient && selectedClient.id) {
+      fetchClientDetails(selectedClient.id);
+      const interval = setInterval(() => fetchClientDetails(selectedClient.id), 15000);
+      return () => clearInterval(interval);
+    }
+  }, [selectedClient]);
+
+  const handleMetricToggle = (metric: string) => {
+    if (metric === 'All') setSelectedMetrics(['All']);
+    else {
+      let newSelection = selectedMetrics.filter(m => m !== 'All');
+      if (newSelection.includes(metric)) newSelection = newSelection.filter(m => m !== metric);
+      else newSelection.push(metric);
+      if (newSelection.length === 0) newSelection = ['Body Weight'];
+      setSelectedMetrics(newSelection);
+    }
+  };
+
+  const handleMeasurementToggle = (measure: string) => {
+    if (measure === 'All') setSelectedMeasurements(['All']);
+    else {
+      let newSelection = selectedMeasurements.filter(m => m !== 'All');
+      if (newSelection.includes(measure)) newSelection = newSelection.filter(m => m !== measure);
+      else newSelection.push(measure);
+      if (newSelection.length === 0) newSelection = ['Belly'];
+      setSelectedMeasurements(newSelection);
+    }
+  };
+
+  const renderMultiLineGraph = (data: any[], keys: string[], allKeys: string[]) => {
+    const activeKeys = keys.includes('All') ? allKeys : keys;
+    const colors = ['#2ECC71', '#3498DB', '#E74C3C', '#F1C40F', '#9B59B6', '#E67E22', '#1ABC9C', '#34495E', '#16A085', '#27AE60', '#2980B9', '#8E44AD', '#D35400'];
+    const validData = data.filter(entry => activeKeys.some(k => entry[k] !== undefined && entry[k] !== ''));
+    const metricsData: Record<string, { min: number, max: number, range: number, points: any[] }> = {};
+    activeKeys.forEach(k => {
+      let min = Infinity, max = -Infinity;
+      validData.forEach(e => {
+        const val = parseFloat(e[k]);
+        if (!isNaN(val)) { if (val < min) min = val; if (val > max) max = val; }
+      });
+      if (min === Infinity) min = 0; if (max === -Infinity) max = 100;
+      if (min === max) { min -= 10; max += 10; }
+      const range = max - min || 1;
+      const points = validData.map((e, i) => {
+        const val = parseFloat(e[k]);
+        if (isNaN(val)) return null;
+        const x = validData.length === 1 ? 50 : (i / (validData.length - 1)) * 100;
+        const y = 90 - (((val - min) / range) * 80);
+        return { x, y, val, date: e.date || 'Recent Entry', metric: k };
+      }).filter(p => p !== null);
+      metricsData[k] = { min, max, range, points };
+    });
+    return (
+      <div style={{ position: 'relative', width: '100%', height: '100%' }} onMouseLeave={() => setHoveredPoint(null)}>
+        <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
+          {[0, 25, 50, 75, 100].map(percent => (
+             <line key={percent} x1="0%" y1={`${percent}%`} x2="100%" y2={`${percent}%`} stroke="var(--grey-200)" strokeWidth="1" strokeDasharray="4 4" />
+          ))}
+          <line x1="0%" y1="100%" x2="100%" y2="100%" stroke="var(--grey-300)" strokeWidth="2" />
+          <line x1="0%" y1="0%" x2="0%" y2="100%" stroke="var(--grey-300)" strokeWidth="2" />
+          {validData.length > 0 && activeKeys.map((k, idx) => {
+            const color = colors[idx % colors.length];
+            const pts = metricsData[k].points;
+            return (
+              <g key={k}>
+                {pts.map((p, i) => {
+                  if (i === 0) return null;
+                  const prev = pts[i - 1];
+                  return <line key={`line-${i}`} x1={`${prev.x}%`} y1={`${prev.y}%`} x2={`${p.x}%`} y2={`${p.y}%`} stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />;
+                })}
+                {pts.length === 1 && <line x1="0%" y1={`${pts[0].y}%`} x2="100%" y2={`${pts[0].y}%`} stroke={color} strokeWidth="2" strokeDasharray="4 4" />}
+                {pts.map((p, i) => (
+                  <g key={`point-${i}`} onMouseEnter={() => setHoveredPoint({ ...p, color })} style={{ cursor: 'pointer' }}>
+                    <circle cx={`${p.x}%`} cy={`${p.y}%`} r="5" fill="var(--white)" stroke={color} strokeWidth="2" />
+                    <circle cx={`${p.x}%`} cy={`${p.y}%`} r="15" fill="transparent" />
+                  </g>
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+        {hoveredPoint && (
+          <div style={{ position: 'absolute', left: `${hoveredPoint.x}%`, top: `${hoveredPoint.y}%`, transform: 'translate(-50%, -120%)', background: 'var(--dark)', color: 'var(--white)', padding: '0.75rem', borderRadius: '6px', fontSize: '0.85rem', whiteSpace: 'nowrap', zIndex: 100, boxShadow: 'var(--shadow-lg)', pointerEvents: 'none' }}>
+            <div style={{ marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}><strong>Date:</strong> {hoveredPoint.date}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: hoveredPoint.color }}></span>{hoveredPoint.metric}: <strong>{hoveredPoint.val}</strong></div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const getGreeting = () => {
     const firstName = cpName ? cpName.trim().split(' ')[0] : 'Admin';
@@ -751,13 +883,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   <div><strong>Coach Name:</strong> {selectedClient.coachName}</div>
                   <div><strong>Client Plan:</strong> {selectedClient.plan}</div>
                   <div><strong>City:</strong> {selectedClient.city}</div>
+                  {clientDetails && <>
+                    <div><strong>Email:</strong> {clientDetails.email || '—'}</div>
+                    <div><strong>Phone:</strong> {clientDetails.phone || '—'}</div>
+                    <div><strong>Age:</strong> {clientDetails.age ? `${clientDetails.age} yrs` : '—'}</div>
+                    <div><strong>Gender:</strong> {clientDetails.gender || '—'}</div>
+                    <div><strong>Height:</strong> {clientDetails.height ? `${clientDetails.height} ${clientDetails.heightUnit || 'cm'}` : '—'}</div>
+                  </>}
                 </div>
               </div>
 
               <div className="main-card" style={{ padding: '2rem' }}>
                 <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--dark)' }}>Active Goal</h4>
                 <div style={{ marginTop: '1.25rem', color: 'var(--grey-500)', fontSize: '0.95rem' }}>
-                  Active goal parameters placeholder.
+                  {clientDetails?.activeGoal || 'No active goal set.'}
                 </div>
               </div>
 
@@ -766,24 +905,74 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               <div className="main-card" style={{ padding: '2rem', gridColumn: 'span 2' }}>
                 <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--dark)' }}>Medical Records</h4>
                 <div style={{ marginTop: '1.25rem', color: 'var(--grey-500)', fontSize: '0.95rem' }}>
-                  Medical records PDF documents placeholder.
+                  {clientDetails?.medicalPdf?.secure_url ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--off-white)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }}>
+                      <span style={{ fontSize: '2rem' }}>📄</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>Medical Record</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)' }}>Uploaded PDF</div>
+                      </div>
+                      <Button variant="secondary" size="sm" onClick={() => window.open(clientDetails.medicalPdf.secure_url, '_blank')}>View / Download</Button>
+                    </div>
+                  ) : (
+                    <div>No medical records uploaded.</div>
+                  )}
+                  {clientDetails?.allergies && (
+                    <div style={{ marginTop: '1rem', padding: '1rem', background: '#fee2e2', color: '#ef4444', borderRadius: '8px', borderLeft: '4px solid #ef4444' }}>
+                      <strong>Allergies:</strong> {clientDetails.allergies}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
             <div className="main-card" style={{ marginTop: '1.5rem', padding: '2rem' }}>
               <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--dark)', marginBottom: '1.25rem' }}>Body Parameter Graph</h4>
-              <div style={{ height: '300px', background: 'var(--off-white)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--grey-400)', border: '1px dashed var(--grey-300)', borderRadius: '8px' }}>
-                <span style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📊</span>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>Analytics Graph Structure Placeholder</span>
+              <div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                  {['All', ...metricsOptions].map(metric => (
+                    <button 
+                      key={metric} 
+                      onClick={() => handleMetricToggle(metric)}
+                      style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', margin: 0, borderRadius: '4px', border: '1px solid var(--grey-200)', background: selectedMetrics.includes(metric) ? 'var(--dark)' : 'var(--white)', color: selectedMetrics.includes(metric) ? 'var(--white)' : 'var(--grey-700)', cursor: 'pointer' }}
+                    >
+                      {metric}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ height: '350px', background: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    {renderMultiLineGraph(parameterHistory, selectedMetrics, metricsOptions)}
+                  </div>
+                </div>
               </div>
             </div>
 
             <div className="main-card" style={{ marginTop: '1.5rem', padding: '2rem' }}>
               <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--dark)', marginBottom: '1.25rem' }}>Body Measurement Graph</h4>
-              <div style={{ height: '300px', background: 'var(--off-white)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--grey-400)', border: '1px dashed var(--grey-300)', borderRadius: '8px' }}>
-                <span style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>📊</span>
-                <span style={{ fontSize: '0.95rem', fontWeight: 600 }}>Measurements Graph Structure Placeholder</span>
+              <div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                  <button 
+                    onClick={() => handleMeasurementToggle('All')}
+                    style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', margin: 0, borderRadius: '4px', border: '1px solid var(--grey-200)', background: selectedMeasurements.includes('All') ? 'var(--dark)' : 'var(--white)', color: selectedMeasurements.includes('All') ? 'var(--white)' : 'var(--grey-700)', cursor: 'pointer' }}
+                  >
+                    All
+                  </button>
+                  {measurementOptions.map(measure => (
+                    <button 
+                      key={measure} 
+                      onClick={() => handleMeasurementToggle(measure)}
+                      style={{ padding: '0.25rem 0.75rem', fontSize: '0.8rem', margin: 0, borderRadius: '4px', border: '1px solid var(--grey-200)', background: selectedMeasurements.includes(measure) ? 'var(--dark)' : 'var(--white)', color: selectedMeasurements.includes(measure) ? 'var(--white)' : 'var(--grey-700)', cursor: 'pointer' }}
+                    >
+                      {measure}
+                    </button>
+                  ))}
+                </div>
+                <div style={{ height: '350px', background: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    {renderMultiLineGraph(measurementHistory, selectedMeasurements, measurementOptions)}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="main-card" style={{ marginTop: '1.5rem', padding: '2rem' }}>

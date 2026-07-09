@@ -7,7 +7,9 @@ const ReferralSchema = new mongoose.Schema({
   phone: { type: String, required: true },
   city: { type: String, default: '' },
   age: { type: String, default: '' },
-  gender: { type: String, default: '' }
+  gender: { type: String, default: '' },
+  weightRange: { type: String, default: '' },
+  interest: { type: String, default: '' }
 }, { timestamps: true });
 
 export default mongoose.model('Referral', ReferralSchema);

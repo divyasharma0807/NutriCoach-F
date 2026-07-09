@@ -505,3 +505,44 @@ export const deleteClient = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Get specific client details (profile, parameters, measurements, results)
+// @route   GET /api/coaches/clients/:id
+// @access  Private (Coach/Admin)
+export const getClientDetails = async (req, res, next) => {
+  try {
+    const clientId = req.params.id;
+    
+    // Check if client exists
+    const client = await Client.findById(clientId).select('-password');
+    if (!client) {
+      res.status(404);
+      throw new Error('Client not found');
+    }
+
+    // Optional: Authorization check - if coach, ensure client belongs to coach hierarchy
+    if (req.user.role === 'coach') {
+      if (client.coach && client.coach.toString() !== req.user._id.toString()) {
+        res.status(403);
+        throw new Error('Not authorized to access this client');
+      }
+    }
+
+    // Fetch history
+    const parameterHistory = await BodyParameterHistory.find({ client: clientId }).sort({ date: 1 });
+    const measurementHistory = await MeasurementHistory.find({ client: clientId }).sort({ date: 1 });
+    const results = await Result.find({ clientName: new RegExp('^' + client.name + '$', 'i') }).sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: {
+        client,
+        parameterHistory,
+        measurementHistory,
+        results
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -5,7 +5,8 @@ import {
   addProspect,
   addCoach,
   uploadResult,
-  deleteClient
+  deleteClient,
+  getClientDetails
 } from '../controllers/coachController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
@@ -15,6 +16,7 @@ const router = express.Router();
 router.use(protect);
 
 router.post('/clients', authorize('coach', 'admin'), addClient);
+router.get('/clients/:id', authorize('coach', 'admin'), getClientDetails);
 router.get('/dashboard', authorize('coach', 'admin'), getDashboardStats);
 router.post('/prospects', authorize('coach', 'admin'), addProspect);
 router.post('/sub-coaches', authorize('coach', 'admin'), addCoach);
