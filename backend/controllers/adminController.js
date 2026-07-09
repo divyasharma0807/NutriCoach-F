@@ -61,6 +61,7 @@ export const getDashboardStats = async (req, res, next) => {
           totalSessions: sessionsCount,
           totalReferrals: referralsCount
         },
+        dietPlan: dietPlan || { beginner: '', intermediate: '', advanced: '', weightLoss: '' },
         coaches: coaches.map(c => ({
           id: c._id,
           name: c.name,
