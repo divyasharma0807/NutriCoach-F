@@ -333,7 +333,7 @@ export const getSessions = async (req, res, next) => {
     if (user.role === 'client') {
       sessions = await Session.find({
         clientId: user._id,
-        status: 'APPROVED'
+        status: { $in: ['APPROVED', 'PENDING'] }
       }).populate('coachId', 'name email phone').sort({ date: 1, time: 1 });
     } else if (user.role === 'coach') {
       sessions = await Session.find({
