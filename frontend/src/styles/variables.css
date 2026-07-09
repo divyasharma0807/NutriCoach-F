@@ -125,7 +125,7 @@
 .dark-theme .notification-dropdown-header { border-bottom-color: #262626 !important; }
 
 /* Inputs and Forms */
-.dark-theme .input-element, .dark-theme .control-select, .dark-theme select, .dark-theme input { 
+.dark-theme .input-element, .dark-theme .control-input, .dark-theme .control-select, .dark-theme select, .dark-theme input, .dark-theme textarea { 
   background-color: #111111 !important; 
   border: 1px solid #262626 !important; 
   color: #FFFFFF !important; 

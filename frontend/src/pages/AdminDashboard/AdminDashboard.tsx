@@ -364,6 +364,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
     }
   }, [scheduleDate, scheduleTime]);
 
+  const handleApproveSession = async (sessionId: string) => {
+    try {
+      const res = await api.approveSession(sessionId);
+      if (res.success) {
+        await fetchAdminData();
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to approve session');
+    }
+  };
+
+  const handleRejectSession = async (sessionId: string) => {
+    try {
+      const res = await api.rejectSession(sessionId);
+      if (res.success) {
+        await fetchAdminData();
+      }
+    } catch (err: any) {
+      alert(err.message || 'Failed to reject session');
+    }
+  };
+
   const fetchAdminData = async () => {
     try {
       const res = await api.getAdminDashboard({
@@ -1973,6 +1995,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               console.error(err);
             }
           }}
+          onApproveSession={handleApproveSession}
+          onRejectSession={handleRejectSession}
           role="admin"
         />
         <div className="dashboard-content page-enter">

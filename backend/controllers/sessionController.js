@@ -78,9 +78,13 @@ export const scheduleSession = async (req, res, next) => {
         status: 'PENDING'
       });
 
-      // Notify Coach
+      // Determine if coach is a Coach or Admin
+      const coachExists = await Coach.exists({ _id: client.coach });
+      const recipientTypeStr = coachExists ? 'coach' : 'admin';
+
+      // Notify Coach/Admin
       await Notification.create({
-        recipientType: 'coach',
+        recipientType: recipientTypeStr,
         recipientId: client.coach,
         text: `Client ${client.name} requested a meeting on ${date} at ${time}.`,
         type: 'session_request',
@@ -101,7 +105,7 @@ export const scheduleSession = async (req, res, next) => {
         data: session
       });
 
-    } else if (user.role === 'coach') {
+    } else if (user.role === 'coach' || user.role === 'admin') {
       // Coach schedules a session
       if (withParentCoach) {
         const coach = await Coach.findById(user._id);
@@ -112,7 +116,7 @@ export const scheduleSession = async (req, res, next) => {
 
         const session = await Session.create({
           organizerId: user._id,
-          organizerRole: 'coach',
+          organizerRole: user.role,
           coachId: user._id,
           clientId: null,
           parentCoachId: coach.seniorCoach,
@@ -160,7 +164,7 @@ export const scheduleSession = async (req, res, next) => {
 
         const session = await Session.create({
           organizerId: user._id,
-          organizerRole: 'coach',
+          organizerRole: user.role,
           coachId: user._id,
           clientId: targetClient._id,
           parentCoachId: null,
@@ -180,9 +184,9 @@ export const scheduleSession = async (req, res, next) => {
           relatedMeetingId: session._id
         });
 
-        // Notify Coach
+        // Notify Coach/Admin
         await Notification.create({
-          recipientType: 'coach',
+          recipientType: user.role,
           recipientId: user._id,
           text: `Meeting scheduled successfully.`,
           type: 'session_approved',
@@ -333,10 +337,11 @@ export const getSessions = async (req, res, next) => {
       }).populate('coachId', 'name email phone').sort({ date: 1, time: 1 });
     } else if (user.role === 'coach') {
       sessions = await Session.find({
-        coachId: user._id
+        coachId: user._id,
+        status: 'APPROVED'
       }).populate('clientId', 'name email phone').sort({ date: 1, time: 1 });
     } else if (user.role === 'admin') {
-      sessions = await Session.find({ coachId: user._id }).populate('clientId coachId').sort({ date: 1, time: 1 });
+      sessions = await Session.find({ coachId: user._id, status: 'APPROVED' }).populate('clientId coachId').sort({ date: 1, time: 1 });
     }
 
     res.json({

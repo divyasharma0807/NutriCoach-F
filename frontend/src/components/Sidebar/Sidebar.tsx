@@ -13,7 +13,6 @@ interface SidebarProps {
 
 const clientNavItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
-  { id: 'my-profile', label: 'My Profile', icon: '👤' },
   { id: 'diet-plan', label: 'My Diet Plan', icon: '🥗' },
   { id: 'progress', label: 'Progress & Analytics', icon: '📊' },
   { id: 'my-parameters', label: 'My Parameters', icon: '📏' },
@@ -45,11 +44,12 @@ const adminNavItems = [
 
 export const Sidebar: React.FC<SidebarProps> = ({ role, currentSection, onNavigate, userName, onClose, isOpen = true, profileComplete = false }) => {
   const dynamicClientNavItems = clientNavItems.map(item => {
-    if (item.id === 'my-profile' && !profileComplete) {
-      return { id: 'complete-profile', label: 'Complete Profile', icon: '📝' };
-    }
     return item;
   });
+  // We keep dynamicClientNavItems logic in case we want to re-add complete profile later
+  if (!profileComplete) {
+     dynamicClientNavItems.splice(1, 0, { id: 'complete-profile', label: 'Complete Profile', icon: '📝' });
+  }
   
   const navItems = role === 'admin' ? adminNavItems : role === 'client' ? dynamicClientNavItems : coachNavItems;
   const initials = userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';

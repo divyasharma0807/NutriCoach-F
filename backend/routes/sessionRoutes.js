@@ -12,8 +12,8 @@ const router = express.Router();
 router.use(protect);
 
 router.post('/schedule', scheduleSession);
-router.put('/:id/approve', authorize('coach'), approveSession);
-router.put('/:id/reject', authorize('coach'), rejectSession);
+router.put('/:id/approve', authorize('coach', 'admin'), approveSession);
+router.put('/:id/reject', authorize('coach', 'admin'), rejectSession);
 router.get('/', getSessions);
 
 export default router;
