@@ -88,7 +88,9 @@ export const getDashboardStats = async (req, res, next) => {
           coachName: s.coachId ? s.coachId.name : 'Unknown',
           date: s.date,
           time: s.time,
-          status: s.status
+          status: s.status,
+          type: s.parentCoachId ? 'coach' : 'client',
+          participantName: s.parentCoachId ? (s.parentCoachId.name || 'Unknown') : (s.clientId ? s.clientId.name : 'Unknown')
         })),
         referrals: referrals.map(r => ({
           id: r._id,
