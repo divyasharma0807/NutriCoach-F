@@ -435,6 +435,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         if (d.referrals) setReferrals(d.referrals.map((r: any) => ({ ...r, weightRange: r.weightRange, interest: r.interest })));
         if (d.results) setResults(d.results);
         if (d.notifications) setNotifications(d.notifications);
+        if (d.dietPlan) {
+          setDietPlans({
+            beginner: d.dietPlan.beginner || '',
+            intermediate: d.dietPlan.intermediate || '',
+            advanced: d.dietPlan.advanced || '',
+            weightLoss: d.dietPlan.weightLoss || ''
+          });
+        }
       }
     } catch (error) {
       console.error('Error fetching admin dashboard data:', error);
