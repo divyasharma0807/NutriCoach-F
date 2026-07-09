@@ -248,12 +248,13 @@ export const getDashboardStats = async (req, res, next) => {
     // Get results uploaded by the client's direct coach/admin
     let results = [];
     if (client.coach) {
-      results = await Result.find({ coach: client.coach });
+      results = await Result.find({ coach: client.coach }).populate('coach', 'name');
     }
 
     res.json({
       success: true,
       data: {
+        profile: client,
         profileComplete: client.profileComplete,
         currentWeight: parameterHistory.length > 0 ? parameterHistory[parameterHistory.length - 1].bodyWeight : 'N/A',
         activeGoal: client.activeGoal || 'N/A',
@@ -264,7 +265,9 @@ export const getDashboardStats = async (req, res, next) => {
           id: r._id,
           clientName: r.clientName,
           description: r.description,
-          image: r.image
+          image: r.image?.secure_url || r.image,
+          coachName: r.coach ? r.coach.name : client.coachName,
+          uploadDate: r.createdAt
         }))
       }
     });
