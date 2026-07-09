@@ -104,7 +104,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
     currentWeight: 'N/A',
     activeGoal: 'N/A',
     subscriptionDays: 'N/A',
-    upcomingSessionsCount: 0
+    upcomingSessionsCount: 0,
+    profile: null
   });
 
   const fetchDashboardData = async () => {
@@ -294,7 +295,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       let min = Infinity;
       let max = -Infinity;
       validData.forEach(e => {
-        const val = parseFloat(e[k]);
+        const backendKey = metricToKey[k] || k;
+        const val = parseFloat(e[backendKey]);
         if (!isNaN(val)) {
           if (val < min) min = val;
           if (val > max) max = val;
@@ -311,7 +313,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       const range = max - min || 1;
       
       const points = validData.map((e, i) => {
-        const val = parseFloat(e[k]);
+        const backendKey = metricToKey[k] || k;
+        const val = parseFloat(e[backendKey]);
         if (isNaN(val)) return null;
         const x = validData.length === 1 ? 50 : (i / (validData.length - 1)) * 100;
         const y = 90 - (((val - min) / range) * 80); // 10% padding bottom and top
@@ -731,6 +734,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0 }}>←</button>
               <h2 style={{ margin: 0 }}>My Profile</h2>
+              <div style={{ flex: 1 }}></div>
+              <Button variant="secondary" onClick={() => onNavigateApp && onNavigateApp('complete-profile')}>Edit Profile</Button>
             </div>
           </div>
           <div className="settings-card" style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -746,26 +751,42 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem 2rem', marginBottom: '3rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Email Address</label>
-                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{email}</div>
+                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.email || email}</div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Phone Number</label>
-                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{phone}</div>
+                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.phone || phone}</div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>City</label>
-                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{userCity}</div>
+                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.city || userCity}</div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Age</label>
-                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{userAge}</div>
+                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.age || userAge}</div>
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Gender</label>
-                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{userGender}</div>
+                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.gender || userGender}</div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Coach Name</label>
+                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.coachName || coach}</div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Date Joined</label>
+                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.createdAt ? new Date(dashboardStats.profile.createdAt).toLocaleDateString() : '—'}</div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Subscription Status</label>
+                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.subscriptionDays}</div>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Allergies</label>
+                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.allergies || '—'}</div>
               </div>
             </div>
-
+            
             <h4 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: 'var(--dark)' }}>Body Parameters</h4>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem 2rem', marginBottom: '3rem' }}>
               <div>

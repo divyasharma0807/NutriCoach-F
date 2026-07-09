@@ -85,7 +85,7 @@ export function App() {
       case 'login': return <LoginPage onNavigate={navigate} onLogin={handleLogin} initialRole={appState.role === 'coach' ? 'coach' : 'client'} />;
       case 'signup': return <SignupPage onNavigate={navigate} />;
       case 'forgot-password': return <ForgotPasswordPage onNavigate={navigate} />;
-      case 'complete-profile': return <CompleteProfilePage role={(appState.role as 'client' | 'coach') || 'client'} onComplete={handleProfileComplete} onNavigate={navigate} />;
+      case 'complete-profile': return <CompleteProfilePage role={(appState.role as 'client' | 'coach') || 'client'} onComplete={handleProfileComplete} onNavigate={navigate} profileData={appState.profileData} />;
       case 'client-dashboard': return <ClientDashboard userName={appState.userName} onLogout={handleLogout} onNavigateApp={navigate} profileComplete={appState.profileComplete} activeGoal={appState.activeGoal} subscriptionStartDate="2026-06-15" profileData={appState.profileData} />;
       case 'coach-dashboard': return <CoachDashboard userName={appState.userName} onLogout={handleLogout} />;
       case 'admin-dashboard': return <AdminDashboard userName={appState.userName} onLogout={handleLogout} />;
