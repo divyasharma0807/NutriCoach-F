@@ -215,13 +215,13 @@ export const approveSession = async (req, res, next) => {
   const sessionId = req.params.id;
 
   try {
-    const session = await Session.findById(sessionId).populate('clientId coachId');
+    const session = await Session.findById(sessionId);
     if (!session) {
       res.status(404);
       throw new Error('Session not found');
     }
 
-    const isCoach = session.coachId && session.coachId._id.toString() === req.user._id.toString();
+    const isCoach = session.coachId && session.coachId.toString() === req.user._id.toString();
     const isParentCoach = session.parentCoachId && session.parentCoachId.toString() === req.user._id.toString();
 
     if (!isCoach && !isParentCoach) {
@@ -279,13 +279,13 @@ export const rejectSession = async (req, res, next) => {
   const sessionId = req.params.id;
 
   try {
-    const session = await Session.findById(sessionId).populate('clientId coachId');
+    const session = await Session.findById(sessionId);
     if (!session) {
       res.status(404);
       throw new Error('Session not found');
     }
 
-    const isCoach = session.coachId && session.coachId._id.toString() === req.user._id.toString();
+    const isCoach = session.coachId && session.coachId.toString() === req.user._id.toString();
     const isParentCoach = session.parentCoachId && session.parentCoachId.toString() === req.user._id.toString();
 
     if (!isCoach && !isParentCoach) {
