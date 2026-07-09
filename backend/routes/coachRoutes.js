@@ -6,7 +6,8 @@ import {
   addCoach,
   uploadResult,
   deleteClient,
-  getClientDetails
+  getClientDetails,
+  updateClientSubscription
 } from '../controllers/coachController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
