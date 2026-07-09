@@ -8,10 +8,12 @@ interface SidebarProps {
   userName: string;
   onClose?: () => void;
   isOpen?: boolean;
+  profileComplete?: boolean;
 }
 
 const clientNavItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '🏠' },
+  { id: 'my-profile', label: 'My Profile', icon: '👤' },
   { id: 'diet-plan', label: 'My Diet Plan', icon: '🥗' },
   { id: 'progress', label: 'Progress & Analytics', icon: '📊' },
   { id: 'my-parameters', label: 'My Parameters', icon: '📏' },
@@ -41,8 +43,15 @@ const adminNavItems = [
   { id: 'client-plans', label: 'Client Plans', icon: '📋' },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ role, currentSection, onNavigate, userName, onClose, isOpen = true }) => {
-  const navItems = role === 'admin' ? adminNavItems : role === 'client' ? clientNavItems : coachNavItems;
+export const Sidebar: React.FC<SidebarProps> = ({ role, currentSection, onNavigate, userName, onClose, isOpen = true, profileComplete = false }) => {
+  const dynamicClientNavItems = clientNavItems.map(item => {
+    if (item.id === 'my-profile' && !profileComplete) {
+      return { id: 'complete-profile', label: 'Complete Profile', icon: '📝' };
+    }
+    return item;
+  });
+  
+  const navItems = role === 'admin' ? adminNavItems : role === 'client' ? dynamicClientNavItems : coachNavItems;
   const initials = userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
 
   const handleNavClick = (section: string) => {
