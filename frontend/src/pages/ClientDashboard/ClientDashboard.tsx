@@ -96,6 +96,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
   const [refCity, setRefCity] = useState('');
   const [refAge, setRefAge] = useState('');
   const [refGender, setRefGender] = useState('');
+  const [refWeightRange, setRefWeightRange] = useState('');
+  const [refInterest, setRefInterest] = useState('');
   const [coachResults, setCoachResults] = useState<any[]>([]);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -428,7 +430,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       if (res.success) {
         await fetchDashboardData();
         setIsReferralModalOpen(false);
-        setRefName(''); setRefEmail(''); setRefPhone(''); setRefCity(''); setRefAge(''); setRefGender('');
+        setRefName(''); setRefEmail(''); setRefPhone(''); setRefCity(''); setRefAge(''); setRefGender(''); setRefWeightRange(''); setRefInterest('');
       }
     } catch (err: any) {
       alert(err.message || 'Failed to submit referral');
