@@ -80,7 +80,9 @@ export const getDashboardStats = async (req, res, next) => {
           city: c.city,
           clientPlan: c.clientPlan,
           coachName: (c.coach && c.coach.name) ? c.coach.name : (c.coachName || 'N/A'),
-          profileComplete: c.profileComplete
+          profileComplete: c.profileComplete,
+          subscriptionStartDate: c.subscriptionStartDate,
+          subscriptionExpiryDate: c.subscriptionExpiryDate
         })),
         sessions: sessions.map(s => ({
           id: s._id,
