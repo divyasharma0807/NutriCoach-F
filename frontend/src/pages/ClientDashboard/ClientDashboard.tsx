@@ -983,8 +983,13 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                 upcomingSessions.map((session, idx) => (
                   <div key={idx} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                     <div style={{ fontSize: '2rem' }}>📅</div>
-                    <div>
-                      <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>{session.title || 'Client Session'}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>{session.title || 'Client Session'}</span>
+                        {session.status === 'PENDING' && (
+                          <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', backgroundColor: '#FFF3E0', color: '#E65100', borderRadius: '4px' }}>Pending Approval</span>
+                        )}
+                      </div>
                       <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>{session.date} at {session.time}</div>
                     </div>
                   </div>
@@ -1123,6 +1128,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                   try {
                     const res = await api.scheduleSession({ date: scheduleDate, time: scheduleTime });
                     if (res.success) {
+                      alert('Your request for the meeting has been sent to the coach.');
                       await fetchDashboardData();
                       setIsScheduleModalOpen(false);
                       setScheduleDate('');
