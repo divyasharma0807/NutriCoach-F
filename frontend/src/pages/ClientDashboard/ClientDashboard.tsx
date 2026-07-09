@@ -99,6 +99,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
   const [refWeightRange, setRefWeightRange] = useState('');
   const [refInterest, setRefInterest] = useState('');
   const [coachResults, setCoachResults] = useState<any[]>([]);
+  const [selectedResult, setSelectedResult] = useState<any | null>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   const [notifications, setNotifications] = useState<{id: any; text: string; read: boolean}[]>([]);
@@ -283,6 +284,26 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
 
   const renderMultiLineGraph = (data: any[], keys: string[], allKeys: string[]) => {
     const activeKeys = keys.includes('All') ? allKeys : keys;
+    const backendKeyMap: Record<string, string> = {
+      'Body Weight': 'bodyWeight',
+      'Body Mass Index (BMI)': 'bmi',
+      'Body Fat Ratio': 'bodyFatRatio',
+      'Muscle Rate': 'muscleRate',
+      'Body Water': 'bodyWater',
+      'Bone Mass': 'boneMass',
+      'Basal Metabolic Rate': 'bmr',
+      'Metabolic Age': 'metabolicAge',
+      'Visceral Fat': 'visceralFat',
+      'Subcutaneous Fat': 'subcutaneousFat',
+      'Protein Mass': 'proteinMass',
+      'Muscle Mass': 'muscleMass',
+      'Weight Without Fat': 'weightWithoutFat',
+      'Belly': 'belly',
+      'Waist': 'waist',
+      'Thigh': 'thigh',
+      'Chest': 'chest',
+      'Arm': 'arm'
+    };
     const colors = ['#2ECC71', '#3498DB', '#E74C3C', '#F1C40F', '#9B59B6', '#E67E22', '#1ABC9C', '#34495E', '#16A085', '#27AE60', '#2980B9', '#8E44AD', '#D35400'];
 
     const validData = data.filter(entry => {
@@ -299,7 +320,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       let min = Infinity;
       let max = -Infinity;
       validData.forEach(e => {
-        const backendKey = k;
+        const backendKey = backendKeyMap[k] || k;
         const val = parseFloat(e[backendKey]);
         if (!isNaN(val)) {
           if (val < min) min = val;
@@ -317,7 +338,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       const range = max - min || 1;
       
       const points = validData.map((e, i) => {
-        const backendKey = k;
+        const backendKey = backendKeyMap[k] || k;
         const val = parseFloat(e[backendKey]);
         if (isNaN(val)) return null;
         const x = validData.length === 1 ? 50 : (i / (validData.length - 1)) * 100;
@@ -545,7 +566,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             ) : (
               <div className="search-results-list">
                 {coachResults.map((result: any) => (
-                  <div key={result.id} className="search-result-entry" style={{ padding: '1.5rem', border: '1px solid var(--grey-200)', borderRadius: '12px', display: 'flex', gap: '1.5rem', background: 'var(--white)', marginBottom: '1rem' }}>
+                  <div key={result.id} className="search-result-entry" style={{ padding: '1.5rem', border: '1px solid var(--grey-200)', borderRadius: '12px', display: 'flex', gap: '1.5rem', background: 'var(--white)', marginBottom: '1rem', cursor: 'pointer' }} onClick={() => setSelectedResult(result)}>
                     <div style={{ width: '120px', height: '120px', borderRadius: '8px', overflow: 'hidden', background: 'var(--grey-100)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {result.image ? (
                         <img src={result.image} alt={result.description} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -1116,6 +1137,22 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           </div>
         </div>
       )}
+
+
+      <Modal isOpen={!!selectedResult} onClose={() => setSelectedResult(null)} title="Coach Update">
+        {selectedResult && (
+          <div style={{ padding: '1rem 0' }}>
+            {selectedResult.image && (
+              <div style={{ marginBottom: '1.5rem', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--grey-200)' }}>
+                <img src={selectedResult.image} alt={selectedResult.description} style={{ width: '100%', display: 'block' }} />
+              </div>
+            )}
+            <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--dark)', marginBottom: '0.5rem' }}>{selectedResult.clientName || 'Coach Update'}</div>
+            <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginBottom: '1rem' }}>{new Date(selectedResult.uploadDate).toLocaleDateString()}</div>
+            <p style={{ margin: 0, color: 'var(--dark)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{selectedResult.description}</p>
+          </div>
+        )}
+      </Modal>
 
       <Modal isOpen={isReferralModalOpen} onClose={() => setIsReferralModalOpen(false)} title="Add Referral">
         <div className="settings-form">
