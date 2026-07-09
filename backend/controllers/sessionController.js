@@ -123,16 +123,16 @@ export const scheduleSession = async (req, res, next) => {
           participants: [user._id, coach.seniorCoach],
           date,
           time,
-          title: 'Sub-Coach Session Request',
-          status: 'PENDING'
+          title: 'Sub-Coach Session',
+          status: 'APPROVED'
         });
 
         // Notify Parent Coach
         await Notification.create({
           recipientType: 'coach',
           recipientId: coach.seniorCoach,
-          text: `Your sub-coach ${user.name} requested a meeting on ${date} at ${time}.`,
-          type: 'session_request',
+          text: `Your sub-coach ${user.name} has scheduled a meeting on ${date} at ${time}.`,
+          type: 'info',
           relatedMeetingId: session._id
         });
 
