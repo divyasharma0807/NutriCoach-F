@@ -837,26 +837,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                     setScheduleError("Please select a future date and time.");
                     return;
                   }
-                  setSessions(prev => [...prev, {
-                    id: Date.now().toString(),
-                    type: scheduleType,
-                    participantName: scheduleType === 'client' ? scheduleClient : scheduleCoach,
-                    date: scheduleDate,
-                    time: scheduleTime,
-                    status: 'Scheduled',
-                    reminded: false
-                  }]);
-                  
-                  setNotifications(prev => [{
-                    id: Date.now() + 1,
-                    text: `Session scheduled with ${scheduleType === 'client' ? scheduleClient : scheduleCoach} on ${scheduleDate} at ${scheduleTime}`,
-                    read: false
-                  }, ...prev]);
-                  setScheduleClient('');
-                  setScheduleCoach('');
-                  setScheduleDate('');
-                  setScheduleTime('');
-                  setScheduleError('');
+                                    try {
+                    const clientObj = clients.find(c => c.name === scheduleClient);
+                    const coachObj = coaches.find(c => c.name === scheduleCoach);
+                    const res = await api.scheduleSession({
+                      date: scheduleDate,
+                      time: scheduleTime,
+                      clientId: scheduleType === 'client' ? (clientObj ? clientObj.id : undefined) : undefined,
+                      withParentCoach: false
+                    });
+                    if (res.success) {
+                      await fetchAdminData();
+                      setScheduleClient('');
+                      setScheduleCoach('');
+                      setScheduleDate('');
+                      setScheduleTime('');
+                      setScheduleError('');
+                    }
+                  } catch (err: any) {
+                    setScheduleError(err.message || 'Failed to schedule session');
+                  }
                 }}>SCHEDULE SESSION</Button>
               </div>
             </div>

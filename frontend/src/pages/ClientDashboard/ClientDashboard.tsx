@@ -1128,7 +1128,6 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                   try {
                     const res = await api.scheduleSession({ date: scheduleDate, time: scheduleTime });
                     if (res.success) {
-                      alert('Your request for the meeting has been sent to the coach.');
                       await fetchDashboardData();
                       setIsScheduleModalOpen(false);
                       setScheduleDate('');

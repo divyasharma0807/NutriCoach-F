@@ -815,11 +815,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                       withParentCoach: scheduleType === 'parent_coach'
                     });
                     if (res.success) {
-                      if (scheduleType === 'parent_coach') {
-                        alert('Your request for the meeting has been sent to your senior coach.');
-                      } else {
-                        alert('Meeting scheduled successfully.');
-                      }
+                      
                       await fetchCoachData();
                       setScheduleClient('');
                       setScheduleCoach('');
