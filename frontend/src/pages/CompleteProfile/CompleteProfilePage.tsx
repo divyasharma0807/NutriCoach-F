@@ -15,19 +15,25 @@ const getLocalTodayString = () => {
   return `${year}-${month}-${day}`;
 };
 
-interface CompleteProfilePageProps { role: 'client' | 'coach'; onComplete: (fullName?: string, activeGoal?: string, data?: any) => void; onNavigate?: (page: string) => void; }
+
 
 const healthGoals = ['Weight Loss', 'Muscle Gain', 'Better Energy', 'Heart Health', 'Diabetes Management', 'General Wellness', 'Sports Performance', 'Stress Management', 'Better Sleep', 'Digestive Health'];
 
-export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, onComplete, onNavigate }) => {
+export interface CompleteProfilePageProps {
+  role: 'client' | 'coach';
+  onComplete: (name?: string, goal?: string, data?: any) => void;
+  onNavigate?: (page: string) => void;
+  profileData?: any;
+}
+export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, onComplete, onNavigate, profileData }) => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [fullName, setFullName] = useState('');
-  const [emailAddress, setEmailAddress] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [city, setCity] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('');
-  const [coachName, setCoachName] = useState('');
+  const [fullName, setFullName] = useState(profileData?.name || '');
+  const [emailAddress, setEmailAddress] = useState(profileData?.email || '');
+  const [phoneNumber, setPhoneNumber] = useState(profileData?.phone || '');
+  const [city, setCity] = useState(profileData?.city || '');
+  const [age, setAge] = useState(profileData?.age || '');
+  const [gender, setGender] = useState(profileData?.gender || '');
+  const [coachName, setCoachName] = useState(profileData?.coachName || '');
   const [isAssessmentExpanded, setIsAssessmentExpanded] = useState(false);
   const [error, setError] = useState('');
   
@@ -51,16 +57,19 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
   const [chest, setChest] = useState('');
   const [arm, setArm] = useState('');
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const [height, setHeight] = useState('');
+  const [height, setHeight] = useState(profileData?.height || '');
   const [weight, setWeight] = useState('');
   const [heightUnit, setHeightUnit] = useState<'cm' | 'ft'>('cm');
   const [weightUnit, setWeightUnit] = useState<'kg' | 'lb'>('kg');
-  const [activeGoal, setActiveGoal] = useState('');
+  const [activeGoal, setActiveGoal] = useState(profileData?.activeGoal || '');
   const [medicalPdf, setMedicalPdf] = useState<File | null>(null);
-  const [allergies, setAllergies] = useState('');
+  const [allergies, setAllergies] = useState(profileData?.allergies || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSaveProfile = async () => {
+    if (isSubmitting) return;
     setError('');
+    setIsSubmitting(true);
     try {
       if (role === 'client') {
         const formData = new FormData();
@@ -115,6 +124,8 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
       }
     } catch (err: any) {
       setError(err.message || 'Failed to save profile');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -235,9 +246,21 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
               
               <div style={{ marginBottom: '1.5rem' }}>
                 <label className="input-label">Medical Record PDF</label>
-                <div style={{ border: '2px dashed var(--grey-300)', padding: '2rem', textAlign: 'center', borderRadius: '8px', marginTop: '0.5rem' }}>
-                   <input type="file" accept=".pdf" onChange={(e) => setMedicalPdf(e.target.files ? e.target.files[0] : null)} />
-                   {medicalPdf && <p style={{ color: 'var(--green)', marginTop: '0.5rem', fontSize: '0.85rem' }}>Attached: {medicalPdf.name}</p>}
+                <div style={{ marginTop: '0.5rem' }}>
+                  <input 
+                    type="file" 
+                    id="medical-pdf-upload"
+                    accept=".pdf" 
+                    style={{ display: 'none' }}
+                    onChange={(e) => setMedicalPdf(e.target.files ? e.target.files[0] : null)} 
+                  />
+                  <label 
+                    htmlFor="medical-pdf-upload"
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 24px', height: '48px', backgroundColor: 'var(--grey-100)', color: 'var(--dark)', borderRadius: '12px', cursor: 'pointer', fontWeight: 500, transition: 'background-color 0.2s', border: '1px solid var(--grey-200)', justifyContent: 'center' }}
+                  >
+                    <span style={{ fontSize: '1.2rem' }}>📄</span> Upload Medical Record
+                  </label>
+                  {medicalPdf && <p style={{ color: 'var(--green)', marginTop: '0.75rem', fontSize: '0.85rem', textAlign: 'center', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>Attached: {medicalPdf.name}</p>}
                 </div>
               </div>
 
@@ -257,7 +280,9 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
 
               <div className="step-navigation" style={{ marginTop: '2rem' }}>
                 <Button variant="ghost" onClick={() => setCurrentStep(3)}>Previous</Button>
-                <Button variant="green" onClick={handleSaveProfile}>Save Profile</Button>
+                <Button variant="green" onClick={handleSaveProfile} disabled={isSubmitting}>
+                  {isSubmitting ? 'Saving...' : 'Save Profile'}
+                </Button>
               </div>
             </div>
           )}

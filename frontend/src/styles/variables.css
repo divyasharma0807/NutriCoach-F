@@ -275,6 +275,11 @@
 .dark-theme [style*="color:var(--dark)"] {
   color: #FFFFFF !important;
 }
+.dark-theme [style*="color: var(--white)"],
+.dark-theme [style*="color: 'var(--white)'"],
+.dark-theme [style*="color:var(--white)"] {
+  color: #171717 !important;
+}
 .dark-theme [style*="color: var(--grey-700)"],
 .dark-theme [style*="color: 'var(--grey-700)'"] {
   color: #D1D5DB !important;
