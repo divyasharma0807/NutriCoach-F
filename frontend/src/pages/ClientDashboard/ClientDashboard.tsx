@@ -124,7 +124,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           currentWeight: d.currentWeight,
           activeGoal: d.activeGoal,
           subscriptionDays: d.subscriptionDays,
-          upcomingSessionsCount: (sessionRes.data || []).length
+          upcomingSessionsCount: (sessionRes.data || []).length,
+          profile: d.profile,
+          profileComplete: d.profileComplete
         });
 
         if (d.parameterHistory) {
@@ -295,7 +297,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       let min = Infinity;
       let max = -Infinity;
       validData.forEach(e => {
-        const backendKey = metricToKey[k] || k;
+        const backendKey = k;
         const val = parseFloat(e[backendKey]);
         if (!isNaN(val)) {
           if (val < min) min = val;
@@ -313,7 +315,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       const range = max - min || 1;
       
       const points = validData.map((e, i) => {
-        const backendKey = metricToKey[k] || k;
+        const backendKey = k;
         const val = parseFloat(e[backendKey]);
         if (isNaN(val)) return null;
         const x = validData.length === 1 ? 50 : (i / (validData.length - 1)) * 100;
@@ -541,8 +543,27 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             ) : (
               <div className="search-results-list">
                 {coachResults.map((result: any) => (
-                  <div key={result.id} className="search-result-entry">
-                    {/* Future coach result display wrapper */}
+                  <div key={result.id} className="search-result-entry" style={{ padding: '1.5rem', border: '1px solid var(--grey-200)', borderRadius: '12px', display: 'flex', gap: '1.5rem', background: 'var(--white)', marginBottom: '1rem' }}>
+                    <div style={{ width: '120px', height: '120px', borderRadius: '8px', overflow: 'hidden', background: 'var(--grey-100)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {result.image ? (
+                        <img src={result.image} alt={result.description} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '2rem' }}>📄</span>
+                      )}
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <div style={{ fontWeight: 'bold', color: 'var(--dark)', fontSize: '1.2rem' }}>Coach Update</div>
+                        <div style={{ color: 'var(--grey-500)', fontSize: '0.85rem' }}>{new Date(result.uploadDate).toLocaleDateString()}</div>
+                      </div>
+                      <p style={{ color: 'var(--grey-600)', margin: '0 0 1rem 0', lineHeight: 1.5 }}>{result.description}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 'auto' }}>
+                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--grey-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                          {result.coachName ? result.coachName.charAt(0).toUpperCase() : 'C'}
+                        </div>
+                        <span style={{ fontSize: '0.9rem', color: 'var(--grey-700)', fontWeight: 500 }}>{result.coachName || 'Your Coach'}</span>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -889,6 +910,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
     // Default Dashboard
     return (
       <div className="dashboard-content page-enter">
+        {!(profileComplete || dashboardStats.profileComplete) && (
         <div className="welcome-banner">
           <h2>{getGreeting()}! 👋</h2>
           <p>Complete your profile to unlock personalized features and get matched with a coach.</p>
@@ -898,6 +920,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           </div>
           <Button variant="secondary" onClick={() => onNavigateApp && onNavigateApp('complete-profile')}>Complete Profile →</Button>
         </div>
+        )}
         <div className="stats-row">
           {[
             { icon: '📅', bgColor: '#EDE7F6', label: 'Sessions Scheduled', value: upcomingSessions.length.toString() }, 
@@ -957,7 +980,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
 
   return (
     <div className="client-dashboard">
-      <Sidebar role="client" currentSection={currentSection} onNavigate={handleNavigate} userName={userName} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar role="client" currentSection={currentSection} onNavigate={handleNavigate} userName={userName} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} profileComplete={profileComplete || dashboardStats.profileComplete} />
       <main className="dashboard-main">
         <Topbar 
           title={
