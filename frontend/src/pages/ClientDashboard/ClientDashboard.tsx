@@ -475,7 +475,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           const planText = activeMealTab === 'weight-loss' ? dietPlan.weightLoss : dietPlan[activeMealTab];
           if (planText) {
             return (
-              <div style={{ padding: '1.5rem', backgroundColor: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.7', color: 'var(--dark)', fontSize: '0.95rem' }}>
+              <div style={{ padding: '1.5rem', backgroundColor: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.7', color: 'inherit', fontSize: '0.95rem' }}>
                 {planText}
               </div>
             );
