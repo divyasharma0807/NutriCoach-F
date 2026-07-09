@@ -1689,8 +1689,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   />
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '0.5rem' }}>
                     <Button variant="secondary" onClick={() => setIsEditingDiet(false)}>Cancel</Button>
-                    <Button variant="primary" onClick={() => {
-                      setIsEditingDiet(false);
+                    <Button variant="primary" onClick={async () => {
+                      try {
+                        const res = await api.uploadDietPlan({
+                          [activeDietCategory]: dietPlans[activeDietCategory]
+                        });
+                        if (res.success) {
+                          setIsEditingDiet(false);
+                          await fetchAdminData();
+                        }
+                      } catch (err: any) {
+                        alert(err.message || 'Failed to save diet plan');
+                      }
                     }}>Save Plan</Button>
                   </div>
                 </div>
@@ -2158,19 +2168,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   const expiry = new Date(start);
                   expiry.setMonth(expiry.getMonth() + 1);
                   const expiryDateStr = expiry.toISOString().split('T')[0];
-                  setClients(clients.map(c => c.id === selectedClient.id ? {
-                    ...c,
+                  
+                  api.updateClientSubscription(selectedClient.id, {
                     subscriptionStartDate,
                     subscriptionExpiryDate: expiryDateStr
-                  } : c));
-                  setSelectedClient({
-                    ...selectedClient,
-                    subscriptionStartDate,
-                    subscriptionExpiryDate: expiryDateStr
+                  }).then(() => {
+                    setClients(clients.map(c => c.id === selectedClient.id ? {
+                      ...c,
+                      subscriptionStartDate,
+                      subscriptionExpiryDate: expiryDateStr
+                    } : c));
+                    setSelectedClient({
+                      ...selectedClient,
+                      subscriptionStartDate,
+                      subscriptionExpiryDate: expiryDateStr
+                    });
+                    setIsUpdateSubscriptionModalOpen(false);
+                    setSubscriptionStartDate('');
+                  }).catch((err: any) => {
+                    alert(err.message || 'Failed to update subscription');
                   });
+                } else {
+                  setIsUpdateSubscriptionModalOpen(false);
+                  setSubscriptionStartDate('');
                 }
-                setIsUpdateSubscriptionModalOpen(false);
-                setSubscriptionStartDate('');
               }}>Save</Button>
             </div>
           </div>

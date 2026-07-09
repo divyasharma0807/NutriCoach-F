@@ -2137,19 +2137,30 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                   const expiry = new Date(start);
                   expiry.setMonth(expiry.getMonth() + 1);
                   const expiryDateStr = expiry.toISOString().split('T')[0];
-                  setClients(clients.map(c => c.id === selectedClient.id ? {
-                    ...c,
+                  
+                  api.updateClientSubscription(selectedClient.id, {
                     subscriptionStartDate,
                     subscriptionExpiryDate: expiryDateStr
-                  } : c));
-                  setSelectedClient({
-                    ...selectedClient,
-                    subscriptionStartDate,
-                    subscriptionExpiryDate: expiryDateStr
+                  }).then(() => {
+                    setClients(clients.map(c => c.id === selectedClient.id ? {
+                      ...c,
+                      subscriptionStartDate,
+                      subscriptionExpiryDate: expiryDateStr
+                    } : c));
+                    setSelectedClient({
+                      ...selectedClient,
+                      subscriptionStartDate,
+                      subscriptionExpiryDate: expiryDateStr
+                    });
+                    setIsUpdateSubscriptionModalOpen(false);
+                    setSubscriptionStartDate('');
+                  }).catch((err: any) => {
+                    alert(err.message || 'Failed to update subscription');
                   });
+                } else {
+                  setIsUpdateSubscriptionModalOpen(false);
+                  setSubscriptionStartDate('');
                 }
-                setIsUpdateSubscriptionModalOpen(false);
-                setSubscriptionStartDate('');
               }}>Save</Button>
             </div>
           </div>

@@ -17,6 +17,7 @@ router.use(protect);
 
 router.post('/clients', authorize('coach', 'admin'), addClient);
 router.get('/clients/:id', authorize('coach', 'admin'), getClientDetails);
+router.put('/clients/:id/subscription', authorize('coach', 'admin'), updateClientSubscription);
 router.get('/dashboard', authorize('coach', 'admin'), getDashboardStats);
 router.post('/prospects', authorize('coach', 'admin'), addProspect);
 router.post('/sub-coaches', authorize('coach', 'admin'), addCoach);

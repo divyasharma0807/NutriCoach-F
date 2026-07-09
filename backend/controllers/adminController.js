@@ -93,6 +93,10 @@ export const getDashboardStats = async (req, res, next) => {
           phone: r.phone,
           email: r.email,
           city: r.city,
+          age: r.age,
+          gender: r.gender,
+          weightRange: r.weightRange,
+          interest: r.interest,
           clientName: r.client ? r.client.name : 'Unknown'
         })),
         results: results.map(r => ({

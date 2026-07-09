@@ -509,6 +509,43 @@ export const deleteClient = async (req, res, next) => {
 // @desc    Get specific client details (profile, parameters, measurements, results)
 // @route   GET /api/coaches/clients/:id
 // @access  Private (Coach/Admin)
+// @desc    Update client subscription
+// @route   PUT /api/coach/clients/:id/subscription
+// @access  Private (Coach/Admin)
+export const updateClientSubscription = async (req, res, next) => {
+  const { subscriptionStartDate, subscriptionExpiryDate } = req.body;
+  
+  try {
+    const client = await Client.findById(req.params.id);
+    if (!client) {
+      res.status(404);
+      throw new Error('Client not found');
+    }
+    
+    // Admins can update any client. Coaches can only update their own clients.
+    if (req.user.role === 'coach' && client.coach && client.coach.toString() !== req.user._id.toString()) {
+      res.status(403);
+      throw new Error('Not authorized to update this client');
+    }
+
+    if (subscriptionStartDate) {
+      client.subscriptionStartDate = new Date(subscriptionStartDate);
+    }
+    if (subscriptionExpiryDate) {
+      client.subscriptionExpiryDate = new Date(subscriptionExpiryDate);
+    }
+
+    await client.save();
+    
+    res.json({
+      success: true,
+      data: client
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getClientDetails = async (req, res, next) => {
   try {
     const clientId = req.params.id;
