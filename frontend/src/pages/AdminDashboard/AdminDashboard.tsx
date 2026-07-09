@@ -820,7 +820,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                     {scheduleError}
                   </div>
                 )}
-                <Button variant="primary" fullWidth onClick={() => {
+                <Button variant="primary" fullWidth onClick={async () => {
                   if (scheduleType === 'client' && !scheduleClient) {
                     setScheduleError("Please select a client.");
                     return;
