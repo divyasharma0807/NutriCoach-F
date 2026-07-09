@@ -108,7 +108,7 @@ export const getDashboardStats = async (req, res, next) => {
           description: r.description,
           image: r.image?.secure_url || r.image
         })),
-        notifications: notifications.map(n => ({ id: n._id, text: n.text, read: n.read }))
+        notifications: notifications.map(n => ({ id: n._id, text: n.text, read: n.read, type: n.type, relatedMeetingId: n.relatedMeetingId }))
       }
     });
   } catch (error) {
