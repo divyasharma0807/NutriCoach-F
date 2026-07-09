@@ -877,6 +877,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                         <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Date: {session.date}</div>
                         <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Time: {session.time}</div>
                         <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Status: {session.status || 'Scheduled'}</div>
+                        {session.status === 'PENDING' && (
+                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                            <Button variant="primary" size="small" onClick={() => handleApproveSession(session.id)}>Approve</Button>
+                            <Button variant="danger" size="small" onClick={() => handleRejectSession(session.id)}>Reject</Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))
