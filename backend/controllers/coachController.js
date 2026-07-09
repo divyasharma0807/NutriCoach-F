@@ -195,7 +195,7 @@ export const getDashboardStats = async (req, res, next) => {
 
           return {
             id: s._id,
-            type: s.organizerRole, // Map to frontend 'type'
+            type: s.parentCoachId ? 'coach' : 'client',
             participantName,
             participantPhone,
             date: s.date,

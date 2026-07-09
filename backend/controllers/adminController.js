@@ -22,7 +22,7 @@ export const getDashboardStats = async (req, res, next) => {
 
     const coachesCount = await Coach.countDocuments({ seniorCoach: adminId });
     const clientsCount = await Client.countDocuments({ coach: adminId });
-    const sessionsCount = await Session.countDocuments({ coachId: adminId, status: 'Confirmed' });
+    const sessionsCount = await Session.countDocuments({ coachId: adminId, status: 'APPROVED' });
     
     // Build coach query
     const coachQuery = { seniorCoach: adminId };
