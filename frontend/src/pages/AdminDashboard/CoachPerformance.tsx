@@ -33,7 +33,7 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
         ...coach,
         calculatedClients: coach.clientsCount || 0,
         calculatedSessions: coach.sessionsCount || 0,
-        calculatedReferrals: coach.referralsCount || 0,
+        calculatedProspects: coach.prospectsCount || 0,
         calculatedResults: coach.resultsCount || 0,
         email: coach.email || '—',
         phone: coach.phone || '—',
@@ -168,7 +168,7 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Prospects:</span>
-                <span style={{ fontWeight: 600 }}>{coach.calculatedReferrals}</span>
+                <span style={{ fontWeight: 600 }}>{coach.calculatedProspects}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Results Uploaded:</span>

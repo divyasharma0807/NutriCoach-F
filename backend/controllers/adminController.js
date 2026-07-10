@@ -56,9 +56,7 @@ export const getDashboardStats = async (req, res, next) => {
       const coachClientsCount = await Client.countDocuments({ coach: c._id });
       const coachSessionsCount = await Session.countDocuments({ coachId: c._id });
       
-      const coachClients = await Client.find({ coach: c._id }).select('_id');
-      const coachClientIds = coachClients.map(client => client._id);
-      const coachReferralsCount = await Referral.countDocuments({ client: { $in: coachClientIds } });
+      const coachProspectsCount = await Prospect.countDocuments({ addedByCoach: c._id });
       
       const coachResultsCount = await Result.countDocuments({ coach: c._id });
 
@@ -76,7 +74,7 @@ export const getDashboardStats = async (req, res, next) => {
         seniorCoachName: c.seniorCoach ? c.seniorCoach.name : 'N/A',
         clientsCount: coachClientsCount,
         sessionsCount: coachSessionsCount,
-        referralsCount: coachReferralsCount,
+        prospectsCount: coachProspectsCount,
         resultsCount: coachResultsCount
       };
     }));
