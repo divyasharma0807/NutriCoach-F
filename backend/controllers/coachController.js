@@ -213,6 +213,8 @@ export const getDashboardStats = async (req, res, next) => {
           phone: r.phone,
           age: r.age,
           gender: r.gender,
+          weightRange: r.weightRange,
+          interest: r.interest,
           clientName: r.client ? r.client.name : 'Unknown'
         })),
         coaches: coaches.map(c => ({
