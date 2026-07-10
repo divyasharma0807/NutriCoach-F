@@ -722,7 +722,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
             </div>
             <div className="stat-card">
               <div className="stat-label">Scheduled Sessions</div>
-              <div className="stat-value">{sessions.length}</div>
+              <div className="stat-value">{sessions.filter((s: any) => s.status === 'APPROVED').length}</div>
             </div>
             <div className="stat-card">
               <div className="stat-label">Prospects</div>
