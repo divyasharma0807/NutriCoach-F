@@ -1816,6 +1816,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                       borderRadius: '12px',
                       border: '1px solid var(--primary)',
                       backgroundColor: 'var(--white)',
+                      color: '#000000',
                       boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
                       lineHeight: '1.6',
                       resize: 'vertical'
