@@ -267,17 +267,12 @@ export const api = {
     });
   },
 
-    updateClientSubscription: async (clientId: string, data: { subscriptionStartDate: string, subscriptionExpiryDate: string }) => {
-    const res = await fetch(`${API_URL}/coach/clients/${clientId}/subscription`, {
+  updateClientSubscription: async (clientId: string, data: { subscriptionStartDate: string, subscriptionExpiryDate: string }) => {
+    return fetchAPI(`/coaches/clients/${clientId}/subscription`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
+      headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.message || 'Failed to update subscription');
-    }
-    return res.json();
   },
   updateAdminProfile: async (profileData: any) => {
     return fetchAPI('/admin/profile', {
