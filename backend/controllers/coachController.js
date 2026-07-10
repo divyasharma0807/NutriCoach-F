@@ -222,7 +222,7 @@ export const getDashboardStats = async (req, res, next) => {
           name: c.name,
           clientsCount: 0, // In future could aggregate clients under this subcoach
           level: c.level,
-          status: c.activeStatus.toLowerCase()
+          status: c.activeStatus ? c.activeStatus.toLowerCase() : 'active'
         })),
         results: results.map(r => ({
           id: r._id,

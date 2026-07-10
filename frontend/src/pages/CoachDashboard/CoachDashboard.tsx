@@ -161,6 +161,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [newCoachExperience, setNewCoachExperience] = useState('');
   const [newCoachLevel, setNewCoachLevel] = useState('');
   const [newCoachPassword, setNewCoachPassword] = useState('');
+  const [showCoachPassword, setShowCoachPassword] = useState(false);
 
   // Filters for Coaches
   const [coachLevelFilter, setCoachLevelFilter] = useState('All');
