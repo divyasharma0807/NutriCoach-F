@@ -320,8 +320,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       let min = Infinity;
       let max = -Infinity;
       validData.forEach(e => {
-        const backendKey = backendKeyMap[k] || k;
-        const val = parseFloat(e[backendKey]);
+        const val = parseFloat(e[k]);
         if (!isNaN(val)) {
           if (val < min) min = val;
           if (val > max) max = val;
@@ -338,8 +337,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       const range = max - min || 1;
       
       const points = validData.map((e, i) => {
-        const backendKey = backendKeyMap[k] || k;
-        const val = parseFloat(e[backendKey]);
+        const val = parseFloat(e[k]);
         if (isNaN(val)) return null;
         const x = validData.length === 1 ? 50 : (i / (validData.length - 1)) * 100;
         const y = 90 - (((val - min) / range) * 80); // 10% padding bottom and top
