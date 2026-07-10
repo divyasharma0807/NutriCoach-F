@@ -234,8 +234,8 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
                 <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Scheduled Sessions</div>
               </div>
               <div className="stat-card" style={{ padding: '1rem', borderRadius: '8px' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedReferrals}</div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Referrals</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedProspects}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Prospects</div>
               </div>
               <div className="stat-card" style={{ padding: '1rem', borderRadius: '8px' }}>
                 <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedResults}</div>
