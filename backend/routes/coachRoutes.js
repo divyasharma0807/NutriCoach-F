@@ -7,7 +7,8 @@ import {
   uploadResult,
   deleteClient,
   getClientDetails,
-  updateClientSubscription
+  updateClientSubscription,
+  updateSubcoachStatus
 } from '../controllers/coachController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
@@ -22,6 +23,7 @@ router.put('/clients/:id/subscription', authorize('coach', 'admin'), updateClien
 router.get('/dashboard', authorize('coach', 'admin'), getDashboardStats);
 router.post('/prospects', authorize('coach', 'admin'), addProspect);
 router.post('/sub-coaches', authorize('coach', 'admin'), addCoach);
+router.put('/sub-coaches/:id/status', authorize('coach', 'admin'), updateSubcoachStatus);
 router.post('/results', authorize('coach', 'admin'), upload.single('image'), uploadResult);
 router.delete('/clients/:id', authorize('coach', 'admin'), deleteClient);
 
