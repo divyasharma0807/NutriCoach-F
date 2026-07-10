@@ -1436,6 +1436,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   <div style={{ marginBottom: '1rem' }}><label style={{ color: 'var(--grey-600)', fontSize: '0.8rem' }}>Age</label><div style={{ fontWeight: 600 }}>{selectedReferral.age}</div></div>
                   <div style={{ marginBottom: '1rem' }}><label style={{ color: 'var(--grey-600)', fontSize: '0.8rem' }}>Gender</label><div style={{ fontWeight: 600 }}>{selectedReferral.gender}</div></div>
                 </div>
+                <div>
+                  <div style={{ marginBottom: '1rem' }}><label style={{ color: 'var(--grey-600)', fontSize: '0.8rem' }}>Weight Range</label><div style={{ fontWeight: 600 }}>{selectedReferral.weightRange || 'N/A'}</div></div>
+                  <div style={{ marginBottom: '1rem' }}><label style={{ color: 'var(--grey-600)', fontSize: '0.8rem' }}>Interest</label><div style={{ fontWeight: 600 }}>{selectedReferral.interest || 'N/A'}</div></div>
+                </div>
               </div>
               <div style={{ marginTop: '2.5rem', display: 'flex', justifyContent: 'center' }}>
                 <Button variant="danger" onClick={() => { setItemToDelete({ type: 'referral', id: selectedReferral.id }); setIsDeleteModalOpen(true); }}>Delete Profile</Button>
