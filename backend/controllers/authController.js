@@ -185,6 +185,7 @@ export const getMe = async (req, res, next) => {
         city: user.city || '',
         experience: user.experience || '',
         coachName: user.coachName || '',
+        subscriptionExpiryDate: user.role === 'client' ? user.subscriptionExpiryDate : undefined,
       }
     });
   } catch (error) {

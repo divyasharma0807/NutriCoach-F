@@ -908,10 +908,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
 
     const profileCompletionPercentage = profileComplete ? 100 : ((userName ? 50 : 0) + (activeGoal ? 50 : 0));
 
-    const getSubscriptionStatus = (startDate?: string) => {
-      if (!startDate) return 'N/A';
-      const start = new Date(startDate);
-      const expiry = new Date(start.getTime() + (30 * 24 * 60 * 60 * 1000));
+    const getSubscriptionStatus = (expiryStr?: string) => {
+      if (!expiryStr) return 'N/A';
+      const expiry = new Date(expiryStr);
       const now = new Date();
       const diffTime = expiry.getTime() - now.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -940,7 +939,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             { icon: '📅', bgColor: '#EDE7F6', label: 'Sessions Scheduled', value: upcomingSessions.length.toString() }, 
             { icon: '🎯', bgColor: 'var(--green-pale)', label: 'Active Goals', value: activeGoal || '—' }, 
             { icon: '⚖️', bgColor: 'var(--blue-pale)', label: 'Current Weight', value: dashboardStats.currentWeight !== 'N/A' ? `${dashboardStats.currentWeight} kg` : '—' },
-            { icon: '💳', bgColor: '#FFF3E0', label: 'Subscription Status', value: getSubscriptionStatus(subscriptionStartDate), isLong: true }
+            { icon: '💳', bgColor: '#FFF3E0', label: 'Subscription Status', value: getSubscriptionStatus(profileData?.subscriptionExpiryDate), isLong: true }
           ].map(s => (
             <div key={s.label} className="stat-card">
               <div className="stat-icon" style={{ backgroundColor: s.bgColor }}>{s.icon}</div>
