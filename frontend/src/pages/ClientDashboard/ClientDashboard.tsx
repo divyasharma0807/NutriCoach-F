@@ -577,7 +577,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                         <div style={{ fontWeight: 'bold', color: 'var(--dark)', fontSize: '1.2rem' }}>Coach Update</div>
-                        <div style={{ color: 'var(--grey-500)', fontSize: '0.85rem' }}>{new Date(result.uploadDate).toLocaleDateString()}</div>
+                        <div style={{ color: 'var(--grey-500)', fontSize: '0.85rem' }}>
+                          {result.uploadDate && !isNaN(new Date(result.uploadDate).getTime()) ? new Date(result.uploadDate).toLocaleDateString() : ''}
+                        </div>
                       </div>
                       <p style={{ color: 'var(--grey-600)', margin: '0 0 1rem 0', lineHeight: 1.5 }}>{result.description}</p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 'auto' }}>
@@ -1153,7 +1155,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
               </div>
             )}
             <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--dark)', marginBottom: '0.5rem' }}>{selectedResult.clientName || 'Coach Update'}</div>
-            <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginBottom: '1rem' }}>{new Date(selectedResult.uploadDate).toLocaleDateString()}</div>
+            <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+              {selectedResult.uploadDate && !isNaN(new Date(selectedResult.uploadDate).getTime()) ? new Date(selectedResult.uploadDate).toLocaleDateString() : ''}
+            </div>
             <p style={{ margin: 0, color: 'var(--dark)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{selectedResult.description}</p>
           </div>
         )}
