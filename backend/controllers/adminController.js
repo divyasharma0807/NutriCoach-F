@@ -68,6 +68,9 @@ export const getDashboardStats = async (req, res, next) => {
           email: c.email,
           phone: c.phone,
           level: c.level,
+          city: c.city,
+          gender: c.gender,
+          experience: c.experience,
           status: c.activeStatus ? c.activeStatus.toLowerCase() : 'active',
           activeStatus: c.activeStatus,
           seniorCoachName: c.seniorCoach ? c.seniorCoach.name : 'N/A'

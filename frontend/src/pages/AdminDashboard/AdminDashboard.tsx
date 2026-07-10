@@ -416,6 +416,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
           setCoaches(d.coaches.map((c: any) => ({
             id: c._id || c.id,
             name: c.name,
+            email: c.email,
+            phone: c.phone,
+            city: c.city,
+            gender: c.gender,
+            experience: c.experience,
             clientsCount: c.clientsCount || 0,
             level: c.level,
             status: c.status
