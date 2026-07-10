@@ -813,10 +813,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Gender</label>
                 <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.gender || userGender}</div>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Coach Name</label>
-                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.coachName || coach}</div>
-              </div>
+
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Date Joined</label>
                 <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{dashboardStats.profile?.createdAt ? new Date(dashboardStats.profile.createdAt).toLocaleDateString() : '—'}</div>
@@ -847,13 +844,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
               </div>
             </div>
 
-            <h4 style={{ margin: '0 0 1.5rem', fontSize: '1.1rem', color: 'var(--dark)' }}>Coach Information</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem 2rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--grey-500)', marginBottom: '0.25rem' }}>Assigned Coach</label>
-                <div style={{ fontWeight: 500, color: 'var(--dark)' }}>{coach}</div>
-              </div>
-            </div>
+
           </div>
         </div>
       );
