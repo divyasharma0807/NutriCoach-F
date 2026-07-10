@@ -631,7 +631,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           </div>
           <div className="metrics-row">
             {[
-              { icon: '⚖️', label: 'Current Weight', value: getLatestParameter('Body Weight') ? `${getLatestParameter('Body Weight')} kg` : (profileData?.bodyWeight ? `${profileData.bodyWeight} kg` : '—') }, 
+              { icon: '⚖️', label: 'Current Weight', value: dashboardStats.currentWeight !== 'N/A' ? `${dashboardStats.currentWeight} kg` : '—' }, 
               { icon: '📊', label: 'BMI', value: getLatestParameter('Body Mass Index (BMI)') || '—' }, 
               { icon: '💪', label: 'Body Fat %', value: getLatestParameter('Body Fat Ratio') ? `${getLatestParameter('Body Fat Ratio')}%` : '—' }
             ].map(m => (
@@ -768,8 +768,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       const userCity = profileData?.city || '—';
       const userAge = profileData?.age || '—';
       const userGender = profileData?.gender || '—';
-      const currentWeight = profileData?.bodyWeight ? `${profileData.bodyWeight} kg` : '—';
-      const userHeight = profileData?.height ? `${profileData.height} cm` : '—';
+      const currentWeight = dashboardStats.currentWeight !== 'N/A' ? `${dashboardStats.currentWeight} kg` : '—';
+      const userHeight = dashboardStats.profile?.height ? `${dashboardStats.profile.height} cm` : '—';
       const coach = profileData?.coachName || '—';
 
       return (
@@ -948,7 +948,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           {[
             { icon: '📅', bgColor: '#EDE7F6', label: 'Sessions Scheduled', value: upcomingSessions.length.toString() }, 
             { icon: '🎯', bgColor: 'var(--green-pale)', label: 'Active Goals', value: activeGoal || '—' }, 
-            { icon: '⚖️', bgColor: 'var(--blue-pale)', label: 'Current Weight', value: getLatestParameter('Body Weight') ? `${getLatestParameter('Body Weight')} kg` : (profileData?.bodyWeight ? `${profileData.bodyWeight} kg` : '—') },
+            { icon: '⚖️', bgColor: 'var(--blue-pale)', label: 'Current Weight', value: dashboardStats.currentWeight !== 'N/A' ? `${dashboardStats.currentWeight} kg` : '—' },
             { icon: '💳', bgColor: '#FFF3E0', label: 'Subscription Status', value: getSubscriptionStatus(subscriptionStartDate), isLong: true }
           ].map(s => (
             <div key={s.label} className="stat-card">
