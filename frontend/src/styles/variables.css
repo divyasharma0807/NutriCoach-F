@@ -299,3 +299,12 @@
 .dark-theme .gender-option:not(.selected) {
   color: #FFFFFF !important;
 }
+
+/* Fix for long text diet plans */
+.diet-plan-textarea, .dark-theme .diet-plan-textarea {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-y: auto !important;
+}

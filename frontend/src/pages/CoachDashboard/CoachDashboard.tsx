@@ -1804,7 +1804,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               {isEditingDiet ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <textarea 
-                    className="control-input" 
+                    className="control-input diet-plan-textarea" 
                     rows={12} 
                     value={dietPlans[activeDietCategory]} 
                     onChange={e => setDietPlans({ ...dietPlans, [activeDietCategory]: e.target.value })}
@@ -1816,7 +1816,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                       borderRadius: '12px',
                       border: '1px solid var(--primary)',
                       backgroundColor: 'var(--white)',
-                      color: 'var(--dark)',
+                      color: '#000000',
                       boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
                       lineHeight: '1.6',
                       resize: 'vertical'
@@ -1842,7 +1842,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                 </div>
               ) : (
                 hasPlan ? (
-                  <div style={{ padding: '1.5rem', backgroundColor: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.7', color: 'var(--dark)', fontSize: '0.95rem' }}>
+                  <div style={{ padding: '1.5rem', backgroundColor: '#FFFFFF', border: '1px solid var(--grey-200)', borderRadius: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.7', color: '#000000', fontSize: '0.95rem' }}>
                     {dietPlans[activeDietCategory] || 'No text entered for this diet plan phase.'}
                   </div>
                 ) : (
