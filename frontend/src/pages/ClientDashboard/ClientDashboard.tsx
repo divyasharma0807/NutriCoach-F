@@ -979,8 +979,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           <div className="main-card sessions-card" style={{ display: 'flex', flexDirection: 'column', padding: '2.5rem', gap: '1.5rem' }}>
             <div className="card-header"><h3>Upcoming Sessions</h3><button className="view-all-link" onClick={() => setIsScheduleModalOpen(true)}>Schedule +</button></div>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', overflowY: 'auto' }}>
-              {upcomingSessions.length > 0 ? (
-                upcomingSessions.map((session, idx) => (
+              {upcomingSessions.filter(s => s.status !== 'REJECTED').length > 0 ? (
+                upcomingSessions.filter(s => s.status !== 'REJECTED').map((session, idx) => (
                   <div key={idx} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                     <div style={{ fontSize: '2rem' }}>📅</div>
                     <div style={{ flex: 1 }}>

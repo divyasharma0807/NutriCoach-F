@@ -864,8 +864,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
             <div className="main-card" style={{ padding: '2rem' }}>
               <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--dark)', marginBottom: '1.5rem' }}>Scheduled Sessions</h4>
               <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
-                {sessions.length > 0 ? (
-                  sessions.map(session => (
+                {sessions.filter(s => s.status !== 'REJECTED').length > 0 ? (
+                  sessions.filter(s => s.status !== 'REJECTED').map(session => (
                     <div key={session.id} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                       <div style={{ fontSize: '2rem' }}>📅</div>
                       <div>
