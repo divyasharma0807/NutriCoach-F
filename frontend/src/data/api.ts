@@ -252,6 +252,14 @@ export const api = {
     });
   },
 
+  updateSubcoachStatus: async (coachId: string, status: string) => {
+    return fetchAPI(`/coaches/sub-coaches/${coachId}/status`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify({ status })
+    });
+  },
+
   // Notifications
   getNotifications: async () => {
     return fetchAPI('/notifications', {

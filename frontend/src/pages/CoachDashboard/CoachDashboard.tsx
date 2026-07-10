@@ -1216,7 +1216,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                           const newStatus = (c.status || 'active') === 'active' ? 'inactive' : 'active';
                           setCoaches(coaches.map(coach => coach.id === c.id ? { ...coach, status: newStatus } : coach));
                           try {
-                            await api.updateCoachStatus(c.id, newStatus);
+                            const apiStatus = newStatus === 'active' ? 'Active' : 'Inactive';
+                            await api.updateSubcoachStatus(c.id, apiStatus);
                           } catch (err: any) {
                             alert(err.message || 'Failed to update coach status');
                             setCoaches(coaches.map(coach => coach.id === c.id ? { ...coach, status: c.status || 'active' } : coach));
