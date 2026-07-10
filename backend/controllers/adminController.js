@@ -52,6 +52,35 @@ export const getDashboardStats = async (req, res, next) => {
 
     const dietPlan = await DietPlan.findOne({ coach: adminId, client: null });
 
+    const coachesWithStats = await Promise.all(coaches.map(async (c) => {
+      const coachClientsCount = await Client.countDocuments({ coach: c._id });
+      const coachSessionsCount = await Session.countDocuments({ coachId: c._id });
+      
+      const coachClients = await Client.find({ coach: c._id }).select('_id');
+      const coachClientIds = coachClients.map(client => client._id);
+      const coachReferralsCount = await Referral.countDocuments({ client: { $in: coachClientIds } });
+      
+      const coachResultsCount = await Result.countDocuments({ coach: c._id });
+
+      return {
+        id: c._id,
+        name: c.name,
+        email: c.email,
+        phone: c.phone,
+        level: c.level,
+        city: c.city,
+        gender: c.gender,
+        experience: c.experience,
+        status: c.activeStatus ? c.activeStatus.toLowerCase() : 'active',
+        activeStatus: c.activeStatus,
+        seniorCoachName: c.seniorCoach ? c.seniorCoach.name : 'N/A',
+        clientsCount: coachClientsCount,
+        sessionsCount: coachSessionsCount,
+        referralsCount: coachReferralsCount,
+        resultsCount: coachResultsCount
+      };
+    }));
+
     res.json({
       success: true,
       data: {
@@ -62,19 +91,7 @@ export const getDashboardStats = async (req, res, next) => {
           totalReferrals: referralsCount
         },
         dietPlan: dietPlan || { beginner: '', intermediate: '', advanced: '', weightLoss: '' },
-        coaches: coaches.map(c => ({
-          id: c._id,
-          name: c.name,
-          email: c.email,
-          phone: c.phone,
-          level: c.level,
-          city: c.city,
-          gender: c.gender,
-          experience: c.experience,
-          status: c.activeStatus ? c.activeStatus.toLowerCase() : 'active',
-          activeStatus: c.activeStatus,
-          seniorCoachName: c.seniorCoach ? c.seniorCoach.name : 'N/A'
-        })),
+        coaches: coachesWithStats,
         clients: clients.map(c => ({
           id: c._id,
           name: c.name,

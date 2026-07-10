@@ -29,29 +29,12 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
   // Calculate metrics for each coach
   const coachesWithMetrics = useMemo(() => {
     return coaches.map(coach => {
-      const coachClients = clients.filter(c => c.coachName === coach.name);
-      const actualClientCount = coachClients.length > 0 ? coachClients.length : coach.clientsCount || 0;
-
-      // Sessions linked directly to coach or to their clients
-      const coachSessions = sessions.filter(s => 
-        (s.type === 'coach' && s.participantName === coach.name) ||
-        (s.type === 'client' && coachClients.some(c => c.name === s.participantName))
-      ).length;
-
-      // Results linked to their clients
-      const coachResults = results.filter(r => 
-        coachClients.some(c => c.name === r.clientName)
-      ).length;
-
-      // Referrals (Assuming if referral has coachName, otherwise 0)
-      const coachReferrals = referrals.filter((r: any) => r.coachName === coach.name).length;
-
       return {
         ...coach,
-        calculatedClients: actualClientCount,
-        calculatedSessions: coachSessions,
-        calculatedReferrals: coachReferrals,
-        calculatedResults: coachResults,
+        calculatedClients: coach.clientsCount || 0,
+        calculatedSessions: coach.sessionsCount || 0,
+        calculatedReferrals: coach.referralsCount || 0,
+        calculatedResults: coach.resultsCount || 0,
         email: coach.email || '—',
         phone: coach.phone || '—',
         city: coach.city || '—',
