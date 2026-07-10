@@ -938,8 +938,8 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           {[
             { icon: '📅', bgColor: '#EDE7F6', label: 'Sessions Scheduled', value: upcomingSessions.length.toString() }, 
             { icon: '🎯', bgColor: 'var(--green-pale)', label: 'Active Goals', value: activeGoal || '—' }, 
-            { icon: '⚖️', bgColor: 'var(--blue-pale)', label: 'Current Weight', value: dashboardStats.currentWeight !== 'N/A' ? `${dashboardStats.currentWeight} kg` : '—' },
-            { icon: '💳', bgColor: '#FFF3E0', label: 'Subscription Status', value: getSubscriptionStatus(profileData?.subscriptionExpiryDate), isLong: true }
+            { icon: '⚖️', bgColor: 'var(--blue-pale)', label: 'Current Weight', value: (dashboardStats.currentWeight && dashboardStats.currentWeight !== 'N/A') ? `${dashboardStats.currentWeight} kg` : '—' },
+            { icon: '💳', bgColor: '#FFF3E0', label: 'Subscription Status', value: getSubscriptionStatus(dashboardStats.profile?.subscriptionExpiryDate || profileData?.subscriptionExpiryDate), isLong: true }
           ].map(s => (
             <div key={s.label} className="stat-card">
               <div className="stat-icon" style={{ backgroundColor: s.bgColor }}>{s.icon}</div>
