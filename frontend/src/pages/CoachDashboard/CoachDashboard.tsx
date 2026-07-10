@@ -1212,8 +1212,15 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                           color: (c.status || 'active') === 'active' ? 'var(--white)' : 'var(--dark)',
                           borderColor: (c.status || 'active') === 'active' ? 'var(--green)' : '#f59e0b'
                         }}
-                        onClick={() => {
-                          setCoaches(coaches.map(coach => coach.id === c.id ? { ...coach, status: (coach.status || 'active') === 'active' ? 'inactive' : 'active' } : coach));
+                        onClick={async () => {
+                          const newStatus = (c.status || 'active') === 'active' ? 'inactive' : 'active';
+                          setCoaches(coaches.map(coach => coach.id === c.id ? { ...coach, status: newStatus } : coach));
+                          try {
+                            await api.updateCoachStatus(c.id, newStatus);
+                          } catch (err: any) {
+                            alert(err.message || 'Failed to update coach status');
+                            setCoaches(coaches.map(coach => coach.id === c.id ? { ...coach, status: c.status || 'active' } : coach));
+                          }
                         }}
                       >
                         {(c.status || 'active') === 'active' ? 'Active' : 'Inactive'}
