@@ -900,14 +900,14 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               <div className="main-card" style={{ padding: '2rem', gridColumn: 'span 2' }}>
                 <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--dark)' }}>Medical Records</h4>
                 <div style={{ marginTop: '1.25rem', color: 'var(--grey-500)', fontSize: '0.95rem' }}>
-                  {clientDetails?.medicalPdf?.secure_url ? (
+                  {clientDetails?.medicalPdf ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--off-white)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }}>
                       <span style={{ fontSize: '2rem' }}>📄</span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>Medical Record</div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)' }}>Uploaded PDF</div>
                       </div>
-                      <Button variant="secondary" size="sm" onClick={() => window.open(clientDetails.medicalPdf.secure_url, '_blank')}>View / Download</Button>
+                      <Button variant="secondary" size="sm" onClick={() => window.open(typeof clientDetails.medicalPdf === 'string' ? clientDetails.medicalPdf : (clientDetails.medicalPdf as any).secure_url, '_blank')}>View / Download</Button>
                     </div>
                   ) : (
                     <div>No medical records uploaded.</div>
