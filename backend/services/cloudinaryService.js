@@ -13,12 +13,8 @@ export const uploadToCloudinary = async (filePath, folderName) => {
       folder: `nutricoach/${folderName}`
     };
 
-    // For PDFs/docs, upload as raw or auto resource type
-    if (filePath.endsWith('.pdf')) {
-      options.resource_type = 'raw';
-    } else {
-      options.resource_type = 'image';
-    }
+    // For PDFs/docs, upload as image so Cloudinary allows public delivery without 401
+    options.resource_type = 'image';
 
     const result = await cloudinary.uploader.upload(filePath, options);
     
