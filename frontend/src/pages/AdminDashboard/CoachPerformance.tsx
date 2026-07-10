@@ -167,7 +167,7 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
                 <span style={{ fontWeight: 600 }}>{coach.calculatedSessions}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Referrals:</span>
+                <span>Prospects:</span>
                 <span style={{ fontWeight: 600 }}>{coach.calculatedReferrals}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
