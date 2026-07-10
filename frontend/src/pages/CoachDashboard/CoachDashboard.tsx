@@ -907,7 +907,11 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                         <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>Medical Record</div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)' }}>Uploaded PDF</div>
                       </div>
-                      <Button variant="secondary" size="sm" onClick={() => window.open(typeof clientDetails.medicalPdf === 'string' ? clientDetails.medicalPdf : (clientDetails.medicalPdf as any).secure_url, '_blank')}>View / Download</Button>
+                      <Button variant="secondary" size="sm" onClick={() => {
+                        const rawUrl = typeof clientDetails.medicalPdf === 'string' ? clientDetails.medicalPdf : (clientDetails.medicalPdf as any).secure_url;
+                        const finalUrl = rawUrl.replace(/\.pdf$/i, '.png');
+                        window.open(finalUrl, '_blank');
+                      }}>View / Download</Button>
                     </div>
                   ) : (
                     <div>No medical records uploaded.</div>

@@ -947,13 +947,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                 <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--dark)' }}>Medical Records</h4>
                 <div style={{ marginTop: '1.25rem', color: 'var(--grey-500)', fontSize: '0.95rem' }}>
                   {clientDetails?.medicalPdf ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'var(--off-white)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', background: 'var(--off-white)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }}>
                       <span style={{ fontSize: '2rem' }}>📄</span>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>Medical Record</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)' }}>Uploaded PDF</div>
+                        <div style={{ fontWeight: 500, color: 'var(--dark)' }}>Medical Record</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)' }}>PDF Format</div>
                       </div>
-                      <Button variant="secondary" size="sm" onClick={() => window.open(typeof clientDetails.medicalPdf === 'string' ? clientDetails.medicalPdf : (clientDetails.medicalPdf as any).secure_url, '_blank')}>View / Download</Button>
+                      <Button variant="secondary" size="sm" onClick={() => {
+                        const rawUrl = typeof clientDetails.medicalPdf === 'string' ? clientDetails.medicalPdf : (clientDetails.medicalPdf as any).secure_url;
+                        const finalUrl = rawUrl.replace(/\.pdf$/i, '.png');
+                        window.open(finalUrl, '_blank');
+                      }}>View / Download</Button>
                     </div>
                   ) : (
                     <div>No medical records uploaded.</div>
