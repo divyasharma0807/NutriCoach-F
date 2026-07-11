@@ -548,6 +548,41 @@ export const updateClientSubscription = async (req, res, next) => {
   }
 };
 
+// @desc    Update subcoach active status
+// @route   PUT /api/coaches/sub-coaches/:id/status
+// @access  Private (Coach/Admin)
+export const updateSubcoachStatus = async (req, res, next) => {
+  const { status } = req.body;
+  
+  try {
+    const coach = await Coach.findById(req.params.id);
+    if (!coach) {
+      res.status(404);
+      throw new Error('Coach not found');
+    }
+    
+    // Authorization check: Admins can update any. Coaches can only update coaches who have them as seniorCoach.
+    if (req.user.role === 'coach' && coach.seniorCoach && coach.seniorCoach.toString() !== req.user._id.toString()) {
+      res.status(403);
+      throw new Error('Not authorized to update this coach status');
+    }
+
+    if (status) {
+      coach.activeStatus = status; // 'Active' or 'Inactive'
+    }
+
+    await coach.save();
+    
+    res.json({
+      success: true,
+      message: `Coach status updated to ${status} successfully`,
+      data: coach
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getClientDetails = async (req, res, next) => {
   try {
     const clientId = req.params.id;
