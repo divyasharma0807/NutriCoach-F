@@ -602,7 +602,45 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
         if (!isNaN(val)) { if (val < min) min = val; if (val > max) max = val; }
       });
       if (min === Infinity) min = 0; if (max === -Infinity) max = 100;
-      if (min === max) { min -= 10; max += 10; }
+
+      const minRanges: Record<string, number> = {
+        'Body Weight': 10,
+        'Body Mass Index (BMI)': 3,
+        'Body Fat Ratio': 5,
+        'Muscle Rate': 5,
+        'Body Water': 5,
+        'Bone Mass': 0.5,
+        'Basal Metabolic Rate': 100,
+        'Metabolic Age': 5,
+        'Visceral Fat': 2,
+        'Subcutaneous Fat': 5,
+        'Protein Mass': 5,
+        'Muscle Mass': 5,
+        'Weight Without Fat': 10,
+        'Belly': 5,
+        'Waist': 5,
+        'Thigh': 3,
+        'Chest': 5,
+        'Arm': 2
+      };
+
+      if (min === max) {
+         const pad = minRanges[k] ? minRanges[k] / 2 : 5;
+         min -= pad;
+         max += pad;
+      } else {
+         const actualDiff = max - min;
+         const targetMinDiff = minRanges[k] || 10;
+         if (actualDiff < targetMinDiff) {
+           const padding = (targetMinDiff - actualDiff) / 2;
+           min -= padding;
+           max += padding;
+         } else {
+           const padding = actualDiff * 0.05;
+           min -= padding;
+           max += padding;
+         }
+      }
       const range = max - min || 1;
       const points = validData.map((e, i) => {
         const val = parseFloat(e[k]);
