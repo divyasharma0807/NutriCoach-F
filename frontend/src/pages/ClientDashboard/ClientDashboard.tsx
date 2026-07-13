@@ -653,7 +653,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             ))}
           </div>
           <div className="diet-card">
-            <div className="meal-section-header"><h3>{activeMealTab === 'beginner' ? '🟢 Beginner (1–7 Days)' : activeMealTab === 'intermediate' ? '🟡 Intermediate (8–20 Days)' : activeMealTab === 'advanced' ? '🔴 Advanced (21+ Days)' : '🔥 Weight Loss Challenge'}</h3><span className="meal-calories">{hasDietPlan ? '~ Personalized Plan' : '~ Phase Details'}</span></div>
+            <div className="meal-section-header"><h3>{activeMealTab === 'beginner' ? '🟢 Beginner (1–7 Days)' : activeMealTab === 'intermediate' ? '🟡 Intermediate (8–20 Days)' : activeMealTab === 'advanced' ? '🔴 Advanced (21+ Days)' : '🔥 Weight Loss Challenge'}</h3></div>
             {hasDietPlan ? renderDietPlanDetails() : (
               <div className="meal-empty"><EmptyState icon="🥗" title="No diet plan assigned yet" subtitle="Your coach will create a personalized meal plan for you." /></div>
             )}
