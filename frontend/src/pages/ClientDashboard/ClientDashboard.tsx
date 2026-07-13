@@ -70,7 +70,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
   useEffect(() => {
     localStorage.setItem('activeMealTab', activeMealTab);
   }, [activeMealTab]);
-  const [settingsTab, setSettingsTab] = useState('profile');
+  const [pushNotifications, setPushNotifications] = useState(true);
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['All']);
   const [selectedMeasurements, setSelectedMeasurements] = useState<string[]>(['All']);
   const [startDate, setStartDate] = useState('');
@@ -720,39 +720,9 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
               <h2 style={{ margin: 0 }}>Settings</h2>
             </div>
           </div>
-          <div className="settings-tabs">
-            {['Profile', 'Notifications'].map(tab => (
-              <button key={tab} className={`settings-tab ${settingsTab === tab.toLowerCase().replace(' ', '-') ? 'active' : ''}`} onClick={() => setSettingsTab(tab.toLowerCase().replace(' ', '-'))}>{tab}</button>
-            ))}
+          <div className="settings-card">
+            <Toggle checked={pushNotifications} onChange={setPushNotifications} label="Push Notifications" description="Get notified on your device" />
           </div>
-          {settingsTab === 'profile' && (
-            <div className="settings-card">
-               <div className="avatar-section"><div className="avatar-circle large">{userName.charAt(0).toUpperCase()}</div><Button variant="secondary" size="sm">Change Photo</Button></div>
-              <div className="settings-form">
-                <div className="form-row">
-                  <div className="form-field"><label>Name</label><input type="text" defaultValue={userName} /></div>
-                  <div className="form-field"><label>Email Address</label><input type="email" defaultValue="user@example.com" /></div>
-                </div>
-                <div className="form-row">
-                  <div className="form-field"><label>Phone Number</label><input type="tel" defaultValue="" placeholder="+91" /></div>
-                  <div className="form-field"><label>Active Goal</label><input type="text" placeholder="e.g., Weight Loss" /></div>
-                </div>
-                <div style={{ marginTop: '3rem' }}>
-                  <Button variant="primary">Save Changes</Button>
-                </div>
-              </div>
-            </div>
-          )}
-          {settingsTab === 'notifications' && (
-            <div className="settings-card">
-              <Toggle checked={true} onChange={() => {}} label="Email Updates" description="Receive updates about your progress" />
-              <Toggle checked={false} onChange={() => {}} label="Push Notifications" description="Get notified on your device" />
-              <Toggle checked={true} onChange={() => {}} label="Session Reminders" description="Reminders for upcoming sessions" />
-              <Toggle checked={true} onChange={() => {}} label="Diet Plan Updates" description="When your coach updates your plan" />
-              <Toggle checked={false} onChange={() => {}} label="Coach Messages" description="New messages from your coach" />
-              <Toggle checked={true} onChange={() => {}} label="Weekly Reports" description="Weekly summary of your progress" />
-            </div>
-          )}
         </div>
       );
     }

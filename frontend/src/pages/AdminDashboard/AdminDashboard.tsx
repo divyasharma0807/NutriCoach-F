@@ -1394,8 +1394,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
             <div className="main-card settings-card">
               <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: 'var(--dark)', marginBottom: '1.5rem' }}>Notifications</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <Toggle label="Email Notifications" description="Receive updates via email" checked={coachNotifications.email} onChange={checked => setCoachNotifications({...coachNotifications, email: checked})} />
-                <Toggle label="SMS Notifications" description="Receive text messages for urgent alerts" checked={coachNotifications.sms} onChange={checked => setCoachNotifications({...coachNotifications, sms: checked})} />
                 <Toggle label="Push Notifications" description="Receive app notifications" checked={coachNotifications.push} onChange={checked => setCoachNotifications({...coachNotifications, push: checked})} />
               </div>
             </div>
