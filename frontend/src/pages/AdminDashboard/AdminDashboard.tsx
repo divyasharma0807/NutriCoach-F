@@ -1543,7 +1543,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   setEditResultFile(null);
                   setIsEditResultOpen(true);
                 }}>Edit Result</Button>
-                <Button variant="danger" onClick={() => setIsDeleteResultConfirmOpen(true)}>Delete Result</Button>
               </div>
             </div>
           ) : (
@@ -2318,25 +2317,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
             </div>
           </div>
         </Modal>
-        <Modal isOpen={isDeleteResultConfirmOpen} onClose={() => setIsDeleteResultConfirmOpen(false)} title="Delete Result">
-          <div style={{ padding: '1rem 0' }}>
-            <p style={{ margin: 0, fontSize: '1.1rem', color: 'var(--dark)' }}>Are you sure you want to delete this Result?</p>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={() => setIsDeleteResultConfirmOpen(false)}>Cancel</Button>
-              <Button variant="danger" onClick={async () => {
-                try {
-                  const res = await api.deleteResult(selectedResult.id);
-                  if (res.success) {
-                    await fetchAdminData();
-                    setIsDeleteResultConfirmOpen(false);
-                  }
-                } catch (err: any) {
-                  alert(err.message || 'Failed to delete result');
-                }
-              }}>Delete</Button>
-            </div>
-          </div>
-        </Modal>
+        
       </main>
     </div>
   );
