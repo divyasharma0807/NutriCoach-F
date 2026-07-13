@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/Button/Button';
 import { InputField } from '../../components/InputField/InputField';
 import './LoginPage.css';
@@ -12,6 +12,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin, initi
   const [mobileNumber, setMobileNumber] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+
+  useEffect(() => {
+    const currentTheme = document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light';
+    setTheme(currentTheme);
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark-theme', newTheme === 'dark');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +41,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin, initi
 
   return (
     <div className="login-page page-enter">
+      <button 
+        type="button"
+        onClick={toggleTheme} 
+        className="login-theme-toggle"
+        aria-label="Toggle Theme"
+      >
+        {theme === 'light' ? '🌙' : '☀️'}
+      </button>
       {error && (
         <div style={{
           position: 'fixed',
@@ -46,7 +67,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin, initi
         </div>
       )}
       <div className="login-left-panel">
-        <div className="login-logo"><span className="logo-icon">🌿</span><span className="logo-text">NutriCoach</span></div>
+        <div className="login-logo"><span className="logo-text">NutriCoach</span></div>
         <div className="login-content">
           <h2>Your Health Journey Starts Here</h2>
           <p>Connect with certified coaches, track your progress, and achieve your wellness goals with personalized support.</p>
@@ -55,9 +76,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin, initi
               <div key={f} className="login-feature-item"><div className="login-feature-icon">✓</div><span>{f}</span></div>
             ))}
           </div>
-        </div>
-        <div className="login-footer">
-          <span>Need help? Contact support</span>
         </div>
       </div>
       <div className="login-right-panel">
@@ -77,7 +95,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin, initi
             </div>
           </form>
           <div style={{ marginTop: '2rem' }}>
-            <p className="login-terms">By logging in you agree to our <button>Terms of Service</button> and <button>Privacy Policy</button></p>
+            <p className="login-terms">By logging in you agree to our <button type="button" onClick={() => onNavigate('terms')}>Terms of Service</button> and <button type="button" onClick={() => onNavigate('privacy')}>Privacy Policy</button></p>
           </div>
         </div>
       </div>
