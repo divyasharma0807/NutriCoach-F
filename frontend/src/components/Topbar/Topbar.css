@@ -27,3 +27,16 @@
   .topbar-breadcrumb { display: none; }
   .topbar-title { font-size: 0.95rem; }
 }
+
+@media (max-width: 480px) {
+  .notification-dropdown {
+    position: fixed;
+    top: calc(var(--topbar-h) + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100vw - 32px);
+    max-width: 340px;
+    right: auto;
+  }
+}
+
