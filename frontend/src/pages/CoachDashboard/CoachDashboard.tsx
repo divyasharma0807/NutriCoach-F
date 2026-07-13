@@ -1234,22 +1234,21 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               {filteredCoaches.map(c => (
                 <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1.5rem', border: '1px solid var(--grey-200)', borderRadius: '12px', background: 'var(--white)', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--dark)' }}>{c.name}</h3>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', gap: '2rem', color: 'var(--grey-600)', fontSize: '0.95rem', alignItems: 'center' }}>
-                      <div>Clients: {c.clientsCount}</div>
-                      <div>Level: {c.level}</div>
-                      <div style={{ fontWeight: 600, color: (c.status || 'active') === 'active' ? 'var(--green)' : '#d97706' }}>
-                        {(c.status || 'active') === 'active' ? '🟢 Active' : '🟡 Inactive'}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '0.25rem' }}>
+                    {/* Left Group: Clients Count & Status Toggle Button */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                      <div style={{ color: 'var(--grey-600)', fontSize: '0.95rem' }}>
+                        Clients: <span style={{ fontWeight: 600, color: 'var(--dark)' }}>{c.clientsCount}</span>
                       </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '1rem' }}>
                       <Button 
                         variant="secondary" 
                         size="sm" 
                         style={{ 
                           backgroundColor: (c.status || 'active') === 'active' ? 'var(--green)' : '#f59e0b',
-                          color: (c.status || 'active') === 'active' ? 'var(--white)' : 'var(--dark)',
-                          borderColor: (c.status || 'active') === 'active' ? 'var(--green)' : '#f59e0b'
+                          color: 'var(--white)',
+                          borderColor: (c.status || 'active') === 'active' ? 'var(--green)' : '#f59e0b',
+                          width: '120px',
+                          justifyContent: 'center'
                         }}
                         onClick={async () => {
                           const newStatus = (c.status || 'active') === 'active' ? 'inactive' : 'active';
@@ -1265,7 +1264,24 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                       >
                         {(c.status || 'active') === 'active' ? 'Active' : 'Inactive'}
                       </Button>
-                      <Button variant="danger" size="sm" onClick={() => { setItemToDelete({ type: 'coach', id: c.id }); setIsDeleteModalOpen(true); }}>Delete Profile</Button>
+                    </div>
+
+                    {/* Right Group: Level & Delete Profile Button */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                      <div style={{ color: 'var(--grey-600)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>Level: <span style={{ fontWeight: 600, color: 'var(--dark)' }}>{c.level}</span></span>
+                        <span style={{ fontWeight: 600, fontSize: '0.85rem', color: (c.status || 'active') === 'active' ? 'var(--green)' : '#d97706' }}>
+                          {(c.status || 'active') === 'active' ? '🟢' : '🟡'}
+                        </span>
+                      </div>
+                      <Button 
+                        variant="danger" 
+                        size="sm" 
+                        style={{ width: '130px', justifyContent: 'center' }}
+                        onClick={() => { setItemToDelete({ type: 'coach', id: c.id }); setIsDeleteModalOpen(true); }}
+                      >
+                        Delete Profile
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1689,7 +1705,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                   <img src={selectedResult.image} alt="Transformation" style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', display: 'block' }} />
                 </div>
               )}
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
                 <Button variant="secondary" onClick={() => {
                   setEditResultClientName(selectedResult.clientName);
                   setEditResultDescription(selectedResult.description);
