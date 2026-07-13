@@ -65,10 +65,23 @@
 .avatar-circle { width: 80px; height: 80px; background-color: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--white); font-weight: 700; font-size: 1.6rem; }
 .settings-form { display: flex; flex-direction: column; gap: var(--space-4); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
-.form-field { display: flex; flex-direction: column; }
+/* Form Fields */
+.form-field { display: flex; flex-direction: column; width: 100%; }
 .form-field label { font-size: 0.88rem; font-weight: 600; color: var(--grey-700); margin-bottom: var(--space-2); }
-.form-field input, .form-field textarea { padding: var(--space-3) var(--space-4); border: 1.5px solid var(--grey-200); border-radius: var(--radius-md); font-size: 0.95rem; font-family: var(--font-sans); outline: none; }
-.form-field input:focus, .form-field textarea:focus { border-color: var(--dark); }
+.form-field input, .form-field textarea { 
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-3) var(--space-4); 
+  border: 1.5px solid var(--grey-200); 
+  border-radius: var(--radius-md); 
+  font-size: 0.95rem; 
+  font-family: var(--font-sans); 
+  color: var(--dark);
+  background-color: var(--white);
+  outline: none; 
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.form-field input:focus, .form-field textarea:focus { border-color: var(--dark); box-shadow: 0 0 0 3px rgba(15, 17, 23, 0.06); }
 .danger-card { border: 1px solid var(--danger); background-color: var(--danger-pale); }
 .danger-card h4 { color: var(--danger); font-size: 1rem; margin-bottom: var(--space-2); }
 .danger-card p { color: var(--grey-600); font-size: 0.9rem; margin-bottom: var(--space-4); }
@@ -317,4 +330,11 @@
   .form-row { grid-template-columns: 1fr; }
   .section-content { padding: var(--space-4); }
   .meal-tabs { flex-wrap: wrap; white-space: normal; }
+}
+
+.responsive-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }

@@ -861,7 +861,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           </div>
           <div className="settings-card">
             <p style={{ marginBottom: '1.5rem', color: 'var(--grey-500)' }}>Enter your current body parameters. Saving these will update your Progress & Analytics graphs.</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className="responsive-metrics-grid">
                {metricsOptions.map(metric => (
                  <div key={metric} className="form-field">
                    <label>{metric}</label>
@@ -882,7 +882,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
              }}>Save Parameters</Button>
 
             <h3 style={{ marginTop: '3rem', marginBottom: '1.5rem', color: 'var(--dark)' }}>BODY MEASUREMENTS</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+            <div className="responsive-metrics-grid">
                {measurementOptions.map(measure => (
                  <div key={measure} className="form-field">
                    <label>{measure} Size</label>
