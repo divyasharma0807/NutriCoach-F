@@ -405,7 +405,14 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
         })));
         if (d.referrals) setReferrals(d.referrals.map((r: any) => ({ ...r, weightRange: r.weightRange, interest: r.interest })));
         if (d.coaches) setCoaches(d.coaches);
-        if (d.results) setResults(d.results);
+        if (d.results) {
+          setResults(d.results.map((r: any) => ({
+            id: r._id || r.id,
+            clientName: r.clientName,
+            description: r.description,
+            image: r.image && r.image.secure_url ? r.image.secure_url : r.image
+          })));
+        }
         if (d.notifications) setNotifications(d.notifications);
         if (d.dietPlan) {
           setDietPlans({
