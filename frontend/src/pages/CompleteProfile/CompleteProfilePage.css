@@ -71,3 +71,16 @@
   .complete-profile-content { padding: var(--space-4); }
   .complete-profile-card { padding: var(--space-6); }
 }
+
+@media (max-width: 480px) {
+  .complete-profile-card {
+    padding: var(--space-4);
+  }
+  .step-navigation {
+    gap: var(--space-2);
+  }
+  .step-navigation button {
+    padding: 8px 16px !important;
+    font-size: 0.9rem !important;
+  }
+}

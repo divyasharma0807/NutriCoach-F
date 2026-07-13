@@ -196,8 +196,7 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
                   <div className="metric-input-wrapper">
                     <input type="number" className="metric-input" placeholder="" value={height} onChange={(e) => setHeight(e.target.value)} />
                     <div className="unit-toggle">
-                      <button className={heightUnit === 'cm' ? 'active' : ''} onClick={() => setHeightUnit('cm')}>cm</button>
-                      <button className={heightUnit === 'ft' ? 'active' : ''} onClick={() => setHeightUnit('ft')}>ft</button>
+                      <button className="active" style={{ cursor: 'default' }}>cm</button>
                     </div>
                   </div>
                 </div>

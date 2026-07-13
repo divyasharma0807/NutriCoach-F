@@ -564,28 +564,37 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             ) : (
               <div className="search-results-list">
                 {coachResults.map((result: any) => (
-                  <div key={result.id} className="search-result-entry" style={{ padding: '1.5rem', border: '1px solid var(--grey-200)', borderRadius: '12px', display: 'flex', gap: '1.5rem', background: 'var(--white)', marginBottom: '1rem', cursor: 'pointer' }} onClick={() => setSelectedResult(result)}>
-                    <div style={{ width: '120px', height: '120px', borderRadius: '8px', overflow: 'hidden', background: 'var(--grey-100)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {result.image ? (
-                        <img src={result.image} alt={result.description} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <span style={{ fontSize: '2rem' }}>📄</span>
-                      )}
+                  <div key={result.id} className="search-result-entry" style={{ padding: '1.25rem', border: '1px solid var(--grey-200)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--white)', marginBottom: '1rem', cursor: 'pointer' }} onClick={() => setSelectedResult(result)}>
+                    {/* Top Row: Client Name and Upload Date */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ fontWeight: 'bold', color: 'var(--dark)', fontSize: '1.15rem' }}>{result.clientName || 'Coach Update'}</div>
+                      <div style={{ color: 'var(--grey-500)', fontSize: '0.8rem' }}>
+                        {result.uploadDate && !isNaN(new Date(result.uploadDate).getTime()) ? new Date(result.uploadDate).toLocaleDateString() : ''}
+                      </div>
                     </div>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                        <div style={{ fontWeight: 'bold', color: 'var(--dark)', fontSize: '1.2rem' }}>Coach Update</div>
-                        <div style={{ color: 'var(--grey-500)', fontSize: '0.85rem' }}>
-                          {result.uploadDate && !isNaN(new Date(result.uploadDate).getTime()) ? new Date(result.uploadDate).toLocaleDateString() : ''}
-                        </div>
+
+                    {/* Description Row: Truncated to a single line with ellipsis */}
+                    <p style={{ color: 'var(--grey-600)', margin: '0', fontSize: '0.9rem', lineHeight: '1.4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {result.description}
+                    </p>
+
+                    {/* Image Preview below description */}
+                    {result.image ? (
+                      <div style={{ width: '100%', height: '160px', borderRadius: '8px', overflow: 'hidden', background: 'var(--grey-100)', marginTop: '0.25rem' }}>
+                        <img src={result.image} alt={result.description} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
-                      <p style={{ color: 'var(--grey-600)', margin: '0 0 1rem 0', lineHeight: 1.5 }}>{result.description}</p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 'auto' }}>
-                        <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--grey-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold' }}>
-                          {result.coachName ? result.coachName.charAt(0).toUpperCase() : 'C'}
-                        </div>
-                        <span style={{ fontSize: '0.9rem', color: 'var(--grey-700)', fontWeight: 500 }}>{result.coachName || 'Your Coach'}</span>
+                    ) : (
+                      <div style={{ width: '100%', height: '60px', borderRadius: '8px', overflow: 'hidden', background: 'var(--grey-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '0.25rem' }}>
+                        <span style={{ fontSize: '1.5rem' }}>📄</span>
                       </div>
+                    )}
+
+                    {/* Footer Row: Coach Profile Details */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                      <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--grey-200)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold' }}>
+                        {result.coachName ? result.coachName.charAt(0).toUpperCase() : 'C'}
+                      </div>
+                      <span style={{ fontSize: '0.85rem', color: 'var(--grey-700)', fontWeight: 500 }}>{result.coachName || 'Your Coach'}</span>
                     </div>
                   </div>
                 ))}
@@ -1137,16 +1146,16 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
       <Modal isOpen={!!selectedResult} onClose={() => setSelectedResult(null)} title="Coach Update">
         {selectedResult && (
           <div style={{ padding: '1rem 0' }}>
-            {selectedResult.image && (
-              <div style={{ marginBottom: '1.5rem', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--grey-200)' }}>
-                <img src={selectedResult.image} alt={selectedResult.description} style={{ width: '100%', display: 'block' }} />
-              </div>
-            )}
-            <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--dark)', marginBottom: '0.5rem' }}>{selectedResult.clientName || 'Coach Update'}</div>
-            <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginBottom: '1rem' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '1.25rem', color: 'var(--dark)', marginBottom: '0.25rem' }}>{selectedResult.clientName || 'Coach Update'}</div>
+            <div style={{ color: 'var(--grey-500)', fontSize: '0.85rem', marginBottom: '1rem' }}>
               {selectedResult.uploadDate && !isNaN(new Date(selectedResult.uploadDate).getTime()) ? new Date(selectedResult.uploadDate).toLocaleDateString() : ''}
             </div>
-            <p style={{ margin: 0, color: 'var(--dark)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{selectedResult.description}</p>
+            <p style={{ margin: '0 0 1.5rem 0', color: 'var(--dark)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{selectedResult.description}</p>
+            {selectedResult.image && (
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--grey-200)', background: 'var(--grey-50)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <img src={selectedResult.image} alt={selectedResult.description} style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', display: 'block' }} />
+              </div>
+            )}
           </div>
         )}
       </Modal>

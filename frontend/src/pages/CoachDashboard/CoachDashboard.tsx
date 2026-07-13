@@ -1649,8 +1649,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                 <p style={{ margin: 0, color: 'var(--dark)', lineHeight: '1.6' }}>{selectedResult.description}</p>
               </div>
               {selectedResult.image && (
-                <div style={{ marginBottom: '2rem' }}>
-                  <img src={selectedResult.image} alt="Transformation" style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid var(--grey-200)' }} />
+                <div style={{ marginBottom: '2rem', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--grey-200)', background: 'var(--grey-50)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <img src={selectedResult.image} alt="Transformation" style={{ width: '100%', maxHeight: '400px', objectFit: 'contain', display: 'block' }} />
                 </div>
               )}
               <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
