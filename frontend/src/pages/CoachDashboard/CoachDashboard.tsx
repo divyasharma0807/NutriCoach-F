@@ -1234,12 +1234,22 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               {filteredCoaches.map(c => (
                 <div key={c.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1.5rem', border: '1px solid var(--grey-200)', borderRadius: '12px', background: 'var(--white)', cursor: 'default', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--dark)' }}>{c.name}</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginTop: '0.25rem' }}>
-                    {/* Left Group: Clients Count & Status Toggle Button */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    {/* Row 1: Clients & Level */}
+                    <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                       <div style={{ color: 'var(--grey-600)', fontSize: '0.95rem' }}>
                         Clients: <span style={{ fontWeight: 600, color: 'var(--dark)' }}>{c.clientsCount}</span>
                       </div>
+                      <div style={{ color: 'var(--grey-600)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>Level: <span style={{ fontWeight: 600, color: 'var(--dark)' }}>{c.level}</span></span>
+                        <span style={{ fontWeight: 600, fontSize: '0.85rem', color: (c.status || 'active') === 'active' ? 'var(--green)' : '#d97706' }}>
+                          {(c.status || 'active') === 'active' ? '🟢' : '🟡'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Row 2: Active toggle & Delete Profile buttons */}
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                       <Button 
                         variant="secondary" 
                         size="sm" 
@@ -1264,20 +1274,9 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                       >
                         {(c.status || 'active') === 'active' ? 'Active' : 'Inactive'}
                       </Button>
-                    </div>
-
-                    {/* Right Group: Level & Delete Profile Button */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'flex-start' }}>
-                      <div style={{ color: 'var(--grey-600)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span>Level: <span style={{ fontWeight: 600, color: 'var(--dark)' }}>{c.level}</span></span>
-                        <span style={{ fontWeight: 600, fontSize: '0.85rem', color: (c.status || 'active') === 'active' ? 'var(--green)' : '#d97706' }}>
-                          {(c.status || 'active') === 'active' ? '🟢' : '🟡'}
-                        </span>
-                      </div>
                       <Button 
                         variant="danger" 
                         size="sm" 
-                        style={{ width: '130px', justifyContent: 'center' }}
                         onClick={() => { setItemToDelete({ type: 'coach', id: c.id }); setIsDeleteModalOpen(true); }}
                       >
                         Delete Profile
