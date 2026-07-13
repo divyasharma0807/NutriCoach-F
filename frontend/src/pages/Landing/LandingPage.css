@@ -149,3 +149,54 @@
 .dark-theme .page-hero p {
   color: var(--grey-300);
 }
+
+/* Footer Social Links */
+.footer-social-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--green-pale);
+  color: #0F1117 !important; /* Always dark for good contrast with the pale green bg */
+  text-decoration: none;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.footer-social-link:hover {
+  background-color: var(--green);
+  color: #FFFFFF !important; /* Turn white on hover on primary green bg */
+  transform: translateY(-2px);
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--dark);
+  transition: background-color var(--transition, 0.22s);
+}
+
+.theme-toggle-btn:hover {
+  background-color: var(--grey-100);
+}
+
+.dark-theme .theme-toggle-btn:hover {
+  background-color: var(--dark-3);
+}
+
