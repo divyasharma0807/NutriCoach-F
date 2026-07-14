@@ -1254,19 +1254,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
     // PROSPECTS SECTION
     // -----------------------------------------------------------------------
     if (currentSection === 'prospects') {
-      if (selectedProspect) {
-        return (
-          <div className="section-content page-enter">
-            <div className="section-header" style={{ marginBottom: '1.5rem' }}>
+      return (
+        <div className="section-content page-enter" style={!selectedProspect ? { position: 'relative', minHeight: 'calc(100vh - 120px)', paddingBottom: '6rem' } : undefined}>
+          <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => selectedProspect ? setSelectedProspect(null) : setCurrentSection('dashboard')} title="Back" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
-                <h2 style={{ margin: 0, lineHeight: 1 }}>Prospect Details</h2>
-                <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Detailed prospect contact information</p>
+                <h2 style={{ margin: 0, lineHeight: 1 }}>{selectedProspect ? 'Prospect Details' : 'Prospects'}</h2>
+                <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>{selectedProspect ? 'Detailed prospect contact information' : 'Manage and track incoming leads'}</p>
               </div>
             </div>
-              <Button variant="secondary" onClick={() => setSelectedProspect(null)}>← Back to List</Button>
-            </div>
+          </div>
+
+          {selectedProspect ? (
             <div className="main-card" style={{ maxWidth: '800px', margin: '0 auto', padding: '2.5rem' }}>
               <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--dark)', marginBottom: '1.5rem' }}>{selectedProspect.name}</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '1rem' }}>
@@ -1281,21 +1281,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                 <Button variant="danger" onClick={() => { setItemToDelete({ type: 'prospect', id: selectedProspect.id }); setIsDeleteModalOpen(true); }}>Delete Profile</Button>
               </div>
             </div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="section-content page-enter" style={{ position: 'relative', minHeight: 'calc(100vh - 120px)', paddingBottom: '6rem' }}>
-          <div className="section-header">
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
-              <div>
-                <h2 style={{ margin: 0, lineHeight: 1 }}>Prospects</h2>
-                <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Manage and track incoming leads</p>
-              </div>
-            </div>
-          </div>
+          ) : (
+            <>
 
           <div className="controls-row">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
@@ -1398,6 +1385,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               </div>
             </div>
           </Modal>
+          </>
+          )}
         </div>
       );
     }
@@ -1455,19 +1444,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => selectedReferral ? setSelectedReferral(null) : setCurrentSection('dashboard')} title="Back" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
-                <h2 style={{ margin: 0, lineHeight: 1 }}>Referrals</h2>
-                <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Track new leads referred by existing clients</p>
+                <h2 style={{ margin: 0, lineHeight: 1 }}>{selectedReferral ? 'Referral Details' : 'Referrals'}</h2>
+                <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>{selectedReferral ? 'Detailed referral contact information' : 'Track new leads referred by existing clients'}</p>
               </div>
             </div>
           </div>
           {selectedReferral ? (
             <div className="main-card" style={{ padding: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-                <button onClick={() => setSelectedReferral(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--grey-600)' }}>←</button>
-                <h3 style={{ margin: 0 }}>Referral Details</h3>
-              </div>
+              <h3 style={{ margin: 0, marginBottom: '2rem' }}>Referral Details</h3>
               <div className="form-row" style={{ gap: '2rem' }}>
                 <div>
                   <div style={{ marginBottom: '1rem' }}><label style={{ color: 'var(--grey-600)', fontSize: '0.8rem' }}>Name</label><div style={{ fontWeight: 600 }}>{selectedReferral.name}</div></div>
@@ -1516,19 +1502,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => selectedResult ? setSelectedResult(null) : setCurrentSection('dashboard')} title="Back" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
-                <h2 style={{ margin: 0, lineHeight: 1 }}>Results</h2>
-                <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Track and showcase client transformations</p>
+                <h2 style={{ margin: 0, lineHeight: 1 }}>{selectedResult ? 'Result Details' : 'Results'}</h2>
+                <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>{selectedResult ? 'Detailed client transformation result details' : 'Track and showcase client transformations'}</p>
               </div>
             </div>
           </div>
           {selectedResult ? (
             <div className="main-card" style={{ padding: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-                <button onClick={() => setSelectedResult(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--grey-600)' }}>←</button>
-                <h3 style={{ margin: 0 }}>Result Details</h3>
-              </div>
+              <h3 style={{ margin: 0, marginBottom: '2rem' }}>Result Details</h3>
               <div style={{ marginBottom: '1.5rem' }}>
                 <div style={{ color: 'var(--grey-600)', fontSize: '0.8rem', fontWeight: 600 }}>Client Name</div>
                 <div style={{ fontWeight: 'bold', fontSize: '1.2rem', color: 'var(--dark)' }}>{selectedResult.clientName}</div>
