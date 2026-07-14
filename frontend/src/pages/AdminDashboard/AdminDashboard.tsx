@@ -247,7 +247,108 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
 
   // Settings
   const [coachProfile, setCoachProfile] = useState<{ name: string; email: string; phone: string }>({ name: userName, email: '', phone: '' });
-  const [coachNotifications, setCoachNotifications] = useState({ email: true, sms: false, push: true });
+  const [pushNotifications, setPushNotifications] = useState(true);
+  const [sessionNotifications, setSessionNotifications] = useState(true);
+  const [dietNotifications, setDietNotifications] = useState(true);
+  const [resultNotifications, setResultNotifications] = useState(true);
+  const [subscriptionNotifications, setSubscriptionNotifications] = useState(true);
+  const [marketingNotifications, setMarketingNotifications] = useState(false);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const res = await api.getNotificationSettings();
+        if (res.success && res.data) {
+          setPushNotifications(res.data.pushEnabled);
+          setSessionNotifications(res.data.sessions);
+          setDietNotifications(res.data.dietPlans);
+          setResultNotifications(res.data.results);
+          setSubscriptionNotifications(res.data.subscriptions);
+          setMarketingNotifications(res.data.marketing);
+        }
+      } catch (e) {
+        console.error('Failed to load notification settings:', e);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const handlePushNotificationChange = async (val: boolean) => {
+    setPushNotifications(val);
+    try {
+      await api.updateNotificationSettings({ pushEnabled: val });
+    } catch (e) {
+      console.error('Failed to update push settings:', e);
+    }
+  };
+
+  const handleSettingsSubToggle = async (key: string, val: boolean) => {
+    if (key === 'sessions') setSessionNotifications(val);
+    else if (key === 'dietPlans') setDietNotifications(val);
+    else if (key === 'results') setResultNotifications(val);
+    else if (key === 'subscriptions') setSubscriptionNotifications(val);
+    else if (key === 'marketing') setMarketingNotifications(val);
+
+    try {
+      await api.updateNotificationSettings({ [key]: val });
+    } catch (e) {
+      console.error('Failed to update notification settings sub-toggle:', e);
+    }
+  };
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js').catch(err => {
+        console.warn('SW registration failed:', err);
+      });
+    }
+
+    import('../../firebase').then(({ requestPushPermission, listenForForegroundMessages }) => {
+      requestPushPermission(async (token) => {
+        try {
+          await api.registerFCMToken(token, 'Web', 'Browser', 'Desktop');
+        } catch (e) {
+          console.error('Failed to register FCM token on backend:', e);
+        }
+      });
+
+      const unsubscribe = listenForForegroundMessages(() => {
+        fetchAdminData();
+      });
+      return () => unsubscribe();
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'NAVIGATE_SECTION') {
+        const url = new URL(event.data.clickAction, window.location.origin);
+        const section = url.searchParams.get('section');
+        if (section) {
+          setCurrentSection(section);
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+    }
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.removeEventListener('message', handleMessage);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const section = params.get('section');
+    if (section) {
+      setCurrentSection(section);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Manage Connections
   const [connectionsTab, setConnectionsTab] = useState<'clients' | 'coaches' | 'prospects' | 'referrals'>('clients');
@@ -1425,10 +1526,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
           <div style={{ display: 'grid', gap: '2rem' }}>
 
             
-            <div className="main-card settings-card">
-              <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: 'var(--dark)', marginBottom: '1.5rem' }}>Notifications</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <Toggle label="Push Notifications" description="Receive app notifications" checked={coachNotifications.push} onChange={checked => setCoachNotifications({...coachNotifications, push: checked})} />
+            <div className="main-card settings-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '2rem' }}>
+              <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: 'var(--dark)' }}>Push Notification Settings</h4>
+              <Toggle checked={pushNotifications} onChange={handlePushNotificationChange} label="Enable Push Notifications" description="Allow browser/device push notifications" />
+              
+              <div style={{ borderTop: '1px solid var(--grey-200)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <Toggle checked={sessionNotifications} onChange={(val) => handleSettingsSubToggle('sessions', val)} label="Session Reminders" description="Get alerts for upcoming scheduled consultations" disabled={!pushNotifications} />
+                <Toggle checked={dietNotifications} onChange={(val) => handleSettingsSubToggle('dietPlans', val)} label="Diet Plan Notifications" description="Get alerts when your coach uploads or updates your diet plans" disabled={!pushNotifications} />
+                <Toggle checked={resultNotifications} onChange={(val) => handleSettingsSubToggle('results', val)} label="Result Notifications" description="Get alerts when transformation results are uploaded or updated" disabled={!pushNotifications} />
+                <Toggle checked={subscriptionNotifications} onChange={(val) => handleSettingsSubToggle('subscriptions', val)} label="Subscription Reminders" description="Get alerts for subscription expiry and renewals" disabled={!pushNotifications} />
+                <Toggle checked={marketingNotifications} onChange={(val) => handleSettingsSubToggle('marketing', val)} label="Marketing Notifications" description="Get optional promotional updates and announcements" disabled={!pushNotifications} />
               </div>
             </div>
           </div>

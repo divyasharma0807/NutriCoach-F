@@ -317,5 +317,43 @@ export const api = {
       method: 'DELETE',
       headers: getHeaders()
     });
+  },
+
+  registerFCMToken: async (token: string, device?: string, browser?: string, platform?: string) => {
+    return fetchAPI('/notifications/register-token', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ token, device, browser, platform })
+    });
+  },
+
+  unregisterFCMToken: async (token: string) => {
+    return fetchAPI('/notifications/unregister-token', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ token })
+    });
+  },
+
+  getNotificationSettings: async () => {
+    return fetchAPI('/notifications/settings', {
+      method: 'GET',
+      headers: getHeaders()
+    });
+  },
+
+  updateNotificationSettings: async (settings: {
+    pushEnabled?: boolean;
+    sessions?: boolean;
+    dietPlans?: boolean;
+    results?: boolean;
+    subscriptions?: boolean;
+    marketing?: boolean;
+  }) => {
+    return fetchAPI('/notifications/settings', {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(settings)
+    });
   }
 };

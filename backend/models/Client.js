@@ -29,6 +29,24 @@ const ClientSchema = new mongoose.Schema({
     public_id: { type: String, default: null }
   },
   allergies: { type: String, default: '' },
+  notificationTokens: [
+    {
+      token: { type: String, required: true },
+      device: { type: String, default: '' },
+      browser: { type: String, default: '' },
+      platform: { type: String, default: '' },
+      createdAt: { type: Date, default: Date.now },
+      updatedAt: { type: Date, default: Date.now }
+    }
+  ],
+  notificationSettings: {
+    pushEnabled: { type: Boolean, default: true },
+    sessions: { type: Boolean, default: true },
+    dietPlans: { type: Boolean, default: true },
+    results: { type: Boolean, default: true },
+    subscriptions: { type: Boolean, default: true },
+    marketing: { type: Boolean, default: false }
+  }
 }, { timestamps: true });
 
 // Transform to string URL in JSON response for frontend compatibility

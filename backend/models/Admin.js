@@ -11,7 +11,25 @@ const AdminSchema = new mongoose.Schema({
   gender: { type: String, default: '' },
   city: { type: String, default: '' },
   experience: { type: String, default: '' },
-  coachName: { type: String, default: '' }
+  coachName: { type: String, default: '' },
+  notificationTokens: [
+    {
+      token: { type: String, required: true },
+      device: { type: String, default: '' },
+      browser: { type: String, default: '' },
+      platform: { type: String, default: '' },
+      createdAt: { type: Date, default: Date.now },
+      updatedAt: { type: Date, default: Date.now }
+    }
+  ],
+  notificationSettings: {
+    pushEnabled: { type: Boolean, default: true },
+    sessions: { type: Boolean, default: true },
+    dietPlans: { type: Boolean, default: true },
+    results: { type: Boolean, default: true },
+    subscriptions: { type: Boolean, default: true },
+    marketing: { type: Boolean, default: false }
+  }
 }, { timestamps: true });
 
 // Hash password before saving
