@@ -41,3 +41,21 @@ p { line-height: 1.6; }
 ::-webkit-scrollbar-thumb:hover { background: var(--grey-400); }
 
 @media (max-width: 768px) { html { font-size: 15px; } }
+
+.graph-container-box {
+  background: var(--white);
+  border: 1px solid var(--grey-200);
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.5rem;
+  height: 450px;
+}
+
+@media (max-width: 768px) {
+  .graph-container-box {
+    height: 300px;
+    padding: 1rem;
+  }
+}
