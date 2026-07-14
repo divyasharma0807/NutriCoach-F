@@ -16,13 +16,13 @@ try {
   let credential = null;
 
   if (projectId && clientEmail && privateKey) {
-    credential = admin.credential.cert({
+    credential = admin.cert({
       projectId,
       clientEmail,
       privateKey,
     });
   } else if (serviceAccountPath) {
-    credential = admin.credential.cert(serviceAccountPath);
+    credential = admin.cert(serviceAccountPath);
   } else {
     console.warn('Firebase configuration missing. Push notifications will be logged but not sent via FCM.');
   }
