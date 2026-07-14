@@ -18,11 +18,13 @@ const NotificationSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 NotificationSchema.post('save', async function(doc) {
+  console.log('[NOTIFICATION DEBUG] Notification document created:', doc._id, 'type:', doc.type);
   try {
     const { sendPushForNotification } = await import('../utils/firebase.js');
+    console.log('[NOTIFICATION DEBUG] sendPushForNotification import succeeded, invoking send...');
     await sendPushForNotification(doc);
   } catch (error) {
-    console.error('Error sending push notification in post-save hook:', error);
+    console.error('[NOTIFICATION DEBUG] Error sending push notification in post-save hook:', error);
   }
 });
 
