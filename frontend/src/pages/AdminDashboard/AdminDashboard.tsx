@@ -1838,7 +1838,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => selectedClientPlan ? setSelectedClientPlan(null) : setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
                 <h2 style={{ margin: 0, lineHeight: 1 }}>Client Plans</h2>
                 <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Track assigned plans and expirations</p>
@@ -1848,10 +1848,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
           
           {selectedClientPlan ? (
             <div className="main-card" style={{ padding: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-                <button onClick={() => setSelectedClientPlan(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--grey-600)' }}>←</button>
-                <h3 style={{ margin: 0 }}>Client Plan Details</h3>
-              </div>
+              <h3 style={{ margin: 0, marginBottom: '2rem' }}>Client Plan Details</h3>
               <div className="form-row" style={{ gap: '2rem' }}>
                 <div>
                   <div style={{ marginBottom: '1rem' }}><label style={{ color: 'var(--grey-600)', fontSize: '0.8rem' }}>Client Name</label><div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{selectedClientPlan.clientName}</div></div>
