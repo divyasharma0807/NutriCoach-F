@@ -753,15 +753,27 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
       const points = validData.map((e, i) => {
         const val = parseFloat(e[k]);
         if (isNaN(val)) return null;
-        const x = validData.length === 1 ? 50 : (i / (validData.length - 1)) * 100;
+        const x = validData.length === 1 ? 50 : 2 + (i / (validData.length - 1)) * 96;
         const y = 90 - (((val - min) / range) * 80);
         return { x, y, val, date: e.date || 'Recent Entry', metric: k };
       }).filter(p => p !== null);
       metricsData[k] = { min, max, range, points };
     });
     return (
-      <div style={{ position: 'relative', width: '100%', height: '100%' }} onMouseLeave={() => setHoveredPoint(null)}>
-        <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
+      <div 
+        className="graph-scroll-wrapper" 
+        style={{ width: '100%', height: '100%', overflowX: 'auto', overflowY: 'hidden', paddingBottom: '1rem' }}
+        ref={el => { 
+          if (el && el.dataset.scrolled !== validData.length.toString()) { 
+            setTimeout(() => {
+              if (el) el.scrollLeft = el.scrollWidth;
+            }, 100);
+            el.dataset.scrolled = validData.length.toString(); 
+          } 
+        }}
+      >
+        <div style={{ position: 'relative', minWidth: `max(100%, ${validData.length * 150}px)`, height: '100%' }} onMouseLeave={() => setHoveredPoint(null)}>
+          <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
           {[0, 25, 50, 75, 100].map(percent => (
              <line key={percent} x1="0%" y1={`${percent}%`} x2="100%" y2={`${percent}%`} stroke="var(--grey-200)" strokeWidth="1" strokeDasharray="4 4" />
           ))}
@@ -789,11 +801,12 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
           })}
         </svg>
         {hoveredPoint && (
-          <div style={{ position: 'absolute', left: `${hoveredPoint.x}%`, top: `${hoveredPoint.y}%`, transform: 'translate(-50%, -120%)', background: 'var(--dark)', color: 'var(--white)', padding: '0.75rem', borderRadius: '6px', fontSize: '0.85rem', whiteSpace: 'nowrap', zIndex: 100, boxShadow: 'var(--shadow-lg)', pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', left: `${hoveredPoint.x}%`, top: `${hoveredPoint.y}%`, transform: hoveredPoint.x > 80 ? 'translate(-100%, -120%)' : hoveredPoint.x < 20 ? 'translate(0%, -120%)' : 'translate(-50%, -120%)', background: 'var(--dark)', color: 'var(--white)', padding: '0.75rem', borderRadius: '6px', fontSize: '0.85rem', whiteSpace: 'nowrap', zIndex: 100, boxShadow: 'var(--shadow-lg)', pointerEvents: 'none' }}>
             <div style={{ marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}><strong>Date:</strong> {hoveredPoint.date}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', background: hoveredPoint.color }}></span>{hoveredPoint.metric}: <strong>{hoveredPoint.val}</strong></div>
           </div>
         )}
+        </div>
       </div>
     );
   };
@@ -1087,7 +1100,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                     </button>
                   ))}
                 </div>
-                <div style={{ height: '350px', background: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                <div className="graph-container-box">
                   <div style={{ flex: 1, position: 'relative' }}>
                     {renderMultiLineGraph(parameterHistory, selectedMetrics, metricsOptions)}
                   </div>
@@ -1115,7 +1128,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                     </button>
                   ))}
                 </div>
-                <div style={{ height: '350px', background: 'var(--white)', border: '1px solid var(--grey-200)', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                <div className="graph-container-box">
                   <div style={{ flex: 1, position: 'relative' }}>
                     {renderMultiLineGraph(measurementHistory, selectedMeasurements, measurementOptions)}
                   </div>
