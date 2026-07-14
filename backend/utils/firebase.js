@@ -1,4 +1,5 @@
-import admin from 'firebase-admin';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
 import Client from '../models/Client.js';
 import Coach from '../models/Coach.js';
 import Admin from '../models/Admin.js';
@@ -13,28 +14,23 @@ try {
     privateKey = privateKey.replace(/^['"]|['"]$/g, '');
     privateKey = privateKey.replace(/\\n/g, '\n');
   }
-  const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-
-  let credential = null;
 
   if (projectId && clientEmail && privateKey) {
-    credential = admin.cert({
-      projectId,
-      clientEmail,
-      privateKey,
-    });
-  } else if (serviceAccountPath) {
-    credential = admin.cert(serviceAccountPath);
+    let app;
+    if (getApps().length === 0) {
+      const credential = cert({
+        projectId,
+        clientEmail,
+        privateKey,
+      });
+      app = initializeApp({ credential });
+      console.log('Firebase Admin SDK initialized successfully.');
+    } else {
+      app = getApps()[0];
+    }
+    messagingInstance = getMessaging(app);
   } else {
     console.warn('Firebase configuration missing. Push notifications will be logged but not sent via FCM.');
-  }
-
-  if (credential) {
-    admin.initializeApp({
-      credential,
-    });
-    messagingInstance = admin.messaging();
-    console.log('Firebase Admin SDK initialized successfully.');
   }
 } catch (error) {
   console.error('Failed to initialize Firebase Admin SDK:', error);
