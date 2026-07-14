@@ -2024,9 +2024,6 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                   </div>
                 </div>
               </div>
-              <div style={{ marginTop: '2rem', padding: '2rem', background: 'var(--grey-100)', borderRadius: '12px', textAlign: 'center', color: 'var(--grey-500)' }}>
-                Detailed backend plan tracking analytics will populate here.
-              </div>
             </div>
           ) : (
             <>
