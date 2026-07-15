@@ -8,6 +8,7 @@ import { Toggle } from '../../components/Toggle/Toggle';
 import './AdminDashboard.css';
 import { CoachPerformance } from './CoachPerformance';
 import { api } from '../../data/api';
+import { navigate, listenToRouteChanges, parseRoute } from '../../utils/navigation';
 
 const getLocalTodayString = () => {
   const d = new Date();
@@ -607,13 +608,114 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
     fetchAdminData();
   }, [clientPlanFilter, clientCityFilter]);
 
+  // Synchronize router pathname with dashboard internal states
+  useEffect(() => {
+    const handleRoute = () => {
+      const parsed = parseRoute(window.location.pathname, 'admin');
+      if (parsed.section && parsed.section !== currentSection) {
+        setCurrentSection(parsed.section);
+      }
+      
+      // selectedClient
+      if (parsed.section === 'my-clients' && parsed.detailId) {
+        const client = clients.find(c => String(c.id) === String(parsed.detailId));
+        if (client) {
+          setSelectedClient(client);
+        } else {
+          setSelectedClient({ id: parsed.detailId });
+        }
+      } else {
+        setSelectedClient(null);
+      }
+
+      // selectedProspect
+      if (parsed.section === 'prospects' && parsed.detailId) {
+        const prospect = prospects.find(p => String(p.id) === String(parsed.detailId));
+        if (prospect) {
+          setSelectedProspect(prospect);
+        } else {
+          setSelectedProspect({ id: parsed.detailId });
+        }
+      } else {
+        setSelectedProspect(null);
+      }
+
+      // selectedClientPlan
+      if (parsed.section === 'client-plans' && parsed.detailId) {
+        const plan = clients
+          .filter(c => c.plan)
+          .map(c => {
+            const daysLeft = c.subscriptionExpiryDate ? getDaysRemaining(c.subscriptionExpiryDate) : null;
+            return {
+              id: c.id,
+              clientName: c.name,
+              planName: c.plan,
+              daysLeft: daysLeft,
+              startDate: c.subscriptionStartDate,
+              expirationDate: c.subscriptionExpiryDate
+            };
+          })
+          .find(p => String(p.id) === String(parsed.detailId));
+        if (plan) {
+          setSelectedClientPlan(plan);
+        } else {
+          setSelectedClientPlan({ id: parsed.detailId });
+        }
+      } else {
+        setSelectedClientPlan(null);
+      }
+
+      // selectedResult
+      if (parsed.section === 'results' && parsed.detailId) {
+        const result = results.find(r => String(r.id) === String(parsed.detailId));
+        if (result) {
+          setSelectedResult(result);
+        } else {
+          setSelectedResult({ id: parsed.detailId, clientName: 'Result Details', description: 'Loading...' });
+        }
+      } else {
+        setSelectedResult(null);
+      }
+
+      // selectedReferral
+      if (parsed.section === 'referrals' && parsed.detailId) {
+        const referral = referrals.find(r => String(r.id) === String(parsed.detailId));
+        if (referral) {
+          setSelectedReferral(referral);
+        } else {
+          setSelectedReferral({ id: parsed.detailId });
+        }
+      } else {
+        setSelectedReferral(null);
+      }
+    };
+
+    handleRoute();
+
+    const unsubscribe = listenToRouteChanges(() => {
+      handleRoute();
+    });
+    return unsubscribe;
+  }, [clients, prospects, results, referrals, currentSection]);
+
   const handleNavigate = (section: string) => {
-    if (section === 'logout') onLogout();
-    else {
-      setCurrentSection(section);
-      // Reset selected states when changing menu section
-      setSelectedClient(null);
-      setSelectedProspect(null);
+    if (section === 'logout') {
+      onLogout();
+    } else {
+      let path = '/dashboard';
+      if (section === 'my-clients') path = '/clients';
+      else if (section === 'coach-performance') path = '/coaches';
+      else if (section === 'prospects') path = '/prospects';
+      else if (section === 'referrals') path = '/referrals';
+      else if (section === 'results') path = '/results';
+      else if (section === 'diet-schedule') path = '/diet-plans';
+      else if (section === 'client-plans') path = '/client-plans';
+      else if (section === 'settings') path = '/settings';
+      else if (section === 'messages') path = '/messages';
+      else if (section === 'my-profile') path = '/profile';
+      else if (section === 'complete-profile') path = '/complete-profile';
+
+      navigate(path);
     }
   };
 
@@ -628,7 +730,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
   }).length;
 
-  const getDaysRemaining = (expiryStr?: string) => {
+  function getDaysRemaining(expiryStr?: string) {
     if (!expiryStr) return 0;
     const expiry = new Date(expiryStr);
     const now = new Date();
@@ -1070,7 +1172,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
           <div className="section-content page-enter" style={{ position: 'relative', paddingBottom: '4rem' }}>
             <div className="section-header" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setSelectedClient(null)} title="Back to Client List" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => navigate('/clients')} title="Back to Client List" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
                 <h2 style={{ margin: 0, lineHeight: 1 }}>{selectedClient.name}</h2>
                 <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Detailed client tracking and analysis</p>
@@ -1203,7 +1305,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter" style={{ position: 'relative', minHeight: 'calc(100vh - 120px)', paddingBottom: '6rem' }}>
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => navigate('/dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
                 <h2 style={{ margin: 0, lineHeight: 1 }}>My Clients</h2>
                 <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Manage and track all your clients</p>
@@ -1229,7 +1331,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
           {filteredClients.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
               {filteredClients.map(c => (
-                <div key={c.id} onClick={() => setSelectedClient(c)} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1.5rem', border: '1px solid var(--grey-200)', borderRadius: '12px', background: 'var(--white)', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div key={c.id} onClick={() => navigate(`/client/${c.id}`)} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', padding: '1.5rem', border: '1px solid var(--grey-200)', borderRadius: '12px', background: 'var(--white)', cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--dark)' }}>{c.name}</h3>
                   <div style={{ display: 'flex', gap: '2rem', color: 'var(--grey-600)', fontSize: '0.95rem', flexWrap: 'wrap' }}>
                     {c.email && <div><a href={`mailto:${c.email}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>{c.email}</a></div>}
@@ -1372,7 +1474,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter" style={!selectedProspect ? { position: 'relative', minHeight: 'calc(100vh - 120px)', paddingBottom: '6rem' } : undefined}>
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => selectedProspect ? setSelectedProspect(null) : setCurrentSection('dashboard')} title="Back" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => selectedProspect ? navigate('/prospects') : navigate('/dashboard')} title="Back" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
                 <h2 style={{ margin: 0, lineHeight: 1 }}>{selectedProspect ? 'Prospect Details' : 'Prospects'}</h2>
                 <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>{selectedProspect ? 'Detailed prospect contact information' : 'Manage and track incoming leads'}</p>
@@ -1431,7 +1533,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
           {filteredProspects.length > 0 ? (
             <div className="coach-list-grid">
               {filteredProspects.map(p => (
-                <div key={p.id} className="coach-list-card" onClick={() => setSelectedProspect(p)}>
+                <div key={p.id} className="coach-list-card" onClick={() => navigate(`/prospect/${p.id}`)}>
                   <h4 className="coach-list-card-title">{p.name}</h4>
                   <div className="coach-list-card-subtitle">City: {p.city}</div>
                 </div>
@@ -1513,7 +1615,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0 }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => navigate('/dashboard')} title="Back to Dashboard" style={{ margin: 0 }}>←</button>
               <h2 style={{ margin: 0 }}>Messages</h2>
             </div>
           </div>
@@ -1532,7 +1634,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0 }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => navigate('/dashboard')} title="Back to Dashboard" style={{ margin: 0 }}>←</button>
               <h2 style={{ margin: 0 }}>Settings</h2>
             </div>
           </div>
@@ -1564,7 +1666,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => selectedReferral ? setSelectedReferral(null) : setCurrentSection('dashboard')} title="Back" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => selectedReferral ? navigate('/referrals') : navigate('/dashboard')} title="Back" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
                 <h2 style={{ margin: 0, lineHeight: 1 }}>{selectedReferral ? 'Referral Details' : 'Referrals'}</h2>
                 <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>{selectedReferral ? 'Detailed referral contact information' : 'Track new leads referred by existing clients'}</p>
@@ -1601,7 +1703,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {referrals.map(r => (
-                    <div key={r.id} onClick={() => setSelectedReferral(r)} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div key={r.id} onClick={() => navigate(`/referral/${r.id}`)} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ fontWeight: 'bold' }}>{r.name}</div>
                       <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem' }}>{r.city}</div>
                     </div>
@@ -1622,7 +1724,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => selectedResult ? setSelectedResult(null) : setCurrentSection('dashboard')} title="Back" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => selectedResult ? navigate('/results') : navigate('/dashboard')} title="Back" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
                 <h2 style={{ margin: 0, lineHeight: 1 }}>{selectedResult ? 'Result Details' : 'Results'}</h2>
                 <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>{selectedResult ? 'Detailed client transformation result details' : 'Track and showcase client transformations'}</p>
@@ -1665,7 +1767,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   </div>
                 ) : (
                   results.map(r => (
-                    <div key={r.id} onClick={() => setSelectedResult(r)} style={{ background: 'var(--white)', borderRadius: '12px', border: '1px solid var(--grey-200)', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}>
+                    <div key={r.id} onClick={() => navigate(`/result/${r.id}`)} style={{ background: 'var(--white)', borderRadius: '12px', border: '1px solid var(--grey-200)', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = 'var(--shadow-md)'; }} onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; }}>
                       <div style={{ height: '160px', background: 'var(--grey-100)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                         {r.image ? <img src={r.image} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: '3rem', color: 'var(--grey-300)' }}>📷</span>}
                       </div>
@@ -1810,7 +1912,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => navigate('/dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
                 <h2 style={{ margin: 0, lineHeight: 1 }}>Diet Schedule</h2>
                 <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Create and manage base diet plans</p>
@@ -1941,7 +2043,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-              <button className="back-to-dashboard-btn" onClick={() => selectedClientPlan ? setSelectedClientPlan(null) : setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => selectedClientPlan ? navigate('/client-plans') : navigate('/dashboard')} title="Back to Dashboard" style={{ margin: 0, marginTop: '2px' }}>←</button>
               <div>
                 <h2 style={{ margin: 0, lineHeight: 1 }}>Client Plans</h2>
                 <p className="section-subtitle" style={{ margin: '0.25rem 0 0 0' }}>Track assigned plans and expirations</p>
@@ -2002,7 +2104,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {filteredClientPlans.map(p => (
-                      <div key={p.id} onClick={() => setSelectedClientPlan(p)} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--white)' }}>
+                      <div key={p.id} onClick={() => navigate(`/client-plan/${p.id}`)} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--white)' }}>
                         <div>
                           <div style={{ fontWeight: 'bold', color: 'var(--dark)' }}>{p.clientName}</div>
                           <div style={{ color: 'var(--grey-600)', fontSize: '0.9rem', marginTop: '0.25rem' }}>{p.planName}</div>
@@ -2028,10 +2130,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('dashboard')} title="Back to Dashboard" style={{ margin: 0 }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => navigate('/dashboard')} title="Back to Dashboard" style={{ margin: 0 }}>←</button>
               <h2 style={{ margin: 0 }}>My Profile</h2>
             </div>
-            <Button variant="secondary" onClick={() => setCurrentSection('complete-profile')}>Edit Profile</Button>
+            <Button variant="secondary" onClick={() => navigate('/complete-profile')}>Edit Profile</Button>
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -2070,7 +2172,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
         <div className="section-content page-enter">
           <div className="section-header">
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-              <button className="back-to-dashboard-btn" onClick={() => setCurrentSection('my-profile')} title="Back to Profile" style={{ margin: 0 }}>←</button>
+              <button className="back-to-dashboard-btn" onClick={() => navigate('/profile')} title="Back to Profile" style={{ margin: 0 }}>←</button>
               <h2 style={{ margin: 0 }}>Complete Profile</h2>
             </div>
           </div>
@@ -2115,7 +2217,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                     experience: cpExperience
                   });
                   if (res.success) {
-                    setCurrentSection('my-profile');
+                    navigate('/profile');
                   }
                 } catch (err: any) {
                   alert(err.message || 'Failed to save profile');

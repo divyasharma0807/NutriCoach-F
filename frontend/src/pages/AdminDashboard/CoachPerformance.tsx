@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Modal } from '../../components/Modal/Modal';
+import { navigate, listenToRouteChanges } from '../../utils/navigation';
 
 interface CoachPerformanceProps {
   coaches: any[];
@@ -25,6 +26,30 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('Coach Name (A-Z)');
   const [selectedCoach, setSelectedCoach] = useState<any | null>(null);
+
+  // Synchronize selectedCoach details view with URL routing
+  useEffect(() => {
+    const handleRoute = () => {
+      if (window.location.pathname.startsWith('/coach/')) {
+        const id = window.location.pathname.substring('/coach/'.length);
+        const coach = coaches.find(c => String(c.id) === String(id));
+        if (coach) {
+          setSelectedCoach(coach);
+        } else {
+          setSelectedCoach({ id });
+        }
+      } else {
+        setSelectedCoach(null);
+      }
+    };
+
+    handleRoute();
+
+    const unsubscribe = listenToRouteChanges(() => {
+      handleRoute();
+    });
+    return unsubscribe;
+  }, [coaches]);
 
   // Calculate metrics for each coach
   const coachesWithMetrics = useMemo(() => {
@@ -143,7 +168,7 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
         {filtered.map(coach => (
           <div
             key={coach.id}
-            onClick={() => setSelectedCoach(coach)}
+            onClick={() => navigate(`/coach/${coach.id}`)}
             className="card"
             style={{
               padding: '1rem',
@@ -188,7 +213,7 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
         )}
       </div>
 
-      <Modal isOpen={!!selectedCoach} onClose={() => setSelectedCoach(null)} title="Coach Details">
+      <Modal isOpen={!!selectedCoach} onClose={() => navigate('/coaches')} title="Coach Details">
         {selectedCoach && (
           <div style={{ padding: '0.5rem 0 1.5rem 0' }}>
             <h3 style={{ margin: '0 0 0.25rem 0', fontSize: '1.5rem', color: 'var(--dark)' }}>{selectedCoach.name}</h3>
@@ -256,7 +281,7 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
               <button 
                 onClick={() => {
                   onDeleteCoach(selectedCoach.id);
-                  setSelectedCoach(null);
+                  navigate('/coaches');
                 }}
                 style={{ padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', background: 'var(--danger)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
               >
