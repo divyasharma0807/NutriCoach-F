@@ -1,3 +1,4 @@
+import Admin from '../models/Admin.js';
 import Coach from '../models/Coach.js';
 import Client from '../models/Client.js';
 import Session from '../models/Session.js';
@@ -159,6 +160,9 @@ export const getDashboardStats = async (req, res, next) => {
     // Get results
     const results = await Result.find({ coach: coachId });
 
+    // Fetch Admin for fallback naming
+    const admin = await Admin.findOne();
+
     // Get base diet plan
     const dietPlan = await DietPlan.findOne({ coach: coachId, client: null });
 
@@ -194,7 +198,7 @@ export const getDashboardStats = async (req, res, next) => {
               participantName = s.parentCoachId.name;
               participantPhone = s.parentCoachId.phone;
             } else {
-              participantName = 'Super Coach';
+              participantName = admin ? admin.name : 'Super Coach';
               participantPhone = '';
             }
           }
