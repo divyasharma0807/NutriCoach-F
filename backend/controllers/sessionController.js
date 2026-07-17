@@ -166,24 +166,23 @@ export const scheduleSession = async (req, res, next) => {
           participants: [user._id, targetCoach._id],
           date,
           time,
-          title: 'Coach Session',
-          status: 'APPROVED'
+          title: 'Coach Session Request',
+          status: 'PENDING'
         });
 
         await Notification.create({
           recipientType: 'coach',
           recipientId: targetCoach._id,
-          text: `Your senior coach ${user.name} has scheduled a meeting on ${date} at ${time}.`,
-          type: 'session_approved',
+          text: `Your senior coach ${user.name} has requested a meeting on ${date} at ${time}.`,
+          type: 'session_request',
           relatedMeetingId: session._id
         });
 
         await Notification.create({
           recipientType: user.role,
           recipientId: user._id,
-          text: `Meeting scheduled successfully with sub-coach ${targetCoach.name}.`,
-          type: 'session_approved',
-          relatedMeetingId: session._id
+          text: `Meeting request sent to sub-coach ${targetCoach.name}.`,
+          type: 'info'
         });
 
         res.status(201).json({
@@ -274,8 +273,8 @@ export const approveSession = async (req, res, next) => {
     session.status = 'APPROVED';
     if (session.title === 'Client Session Request') {
       session.title = 'Client Session';
-    } else if (session.title === 'Sub-Coach Session Request') {
-      session.title = 'Sub-Coach Session';
+    } else if (session.title === 'Sub-Coach Session Request' || session.title === 'Coach Session Request') {
+      session.title = 'Coach Session';
     }
     await session.save();
 
