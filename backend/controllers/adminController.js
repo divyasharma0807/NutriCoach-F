@@ -62,7 +62,7 @@ export const getDashboardStats = async (req, res, next) => {
       
       const coachProspectsCount = await Prospect.countDocuments({ addedByCoach: c._id });
       
-      const coachResultsCount = await Result.countDocuments({ coach: c._id });
+      const coachSubCoachesCount = await Coach.countDocuments({ seniorCoach: c._id });
 
       return {
         id: c._id,
@@ -79,7 +79,7 @@ export const getDashboardStats = async (req, res, next) => {
         clientsCount: coachClientsCount,
         sessionsCount: coachSessionsCount,
         prospectsCount: coachProspectsCount,
-        resultsCount: coachResultsCount
+        coachesCount: coachSubCoachesCount
       };
     }));
 

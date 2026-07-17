@@ -59,7 +59,7 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
         calculatedClients: coach.clientsCount || 0,
         calculatedSessions: coach.sessionsCount || 0,
         calculatedProspects: coach.prospectsCount || 0,
-        calculatedResults: coach.resultsCount || 0,
+        calculatedCoaches: coach.coachesCount || 0,
         email: coach.email || '—',
         phone: coach.phone || '—',
         city: coach.city || '—',
@@ -196,8 +196,8 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
                 <span style={{ fontWeight: 600 }}>{coach.calculatedProspects}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Results Uploaded:</span>
-                <span style={{ fontWeight: 600 }}>{coach.calculatedResults}</span>
+                <span>Sub-Coaches:</span>
+                <span style={{ fontWeight: 600 }}>{coach.calculatedCoaches}</span>
               </div>
             </div>
 
@@ -263,8 +263,8 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
                 <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Prospects</div>
               </div>
               <div className="stat-card" style={{ padding: '1rem', borderRadius: '8px' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedResults ?? selectedCoach.resultsCount ?? 0}</div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Results Uploaded</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedCoaches ?? selectedCoach.coachesCount ?? 0}</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Number of Sub-Coaches</div>
               </div>
             </div>
 
