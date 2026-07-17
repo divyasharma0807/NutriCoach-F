@@ -2,7 +2,7 @@ import Session from '../models/Session.js';
 import Client from '../models/Client.js';
 import Coach from '../models/Coach.js';
 import Notification from '../models/Notification.js';
-import { isSessionInFuture } from '../utils/sessionHelper.js';
+import { isSessionInFuture, parseSessionDateTime } from '../utils/sessionHelper.js';
 
 // Validate session date/time to prevent past bookings
 const validateSessionDateTime = (dateStr, timeStr) => {
@@ -386,8 +386,10 @@ export const getSessions = async (req, res, next) => {
       sessions = await Session.find({ coachId: user._id, status: 'APPROVED' }).populate('clientId coachId').sort({ date: 1, time: 1 });
     }
 
-    // Filter out past sessions
-    sessions = sessions.filter(s => isSessionInFuture(s.date, s.time));
+    // Filter out past sessions and sort chronologically
+    sessions = sessions
+      .filter(s => isSessionInFuture(s.date, s.time))
+      .sort((a, b) => parseSessionDateTime(a.date, a.time) - parseSessionDateTime(b.date, b.time));
 
     res.json({
       success: true,

@@ -1,5 +1,5 @@
 import Admin from '../models/Admin.js';
-import { isSessionInFuture } from '../utils/sessionHelper.js';
+import { isSessionInFuture, parseSessionDateTime } from '../utils/sessionHelper.js';
 import Coach from '../models/Coach.js';
 import Client from '../models/Client.js';
 import Session from '../models/Session.js';
@@ -135,7 +135,9 @@ export const getDashboardStats = async (req, res, next) => {
       .populate('parentCoachId', 'name phone')
       .sort({ date: 1, time: 1 });
 
-    const sessions = rawSessions.filter(s => isSessionInFuture(s.date, s.time));
+    const sessions = rawSessions
+      .filter(s => isSessionInFuture(s.date, s.time))
+      .sort((a, b) => parseSessionDateTime(a.date, a.time) - parseSessionDateTime(b.date, b.time));
 
     // Build prospect query
     const prospectQuery = { addedByCoach: coachId };
