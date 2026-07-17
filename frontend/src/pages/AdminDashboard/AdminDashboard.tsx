@@ -150,7 +150,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
   const [clientCityFilter, setClientCityFilter] = useState('All');
 
   // My Coaches state
-  const [coaches, setCoaches] = useState<{ id: string; name: string; clientsCount: number; sessionsCount?: number; prospectsCount?: number; resultsCount?: number; level: string; status?: 'active' | 'inactive' }[]>([]);
+  const [coaches, setCoaches] = useState<{ id: string; name: string; clientsCount: number; sessionsCount?: number; prospectsCount?: number; coachesCount?: number; level: string; status?: 'active' | 'inactive' }[]>([]);
 
   // Popup states for Add Coach
   const [isAddCoachOpen, setIsAddCoachOpen] = useState(false);
@@ -526,7 +526,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
             clientsCount: c.clientsCount || 0,
             sessionsCount: c.sessionsCount || 0,
             prospectsCount: c.prospectsCount || 0,
-            resultsCount: c.resultsCount || 0,
+            coachesCount: c.coachesCount || 0,
             level: c.level,
             status: c.status
           })));
