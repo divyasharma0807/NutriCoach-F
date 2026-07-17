@@ -169,7 +169,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [coachStatusFilter, setCoachStatusFilter] = useState<'All' | 'Active' | 'Inactive'>('All');
 
   // Sessions state
-  const [sessions, setSessions] = useState<{ id: string; type: 'client' | 'coach'; participantName: string; date: string; time: string; status: string; reminded?: boolean }[]>([]);
+  const [sessions, setSessions] = useState<{ id: string; type: 'client' | 'coach'; participantName: string; date: string; time: string; status: string; reminded?: boolean; isOrganizer?: boolean }[]>([]);
   const [notifications, setNotifications] = useState<{id: number; text: string; read: boolean}[]>([]);
 
   // Input states for scheduling
@@ -1112,6 +1112,12 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                         <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Date: {session.date}</div>
                         <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Time: {session.time}</div>
                         <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Status: {session.status || 'Scheduled'}</div>
+                        {session.status === 'PENDING' && !session.isOrganizer && (
+                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                            <Button variant="green" size="sm" onClick={() => handleApproveSession(session.id)}>Approve</Button>
+                            <Button variant="danger" size="sm" onClick={() => handleRejectSession(session.id)}>Reject</Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))
