@@ -1103,10 +1103,15 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                     <div key={session.id} style={{ padding: '1rem', border: '1px solid var(--grey-200)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                       <div style={{ fontSize: '2rem' }}>📅</div>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ fontWeight: 600, color: 'var(--dark)' }}>
+                        <div style={{ fontWeight: 'bold', color: 'var(--dark)', fontSize: '1.1rem' }}>
                           {session.title || (session.type === 'client' ? 'Client Session' : 'Coach Session')}
                         </div>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--grey-500)' }}>{session.participantName} • {session.time}</div>
+                        <div style={{ color: 'var(--grey-500)', fontSize: '0.95rem', marginTop: '0.5rem', fontWeight: 500 }}>
+                          {session.type === 'client' ? 'Client: ' : 'Coach: '} <span style={{ color: 'var(--dark)', fontWeight: 'bold' }}>{session.participantName}</span>
+                        </div>
+                        <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Date: {session.date}</div>
+                        <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Time: {session.time}</div>
+                        <div style={{ color: 'var(--grey-500)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Status: {session.status || 'Scheduled'}</div>
                       </div>
                     </div>
                   ))

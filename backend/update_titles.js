@@ -12,25 +12,18 @@ const updateTitles = async () => {
     // Update Client sessions
     const clientRes = await Session.updateMany(
       { clientId: { $ne: null } },
-      { $set: { title: 'Client session' } }
+      { $set: { title: 'Client Session' } }
     );
     console.log(`Updated ${clientRes.modifiedCount} client sessions`);
 
-    // Update Sub Coach sessions (where organizer is senior coach, or simply where clientId is null and parentCoachId is the organizer, wait! we can just match existing titles!)
-    const subCoachRes = await Session.updateMany(
-      { title: { $in: ['Sub-coach Meeting', 'Coach Session'] } },
-      { $set: { title: 'Sub Coach session' } }
+    // Update Coach sessions (Sub Coach session, Supercoach sessions, Sub-coach Meeting, Super Coach Meeting, Coach Session)
+    const coachRes = await Session.updateMany(
+      { clientId: null },
+      { $set: { title: 'Coach Session' } }
     );
-    console.log(`Updated ${subCoachRes.modifiedCount} sub-coach sessions`);
+    console.log(`Updated ${coachRes.modifiedCount} coach sessions`);
 
-    // Update Supercoach sessions
-    const superCoachRes = await Session.updateMany(
-      { title: { $in: ['Super Coach Meeting', 'Parent Coach Session'] } },
-      { $set: { title: 'Supercoach sessions' } }
-    );
-    console.log(`Updated ${superCoachRes.modifiedCount} super-coach sessions`);
-
-    console.log('Titles updated successfully');
+    console.log('Titles updated successfully to Client Session and Coach Session');
     process.exit(0);
   } catch (error) {
     console.error('Error updating titles:', error);

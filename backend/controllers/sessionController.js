@@ -123,7 +123,7 @@ export const scheduleSession = async (req, res, next) => {
           participants: [user._id, coach.seniorCoach],
           date,
           time,
-          title: 'Supercoach sessions',
+          title: 'Coach Session',
           status: 'PENDING'
         });
 
@@ -165,7 +165,7 @@ export const scheduleSession = async (req, res, next) => {
           participants: [user._id, targetCoach._id],
           date,
           time,
-          title: 'Sub Coach session',
+          title: 'Coach Session',
           status: 'APPROVED'
         });
 
@@ -212,7 +212,7 @@ export const scheduleSession = async (req, res, next) => {
           participants: [user._id, targetClient._id],
           date,
           time,
-          title: 'Client session',
+          title: 'Client Session',
           status: 'APPROVED'
         });
 
