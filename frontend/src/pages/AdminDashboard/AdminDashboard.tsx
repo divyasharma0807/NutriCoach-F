@@ -1113,7 +1113,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                       date: scheduleDate,
                       time: scheduleTime,
                       clientId: scheduleType === 'client' ? (clientObj ? clientObj.id : undefined) : undefined,
-                      withParentCoach: false
+                      withParentCoach: false,
+                      targetCoachId: scheduleType === 'coach' ? (coachObj ? coachObj.id : undefined) : undefined
                     });
                     if (res.success) {
                       await fetchAdminData();

@@ -126,10 +126,11 @@ export const getDashboardStats = async (req, res, next) => {
     // Get sessions
     const sessions = await Session.find({ 
       participants: { $in: [coachId] },
-      status: 'APPROVED'
+      status: { $in: ['APPROVED', 'PENDING'] }
     })
       .populate('clientId', 'name phone')
       .populate('coachId', 'name phone')
+      .populate('parentCoachId', 'name phone')
       .sort({ date: 1, time: 1 });
 
     // Build prospect query
@@ -182,15 +183,20 @@ export const getDashboardStats = async (req, res, next) => {
         sessions: sessions.map(s => {
           let participantName = 'Unknown';
           let participantPhone = '';
-          if (s.organizerRole === 'client' && s.clientId) {
+          if (s.clientId) {
             participantName = s.clientId.name;
             participantPhone = s.clientId.phone;
-          } else if (s.organizerRole === 'coach' && s.clientId) {
-            participantName = s.clientId.name;
-            participantPhone = s.clientId.phone;
-          } else if (s.organizerRole === 'coach' && s.parentCoachId) {
-            participantName = s.coachId ? s.coachId.name : 'Parent Coach';
-            participantPhone = '';
+          } else {
+            if (s.coachId && s.coachId._id.toString() !== coachId.toString()) {
+              participantName = s.coachId.name;
+              participantPhone = s.coachId.phone;
+            } else if (s.parentCoachId) {
+              participantName = s.parentCoachId.name;
+              participantPhone = s.parentCoachId.phone;
+            } else {
+              participantName = 'Super Coach';
+              participantPhone = '';
+            }
           }
 
           return {

@@ -1071,11 +1071,13 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
 
                   try {
                     const clientObj = clients.find(c => c.name === scheduleClient);
+                    const coachObj = coaches.find(c => c.name === scheduleCoach);
                     const res = await api.scheduleSession({
                       date: scheduleDate,
                       time: scheduleTime,
                       clientId: scheduleType === 'client' ? (clientObj ? clientObj.id : undefined) : undefined,
-                      withParentCoach: scheduleType === 'parent_coach'
+                      withParentCoach: scheduleType === 'parent_coach',
+                      targetCoachId: scheduleType === 'coach' ? (coachObj ? coachObj.id : undefined) : undefined
                     });
                     if (res.success) {
                       

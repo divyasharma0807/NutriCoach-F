@@ -22,7 +22,7 @@ export const getDashboardStats = async (req, res, next) => {
 
     const coachesCount = await Coach.countDocuments({ seniorCoach: adminId });
     const clientsCount = await Client.countDocuments({ coach: adminId });
-    const sessionsCount = await Session.countDocuments({ coachId: adminId, status: 'APPROVED' });
+    const sessionsCount = await Session.countDocuments({ participants: { $in: [adminId] }, status: { $in: ['APPROVED', 'PENDING'] } });
     
     // Build coach query
     const coachQuery = { seniorCoach: adminId };
@@ -35,7 +35,7 @@ export const getDashboardStats = async (req, res, next) => {
 
     const coaches = await Coach.find(coachQuery).populate('seniorCoach', 'name');
     const clients = await Client.find({ coach: adminId }).populate('coach', 'name');
-    const sessions = await Session.find({ coachId: adminId }).populate('clientId coachId');
+    const sessions = await Session.find({ participants: { $in: [adminId] } }).populate('clientId').populate('coachId').populate('parentCoachId');
     
     // Referrals filtering by clients of adminId
     const clientIds = clients.map(c => c._id);
@@ -109,8 +109,10 @@ export const getDashboardStats = async (req, res, next) => {
           date: s.date,
           time: s.time,
           status: s.status,
-          type: s.parentCoachId ? 'coach' : 'client',
-          participantName: s.parentCoachId ? (s.parentCoachId.name || 'Unknown') : (s.clientId ? s.clientId.name : 'Unknown')
+          type: !s.clientId ? 'coach' : 'client',
+          participantName: s.clientId 
+            ? s.clientId.name 
+            : (s.coachId ? s.coachId.name : 'Unknown')
         })),
         referrals: referrals.map(r => ({
           id: r._id,

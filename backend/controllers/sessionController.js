@@ -46,7 +46,7 @@ const validateSessionDateTime = (dateStr, timeStr) => {
 // @route   POST /api/sessions/schedule
 // @access  Private (Client/Coach)
 export const scheduleSession = async (req, res, next) => {
-  const { date, time, clientPhone, clientId, withParentCoach } = req.body;
+  const { date, time, clientPhone, clientId, withParentCoach, targetCoachId } = req.body;
   const user = req.user;
 
   try {
@@ -74,7 +74,7 @@ export const scheduleSession = async (req, res, next) => {
         participants: [user._id, client.coach],
         date,
         time,
-        title: 'Client Session Request',
+        title: '1-on-1 Consultation',
         status: 'PENDING'
       });
 
@@ -123,16 +123,16 @@ export const scheduleSession = async (req, res, next) => {
           participants: [user._id, coach.seniorCoach],
           date,
           time,
-          title: 'Sub-Coach Session',
-          status: 'APPROVED'
+          title: 'Supercoach sessions',
+          status: 'PENDING'
         });
 
         // Notify Parent Coach
         await Notification.create({
           recipientType: 'coach',
           recipientId: coach.seniorCoach,
-          text: `Your sub-coach ${user.name} has scheduled a meeting on ${date} at ${time}.`,
-          type: 'info',
+          text: `Your sub-coach ${user.name} has requested a meeting on ${date} at ${time}.`,
+          type: 'session_request',
           relatedMeetingId: session._id
         });
 
@@ -140,13 +140,54 @@ export const scheduleSession = async (req, res, next) => {
         await Notification.create({
           recipientType: 'coach',
           recipientId: user._id,
-          text: `Meeting request sent.`,
+          text: `Meeting request sent to your coach.`,
           type: 'info'
         });
 
         res.status(201).json({
           success: true,
-          message: 'Meeting with parent coach scheduled successfully.',
+          message: 'Meeting requested with parent coach successfully.',
+          data: session
+        });
+      } else if (targetCoachId) {
+        const targetCoach = await Coach.findById(targetCoachId);
+        if (!targetCoach) {
+          res.status(404);
+          throw new Error('Target coach not found');
+        }
+
+        const session = await Session.create({
+          organizerId: user._id,
+          organizerRole: user.role,
+          coachId: targetCoach._id,
+          clientId: null,
+          parentCoachId: user._id,
+          participants: [user._id, targetCoach._id],
+          date,
+          time,
+          title: 'Sub Coach session',
+          status: 'APPROVED'
+        });
+
+        await Notification.create({
+          recipientType: 'coach',
+          recipientId: targetCoach._id,
+          text: `Your senior coach ${user.name} has scheduled a meeting on ${date} at ${time}.`,
+          type: 'session_approved',
+          relatedMeetingId: session._id
+        });
+
+        await Notification.create({
+          recipientType: user.role,
+          recipientId: user._id,
+          text: `Meeting scheduled successfully with sub-coach ${targetCoach.name}.`,
+          type: 'session_approved',
+          relatedMeetingId: session._id
+        });
+
+        res.status(201).json({
+          success: true,
+          message: 'Session scheduled successfully.',
           data: session
         });
       } else {
@@ -171,7 +212,7 @@ export const scheduleSession = async (req, res, next) => {
           participants: [user._id, targetClient._id],
           date,
           time,
-          title: 'Coach-Scheduled Session',
+          title: 'Client session',
           status: 'APPROVED'
         });
 
@@ -337,9 +378,9 @@ export const getSessions = async (req, res, next) => {
       }).populate('coachId', 'name email phone').sort({ date: 1, time: 1 });
     } else if (user.role === 'coach') {
       sessions = await Session.find({
-        coachId: user._id,
-        status: 'APPROVED'
-      }).populate('clientId', 'name email phone').sort({ date: 1, time: 1 });
+        participants: { $in: [user._id] },
+        status: { $in: ['APPROVED', 'PENDING'] }
+      }).populate('clientId', 'name email phone').populate('coachId', 'name email phone').populate('parentCoachId', 'name email phone').sort({ date: 1, time: 1 });
     } else if (user.role === 'admin') {
       sessions = await Session.find({ coachId: user._id, status: 'APPROVED' }).populate('clientId coachId').sort({ date: 1, time: 1 });
     }
