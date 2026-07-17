@@ -216,7 +216,9 @@ export const getDashboardStats = async (req, res, next) => {
             date: s.date,
             time: s.time,
             status: s.status,
-            title: s.title
+            title: s.title,
+            organizerId: s.organizerId,
+            isOrganizer: s.organizerId ? s.organizerId.toString() === coachId.toString() : false
           };
         }),
         prospects,
