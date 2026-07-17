@@ -251,19 +251,19 @@ export const CoachPerformance: React.FC<CoachPerformanceProps> = ({
             <h4 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: 'var(--dark)' }}>Performance Metrics</h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
               <div className="stat-card" style={{ padding: '1rem', borderRadius: '8px' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedClients}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedClients ?? selectedCoach.clientsCount ?? 0}</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Number of Clients</div>
               </div>
               <div className="stat-card" style={{ padding: '1rem', borderRadius: '8px' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedSessions}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedSessions ?? selectedCoach.sessionsCount ?? 0}</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Scheduled Sessions</div>
               </div>
               <div className="stat-card" style={{ padding: '1rem', borderRadius: '8px' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedProspects}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedProspects ?? selectedCoach.prospectsCount ?? 0}</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Prospects</div>
               </div>
               <div className="stat-card" style={{ padding: '1rem', borderRadius: '8px' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedResults}</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', marginBottom: '0.25rem' }}>{selectedCoach.calculatedResults ?? selectedCoach.resultsCount ?? 0}</div>
                 <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', fontWeight: 500 }}>Results Uploaded</div>
               </div>
             </div>
