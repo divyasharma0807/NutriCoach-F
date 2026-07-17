@@ -45,6 +45,18 @@ const NOTIFICATION_MESSAGES = [
   'Kudos! You have met your calorie target yesterday.'
 ];
 
+// Tracking caches to ensure global uniqueness during a seed execution
+const usedEmails = new Set();
+const usedPhones = new Set();
+
+/**
+ * Resets unique tracking caches for testing or successive runs.
+ */
+export const resetUniqueCaches = () => {
+  usedEmails.clear();
+  usedPhones.clear();
+};
+
 /**
  * Generates a realistic Indian Name.
  * @param {'male'|'female'} gender
@@ -59,26 +71,38 @@ export const generateIndianName = (gender) => {
 };
 
 /**
- * Generates a unique-looking email address.
+ * Generates a unique email address.
  * @param {string} name
  * @returns {string} Email
  */
 export const generateEmail = (name) => {
-  if (name) {
-    const sanitized = name.toLowerCase().replace(/[^a-z0-9]/g, '');
-    return `${sanitized}${faker.number.int({ min: 10, max: 999 })}@example.com`;
-  }
-  return faker.internet.email();
+  let email;
+  let attempts = 0;
+  do {
+    const base = name ? name.toLowerCase().replace(/[^a-z0-9]/g, '') : faker.internet.userName();
+    const suffix = attempts === 0 ? faker.number.int({ min: 10, max: 999 }) : faker.number.int({ min: 1000, max: 999999 });
+    email = `${base}${suffix}@test.com`;
+    attempts++;
+  } while (usedEmails.has(email) && attempts < 100);
+  usedEmails.add(email);
+  return email;
 };
 
 /**
- * Generates an Indian mobile number.
+ * Generates a unique Indian mobile number starting with 6, 7, 8, or 9.
  * @returns {string} Phone Number
  */
 export const generatePhoneNumber = () => {
-  const prefix = faker.helpers.arrayElement(['6', '7', '8', '9']);
-  const rest = faker.string.numeric(9);
-  return `${prefix}${rest}`;
+  let phone;
+  let attempts = 0;
+  do {
+    const prefix = faker.helpers.arrayElement(['6', '7', '8', '9']);
+    const rest = faker.string.numeric(9);
+    phone = `${prefix}${rest}`;
+    attempts++;
+  } while (usedPhones.has(phone) && attempts < 100);
+  usedPhones.add(phone);
+  return phone;
 };
 
 /**
@@ -114,6 +138,14 @@ export const generateWeight = () => {
 };
 
 /**
+ * Generates a random age between 18 and 65.
+ * @returns {number} Age
+ */
+export const generateAge = () => {
+  return faker.number.int({ min: 18, max: 65 });
+};
+
+/**
  * Generates a random date within a range.
  * @param {string|Date} start
  * @param {string|Date} end
@@ -125,14 +157,14 @@ export const generateDate = (start = '2025-01-01', end = '2026-12-31') => {
 
 /**
  * Generates start and end dates representing a subscription period.
- * @returns {{startDate: Date, endDate: Date}}
+ * @returns {{subscriptionStartDate: Date, subscriptionExpiryDate: Date}}
  */
 export const generateSubscriptionPeriod = () => {
-  const startDate = faker.date.past();
+  const subscriptionStartDate = faker.date.past();
   const months = faker.helpers.arrayElement([1, 3, 6, 12]);
-  const endDate = new Date(startDate);
-  endDate.setMonth(endDate.getMonth() + months);
-  return { startDate, endDate };
+  const subscriptionExpiryDate = new Date(subscriptionStartDate);
+  subscriptionExpiryDate.setMonth(subscriptionExpiryDate.getMonth() + months);
+  return { subscriptionStartDate, subscriptionExpiryDate };
 };
 
 /**

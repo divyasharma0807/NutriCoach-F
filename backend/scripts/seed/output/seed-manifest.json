@@ -1,0 +1,15 @@
+{
+  "selectedPreset": "DEV",
+  "generatedTimestamp": "2026-07-17T23:44:12.223Z",
+  "numberOfAdmins": 1,
+  "numberOfRootCoaches": 2,
+  "totalCoaches": 6,
+  "totalClients": 18,
+  "maximumHierarchyDepth": 1,
+  "averageChildCoaches": 2,
+  "averageClientsPerCoach": 3,
+  "executionTime": "7.62s",
+  "validationStatus": "Passed",
+  "databaseName": "nutricoach",
+  "environment": "development"
+}
