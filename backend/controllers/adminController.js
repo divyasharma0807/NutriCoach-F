@@ -116,7 +116,9 @@ export const getDashboardStats = async (req, res, next) => {
           type: !s.clientId ? 'coach' : 'client',
           participantName: s.clientId 
             ? s.clientId.name 
-            : (s.coachId ? s.coachId.name : 'Unknown')
+            : (s.coachId ? s.coachId.name : 'Unknown'),
+          organizerId: s.organizerId,
+          isOrganizer: s.organizerId ? s.organizerId.toString() === adminId.toString() : false
         })),
         referrals: referrals.map(r => ({
           id: r._id,
