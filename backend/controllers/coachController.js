@@ -1,4 +1,5 @@
 import Admin from '../models/Admin.js';
+import { isSessionInFuture } from '../utils/sessionHelper.js';
 import Coach from '../models/Coach.js';
 import Client from '../models/Client.js';
 import Session from '../models/Session.js';
@@ -125,7 +126,7 @@ export const getDashboardStats = async (req, res, next) => {
     const clients = await Client.find(clientQuery).select('-password');
 
     // Get sessions
-    const sessions = await Session.find({ 
+    const rawSessions = await Session.find({ 
       participants: { $in: [coachId] },
       status: { $in: ['APPROVED', 'PENDING'] }
     })
@@ -133,6 +134,8 @@ export const getDashboardStats = async (req, res, next) => {
       .populate('coachId', 'name phone')
       .populate('parentCoachId', 'name phone')
       .sort({ date: 1, time: 1 });
+
+    const sessions = rawSessions.filter(s => isSessionInFuture(s.date, s.time));
 
     // Build prospect query
     const prospectQuery = { addedByCoach: coachId };

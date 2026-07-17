@@ -10,6 +10,7 @@ import MeasurementHistory from '../models/MeasurementHistory.js';
 import DietPlan from '../models/DietPlan.js';
 import Prospect from '../models/Prospect.js';
 import { deleteFromCloudinary } from '../services/cloudinaryService.js';
+import { isSessionInFuture } from '../utils/sessionHelper.js';
 
 // @desc    Get admin dashboard statistics
 // @route   GET /api/admin/dashboard
@@ -35,7 +36,8 @@ export const getDashboardStats = async (req, res, next) => {
 
     const coaches = await Coach.find(coachQuery).populate('seniorCoach', 'name');
     const clients = await Client.find({ coach: adminId }).populate('coach', 'name');
-    const sessions = await Session.find({ participants: { $in: [adminId] } }).populate('clientId').populate('coachId').populate('parentCoachId');
+    const rawSessions = await Session.find({ participants: { $in: [adminId] } }).populate('clientId').populate('coachId').populate('parentCoachId');
+    const sessions = rawSessions.filter(s => isSessionInFuture(s.date, s.time));
     
     // Referrals filtering by clients of adminId
     const clientIds = clients.map(c => c._id);
