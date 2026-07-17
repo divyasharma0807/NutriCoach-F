@@ -128,9 +128,13 @@ export const scheduleSession = async (req, res, next) => {
           status: 'PENDING'
         });
 
+        // Determine if senior coach is a Coach or Admin
+        const seniorCoachExists = await Coach.exists({ _id: coach.seniorCoach });
+        const parentCoachRecipientType = seniorCoachExists ? 'coach' : 'admin';
+
         // Notify Parent Coach
         await Notification.create({
-          recipientType: 'coach',
+          recipientType: parentCoachRecipientType,
           recipientId: coach.seniorCoach,
           text: `Your sub-coach ${user.name} has requested a meeting on ${date} at ${time}.`,
           type: 'session_request',
@@ -187,7 +191,7 @@ export const scheduleSession = async (req, res, next) => {
 
         res.status(201).json({
           success: true,
-          message: 'Session scheduled successfully.',
+          message: 'Meeting requested with sub-coach successfully.',
           data: session
         });
       } else {
@@ -262,6 +266,11 @@ export const approveSession = async (req, res, next) => {
       throw new Error('Session not found');
     }
 
+    if (session.organizerId && session.organizerId.toString() === req.user._id.toString()) {
+      res.status(403);
+      throw new Error('You cannot approve a session request you organized');
+    }
+
     const isCoach = session.coachId && session.coachId.toString() === req.user._id.toString();
     const isParentCoach = session.parentCoachId && session.parentCoachId.toString() === req.user._id.toString();
 
@@ -285,7 +294,7 @@ export const approveSession = async (req, res, next) => {
     });
 
     // Notify Requester
-    const requesterType = session.organizerRole === 'coach' ? 'coach' : 'client';
+    const requesterType = session.organizerRole === 'coach' ? 'coach' : (session.organizerRole === 'admin' ? 'admin' : 'client');
     await Notification.create({
       recipientType: requesterType,
       recipientId: session.organizerId,
@@ -326,6 +335,11 @@ export const rejectSession = async (req, res, next) => {
       throw new Error('Session not found');
     }
 
+    if (session.organizerId && session.organizerId.toString() === req.user._id.toString()) {
+      res.status(403);
+      throw new Error('You cannot reject a session request you organized');
+    }
+
     const isCoach = session.coachId && session.coachId.toString() === req.user._id.toString();
     const isParentCoach = session.parentCoachId && session.parentCoachId.toString() === req.user._id.toString();
 
@@ -344,7 +358,7 @@ export const rejectSession = async (req, res, next) => {
     });
 
     // Notify Requester
-    const requesterType = session.organizerRole === 'coach' ? 'coach' : 'client';
+    const requesterType = session.organizerRole === 'coach' ? 'coach' : (session.organizerRole === 'admin' ? 'admin' : 'client');
     await Notification.create({
       recipientType: requesterType,
       recipientId: session.organizerId,
@@ -390,9 +404,18 @@ export const getSessions = async (req, res, next) => {
       .filter(s => isSessionInFuture(s.date, s.time))
       .sort((a, b) => parseSessionDateTime(a.date, a.time) - parseSessionDateTime(b.date, b.time));
 
+    const mappedSessions = sessions.map(s => {
+      const sObj = s.toObject ? s.toObject() : s;
+      return {
+        ...sObj,
+        id: s._id,
+        isOrganizer: s.organizerId ? s.organizerId.toString() === user._id.toString() : false
+      };
+    });
+
     res.json({
       success: true,
-      data: sessions
+      data: mappedSessions
     });
   } catch (error) {
     next(error);
