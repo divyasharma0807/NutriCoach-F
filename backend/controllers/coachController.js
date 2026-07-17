@@ -201,7 +201,7 @@ export const getDashboardStats = async (req, res, next) => {
 
           return {
             id: s._id,
-            type: s.parentCoachId ? 'coach' : 'client',
+            type: !s.clientId ? 'coach' : 'client',
             participantName,
             participantPhone,
             date: s.date,
