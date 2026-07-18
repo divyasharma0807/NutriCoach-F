@@ -226,16 +226,16 @@ export const getDashboardStats = async (req, res, next) => {
   const clientId = req.user._id;
 
   try {
-    const client = await Client.findById(clientId);
+    const [client, parameterHistory, measurementHistory] = await Promise.all([
+      Client.findById(clientId).lean(),
+      BodyParameterHistory.find({ client: clientId }).sort({ date: 1 }).lean(),
+      MeasurementHistory.find({ client: clientId }).sort({ date: 1 }).lean()
+    ]);
+
     if (!client) {
       res.status(404);
       throw new Error('Client not found');
     }
-
-    // Get parameters history
-    const parameterHistory = await BodyParameterHistory.find({ client: clientId }).sort({ date: 1 });
-    // Get measurements history
-    const measurementHistory = await MeasurementHistory.find({ client: clientId }).sort({ date: 1 });
 
     // Calculate subscription days remaining
     let subscriptionDays = 'N/A';
@@ -248,7 +248,7 @@ export const getDashboardStats = async (req, res, next) => {
     // Get results uploaded by the client's direct coach/admin
     let results = [];
     if (client.coach) {
-      results = await Result.find({ coach: client.coach }).populate('coach', 'name');
+      results = await Result.find({ coach: client.coach }).populate('coach', 'name').lean();
     }
 
     res.json({

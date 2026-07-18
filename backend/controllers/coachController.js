@@ -97,15 +97,9 @@ export const getDashboardStats = async (req, res, next) => {
     prospectWeight
   } = req.query;
 
-  try {
-    const clientsCount = await Client.countDocuments({ coach: coachId });
-    const sessionsCount = await Session.countDocuments({ 
-      $or: [{ coachId: coachId }, { parentCoachId: coachId }], 
-      status: 'APPROVED' 
-    });
-    const prospectsCount = await Prospect.countDocuments({ addedByCoach: coachId });
-    const resultsCount = await Result.countDocuments({ coach: coachId });
+  const startTime = Date.now();
 
+  try {
     // Build client query
     const clientQuery = { coach: coachId };
     if (clientPlan && clientPlan !== 'All') {
@@ -122,23 +116,6 @@ export const getDashboardStats = async (req, res, next) => {
       ];
     }
 
-    // Get list of clients
-    const clients = await Client.find(clientQuery).select('-password');
-
-    // Get sessions
-    const rawSessions = await Session.find({ 
-      participants: { $in: [coachId] },
-      status: { $in: ['APPROVED', 'PENDING'] }
-    })
-      .populate('clientId', 'name phone')
-      .populate('coachId', 'name phone')
-      .populate('parentCoachId', 'name phone')
-      .sort({ date: 1, time: 1 });
-
-    const sessions = rawSessions
-      .filter(s => isSessionInFuture(s.date, s.time))
-      .sort((a, b) => parseSessionDateTime(a.date, a.time) - parseSessionDateTime(b.date, b.time));
-
     // Build prospect query
     const prospectQuery = { addedByCoach: coachId };
     if (prospectGender && prospectGender !== 'All') {
@@ -151,32 +128,55 @@ export const getDashboardStats = async (req, res, next) => {
       prospectQuery.weightRange = prospectWeight;
     }
 
-    // Get prospects
-    const prospects = await Prospect.find(prospectQuery);
+    // Execute independent queries in parallel using lean() where appropriate
+    const [
+      clientsCount,
+      sessionsCount,
+      prospectsCount,
+      resultsCount,
+      clients,
+      rawSessions,
+      prospects,
+      clientIds,
+      coaches,
+      admin,
+      dietPlan,
+      notifications
+    ] = await Promise.all([
+      Client.countDocuments({ coach: coachId }),
+      Session.countDocuments({ 
+        $or: [{ coachId: coachId }, { parentCoachId: coachId }], 
+        status: 'APPROVED' 
+      }),
+      Prospect.countDocuments({ addedByCoach: coachId }),
+      Result.countDocuments({ coach: coachId }),
+      Client.find(clientQuery).select('-password').lean(),
+      Session.find({ 
+        participants: { $in: [coachId] },
+        status: { $in: ['APPROVED', 'PENDING'] }
+      })
+        .populate('clientId', 'name phone')
+        .populate('coachId', 'name phone')
+        .populate('parentCoachId', 'name phone')
+        .sort({ date: 1, time: 1 })
+        .lean(),
+      Prospect.find(prospectQuery).lean(),
+      Client.find({ coach: coachId }).distinct('_id'),
+      Coach.find({ seniorCoach: coachId }).lean(),
+      Admin.findOne().lean(),
+      DietPlan.findOne({ coach: coachId, client: null }).lean(),
+      Notification.find({
+        recipientType: 'coach',
+        recipientId: coachId
+      }).sort({ createdAt: -1 }).limit(10).lean()
+    ]);
 
-    // Get referrals of clients associated with this coach
-    const allClients = await Client.find({ coach: coachId });
-    const clientIds = allClients.map(c => c._id);
-    const referrals = await Referral.find({ client: { $in: clientIds } }).populate('client', 'name');
+    // Run dependent referrals query
+    const referrals = await Referral.find({ client: { $in: clientIds } }).populate('client', 'name').lean();
 
-    // Get sub-coaches (Hierarchy)
-    const coaches = await Coach.find({ seniorCoach: coachId });
-
-    // Get results
-    const results = await Result.find({ coach: coachId });
-
-    // Fetch Admin for fallback naming
-    const admin = await Admin.findOne();
-
-    // Get base diet plan
-    const dietPlan = await DietPlan.findOne({ coach: coachId, client: null });
-
-    // Get notifications
-    const notifications = await Notification.find({
-      recipientType: 'coach',
-      recipientId: coachId
-    }).sort({ createdAt: -1 }).limit(10);
-
+    const sessions = rawSessions
+      .filter(s => isSessionInFuture(s.date, s.time))
+      .sort((a, b) => parseSessionDateTime(a.date, a.time) - parseSessionDateTime(b.date, b.time));
 
     res.json({
       success: true,
