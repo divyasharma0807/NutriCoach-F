@@ -21,8 +21,8 @@ img { max-width: 100%; display: block; }
 
 button { font-family: inherit; cursor: pointer; }
 
-input, select, textarea { font-family: inherit; font-size: inherit; color: var(--dark); background-color: var(--white); }
-option { color: var(--dark); background-color: var(--white); }
+input, select, textarea { font-family: inherit; font-size: inherit; color: var(--dark) !important; -webkit-text-fill-color: var(--dark) !important; background-color: var(--white); color-scheme: inherit; }
+option { color: var(--dark) !important; background-color: var(--white) !important; }
 
 a { color: inherit; text-decoration: none; }
 
