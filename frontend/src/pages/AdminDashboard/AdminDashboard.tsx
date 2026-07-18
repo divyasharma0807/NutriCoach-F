@@ -1585,19 +1585,34 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               </div>
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                 <Button variant="ghost" fullWidth onClick={() => setIsAddProspectOpen(false)}>Cancel</Button>
-                <Button variant="primary" fullWidth onClick={() => {
-                  if (!newProspectName || !newProspectEmail || !newProspectPhone || !newProspectCity || !newProspectAge || !newProspectWeight) return;
-                  setProspects(prev => [...prev, {
-                    id: Date.now().toString(),
-                    name: newProspectName,
-                    email: newProspectEmail,
-                    phone: newProspectPhone,
-                    city: newProspectCity,
-                    age: newProspectAge,
-                    gender: newProspectGender,
-                    weight: newProspectWeight
-                  }]);
-                  setIsAddProspectOpen(false);
+                <Button variant="primary" fullWidth onClick={async () => {
+                  if (!newProspectName || !newProspectEmail || !newProspectPhone) {
+                    alert("Please fill required fields (Name, Email, Phone)");
+                    return;
+                  }
+                  try {
+                    const res = await api.addProspect({
+                      name: newProspectName,
+                      email: newProspectEmail,
+                      phone: newProspectPhone,
+                      city: newProspectCity,
+                      age: newProspectAge,
+                      gender: newProspectGender,
+                      weight: newProspectWeight
+                    });
+                    if (res.success) {
+                      await fetchAdminData();
+                      setIsAddProspectOpen(false);
+                      setNewProspectName('');
+                      setNewProspectEmail('');
+                      setNewProspectPhone('');
+                      setNewProspectCity('');
+                      setNewProspectAge('');
+                      setNewProspectWeight('');
+                    }
+                  } catch (err: any) {
+                    alert(err.message || 'Failed to add prospect');
+                  }
                 }}>Add Prospect</Button>
               </div>
             </div>

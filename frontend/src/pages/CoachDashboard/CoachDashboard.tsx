@@ -1758,8 +1758,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                 <Button variant="ghost" fullWidth onClick={() => setIsAddProspectOpen(false)}>Cancel</Button>
                  <Button variant="primary" fullWidth onClick={async () => {
-                   if (!newProspectName || !newProspectEmail || !newProspectPhone || !newProspectCity || !newProspectAge || !newProspectWeight) {
-                     alert("Please fill all fields");
+                   if (!newProspectName || !newProspectEmail || !newProspectPhone) {
+                     alert("Please fill required fields (Name, Email, Phone)");
                      return;
                    }
                    try {
@@ -1775,6 +1775,12 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                      if (res.success) {
                        await fetchCoachData();
                        setIsAddProspectOpen(false);
+                       setNewProspectName('');
+                       setNewProspectEmail('');
+                       setNewProspectPhone('');
+                       setNewProspectCity('');
+                       setNewProspectAge('');
+                       setNewProspectWeight('');
                      }
                    } catch (err: any) {
                      alert(err.message || 'Failed to add prospect');
