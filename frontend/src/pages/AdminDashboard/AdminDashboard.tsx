@@ -1377,7 +1377,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Gender</label>
-                  <select className="control-select" value={newClientGender} onChange={e => setNewClientGender(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)' }}>
+                  <select className="control-select" value={newClientGender} onChange={e => setNewClientGender(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)', color: 'var(--dark)' }}>
                     <option value="">Select</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -1396,7 +1396,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                 </div>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Client Plan *</label>
-                  <select value={newClientPlan} onChange={e => setNewClientPlan(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', backgroundColor: 'var(--white)' }}>
+                  <select value={newClientPlan} onChange={e => setNewClientPlan(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', backgroundColor: 'var(--white)', color: 'var(--dark)' }}>
                     <option value="">Select Plan</option>
                     <option value="UMS Plan">UMS Plan</option>
                     <option value="Subscription Plan">Subscription Plan</option>
@@ -1804,7 +1804,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                     if (newResultError && e.target.value) setNewResultError("");
                   }} 
                   placeholder="e.g. Rahul Sharma"
-                  style={{ height: '48px', width: '100%', borderRadius: '12px', padding: '0 16px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)', outline: 'none', color: 'var(--dark)' }} 
+                  style={{ height: '48px', width: '100%', borderRadius: '12px', padding: '0 16px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)', color: 'var(--dark)', outline: 'none', color: 'var(--dark)' }} 
                 />
                 {newResultError && <span style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '4px', fontWeight: 500 }}>⚠ {newResultError}</span>}
               </div>
@@ -1816,7 +1816,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                   value={newResultDescription} 
                   onChange={e => setNewResultDescription(e.target.value)} 
                   placeholder="Describe the transformation..."
-                  style={{ height: '140px', width: '100%', borderRadius: '12px', padding: '16px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)', resize: 'vertical', outline: 'none', color: 'var(--dark)' }} 
+                  style={{ height: '140px', width: '100%', borderRadius: '12px', padding: '16px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)', color: 'var(--dark)', resize: 'vertical', outline: 'none', color: 'var(--dark)' }} 
                 />
               </div>
 
@@ -1959,7 +1959,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                       padding: '1.25rem',
                       borderRadius: '12px',
                       border: '1px solid var(--primary)',
-                      backgroundColor: 'var(--white)',
+                      backgroundColor: 'var(--white)', color: 'var(--dark)',
                       color: '#000000',
                       boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
                       lineHeight: '1.6',
@@ -2190,7 +2190,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               </div>
               <div className="form-row">
                 <div className="form-field"><label>Gender</label>
-                  <select value={cpGender} onChange={e => setCpGender(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', backgroundColor: 'var(--white)' }}>
+                  <select value={cpGender} onChange={e => setCpGender(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', backgroundColor: 'var(--white)', color: 'var(--dark)' }}>
                     <option value="">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -2309,7 +2309,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               </div>
               <div className="form-field" style={{ flex: 1 }}>
                 <label>Gender</label>
-                <select className="control-select" value={newCoachGender} onChange={e => setNewCoachGender(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)' }}>
+                <select className="control-select" value={newCoachGender} onChange={e => setNewCoachGender(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)', color: 'var(--dark)' }}>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
@@ -2323,7 +2323,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               </div>
               <div className="form-field" style={{ flex: 1 }}>
                 <label>Level *</label>
-                <select value={newCoachLevel} onChange={e => setNewCoachLevel(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', backgroundColor: 'var(--white)' }}>
+                <select value={newCoachLevel} onChange={e => setNewCoachLevel(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem', backgroundColor: 'var(--white)', color: 'var(--dark)' }}>
                   <option value="">Select Level</option>
                   <option value="Associate">Associate</option>
                   <option value="Senior Consultant">Senior Consultant</option>
@@ -2432,7 +2432,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
           <div style={{ padding: '1rem 0' }}>
             <div className="form-field">
               <label style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 'bold', color: 'var(--grey-700)', fontSize: '0.9rem' }}>Subscription Start Date</label>
-              <input type="date" value={subscriptionStartDate} onChange={e => setSubscriptionStartDate(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', outline: 'none', cursor: 'text', fontFamily: 'inherit', fontSize: '0.95rem', backgroundColor: 'var(--white)' }} />
+              <input type="date" value={subscriptionStartDate} onChange={e => setSubscriptionStartDate(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)', outline: 'none', cursor: 'text', fontFamily: 'inherit', fontSize: '0.95rem', backgroundColor: 'var(--white)', color: 'var(--dark)' }} />
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={() => setIsUpdateSubscriptionModalOpen(false)}>Cancel</Button>
