@@ -1319,24 +1319,24 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
             <div className="settings-form" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="form-field">
                 <label>Name *</label>
-                <input type="text" value={newClientName} onChange={e => setNewClientName(e.target.value)} placeholder="e.g. John Doe" />
+                <input type="text" value={newClientName} onChange={e => setNewClientName(e.target.value)} />
               </div>
               <div className="form-field">
                 <label>Email Address *</label>
-                <input type="email" value={newClientEmail} onChange={e => setNewClientEmail(e.target.value)} placeholder="e.g. john@email.com" />
+                <input type="email" value={newClientEmail} onChange={e => setNewClientEmail(e.target.value)} />
               </div>
               <div className="form-field">
                 <label>Phone Number *</label>
-                <input type="text" value={newClientPhone} onChange={e => setNewClientPhone(e.target.value)} placeholder="e.g. +91 9876543210" />
+                <input type="text" value={newClientPhone} onChange={e => setNewClientPhone(e.target.value)} />
               </div>
               <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>City</label>
-                  <input type="text" value={newClientCity} onChange={e => setNewClientCity(e.target.value)} placeholder="e.g. Mumbai" />
+                  <input type="text" value={newClientCity} onChange={e => setNewClientCity(e.target.value)} />
                 </div>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Age</label>
-                  <input type="number" value={newClientAge} onChange={e => setNewClientAge(e.target.value)} placeholder="e.g. 30" />
+                  <input type="number" value={newClientAge} onChange={e => setNewClientAge(e.target.value)} />
                 </div>
               </div>
               <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
@@ -1351,13 +1351,13 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                 </div>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Current Weight (kg)</label>
-                  <input type="number" value={newClientWeight} onChange={e => setNewClientWeight(e.target.value)} placeholder="e.g. 78" />
+                  <input type="number" value={newClientWeight} onChange={e => setNewClientWeight(e.target.value)} />
                 </div>
               </div>
               <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Height (cm)</label>
-                  <input type="number" value={newClientHeight} onChange={e => setNewClientHeight(e.target.value)} placeholder="e.g. 175" />
+                  <input type="number" value={newClientHeight} onChange={e => setNewClientHeight(e.target.value)} />
                 </div>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Client Plan *</label>
@@ -1534,22 +1534,22 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
             <div className="settings-form" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="form-field">
                 <label>Coach Name *</label>
-                <input type="text" value={newCoachName} onChange={e => setNewCoachName(e.target.value)} placeholder="e.g. Sarah Johnson" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
+                <input type="text" value={newCoachName} onChange={e => setNewCoachName(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
               </div>
               <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Phone Number *</label>
-                  <input type="text" value={newCoachPhone} onChange={e => setNewCoachPhone(e.target.value)} placeholder="e.g. +91 9876543210" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
+                  <input type="text" value={newCoachPhone} onChange={e => setNewCoachPhone(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
                 </div>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Email Address *</label>
-                  <input type="email" value={newCoachEmail} onChange={e => setNewCoachEmail(e.target.value)} placeholder="e.g. sarah@email.com" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
+                  <input type="email" value={newCoachEmail} onChange={e => setNewCoachEmail(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
                 </div>
               </div>
               <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>City</label>
-                  <input type="text" value={newCoachCity} onChange={e => setNewCoachCity(e.target.value)} placeholder="e.g. Delhi" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
+                  <input type="text" value={newCoachCity} onChange={e => setNewCoachCity(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
                 </div>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Gender</label>
@@ -1563,7 +1563,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Experience (Years)</label>
-                  <input type="text" value={newCoachExperience} onChange={e => setNewCoachExperience(e.target.value)} placeholder="e.g. 5" style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
+                  <input type="text" value={newCoachExperience} onChange={e => setNewCoachExperience(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--grey-200)' }} />
                 </div>
                 <div className="form-field" style={{ flex: 1 }}>
                   <label>Level *</label>
@@ -1724,19 +1724,19 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
             <div className="settings-form">
               <div className="form-field">
                 <label>Name *</label>
-                <input type="text" value={newProspectName} onChange={e => setNewProspectName(e.target.value)} placeholder="e.g. Jack Vance" />
+                <input type="text" value={newProspectName} onChange={e => setNewProspectName(e.target.value)} />
               </div>
               <div className="form-field">
                 <label>Email *</label>
-                <input type="email" value={newProspectEmail} onChange={e => setNewProspectEmail(e.target.value)} placeholder="e.g. jack@gmail.com" />
+                <input type="email" value={newProspectEmail} onChange={e => setNewProspectEmail(e.target.value)} />
               </div>
               <div className="form-field">
                 <label>Phone Number *</label>
-                <input type="tel" value={newProspectPhone} onChange={e => setNewProspectPhone(e.target.value)} placeholder="e.g. 555-0199" />
+                <input type="tel" value={newProspectPhone} onChange={e => setNewProspectPhone(e.target.value)} />
               </div>
               <div className="form-field">
                 <label>City *</label>
-                <input type="text" value={newProspectCity} onChange={e => setNewProspectCity(e.target.value)} placeholder="e.g. Seattle" />
+                <input type="text" value={newProspectCity} onChange={e => setNewProspectCity(e.target.value)} />
               </div>
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div className="form-field" style={{ flex: 1 }}>
@@ -1983,8 +1983,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                   onChange={e => {
                     setNewResultClientName(e.target.value);
                     if (newResultError && e.target.value) setNewResultError("");
-                  }} 
-                  placeholder="e.g. Rahul Sharma"
+                  }}
                   style={{ height: '48px', width: '100%', borderRadius: '12px', padding: '0 16px', border: '1px solid var(--grey-200)', backgroundColor: 'var(--white)', color: 'var(--dark)', outline: 'none', color: 'var(--dark)' }} 
                 />
                 {newResultError && <span style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '4px', fontWeight: 500 }}>⚠ {newResultError}</span>}
@@ -2372,12 +2371,12 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
           <div className="main-card settings-card" style={{ padding: '2rem' }}>
             <div className="settings-form">
               <div className="form-row">
-                <div className="form-field"><label>Name</label><input type="text" value={cpName} onChange={e => setCpName(e.target.value)} placeholder="e.g. John Doe" /></div>
-                <div className="form-field"><label>Phone Number</label><input type="tel" value={cpPhone} onChange={e => setCpPhone(e.target.value)} placeholder="e.g. +91 98765 43210" /></div>
+                <div className="form-field"><label>Name</label><input type="text" value={cpName} onChange={e => setCpName(e.target.value)} /></div>
+                <div className="form-field"><label>Phone Number</label><input type="tel" value={cpPhone} onChange={e => setCpPhone(e.target.value)} /></div>
               </div>
               <div className="form-row">
-                <div className="form-field"><label>Email Address</label><input type="email" value={cpEmail} onChange={e => setCpEmail(e.target.value)} placeholder="e.g. john@example.com" /></div>
-                <div className="form-field"><label>Age</label><input type="number" value={cpAge} onChange={e => setCpAge(e.target.value)} placeholder="e.g. 35" /></div>
+                <div className="form-field"><label>Email Address</label><input type="email" value={cpEmail} onChange={e => setCpEmail(e.target.value)} /></div>
+                <div className="form-field"><label>Age</label><input type="number" value={cpAge} onChange={e => setCpAge(e.target.value)} /></div>
               </div>
               <div className="form-row">
                 <div className="form-field"><label>Gender</label>
@@ -2388,11 +2387,11 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                     <option value="Other">Other</option>
                   </select>
                 </div>
-                <div className="form-field"><label>City</label><input type="text" value={cpCity} onChange={e => setCpCity(e.target.value)} placeholder="e.g. New York" /></div>
+                <div className="form-field"><label>City</label><input type="text" value={cpCity} onChange={e => setCpCity(e.target.value)} /></div>
               </div>
               <div className="form-row">
-                <div className="form-field"><label>Coach Name</label><input type="text" value={cpCoachName} onChange={e => setCpCoachName(e.target.value)} placeholder="e.g. Gaurav Sharma" /></div>
-                <div className="form-field"><label>Experience (Years)</label><input type="text" value={cpExperience} onChange={e => setCpExperience(e.target.value)} placeholder="e.g. 5 Years" /></div>
+                <div className="form-field"><label>Coach Name</label><input type="text" value={cpCoachName} onChange={e => setCpCoachName(e.target.value)} /></div>
+                <div className="form-field"><label>Experience (Years)</label><input type="text" value={cpExperience} onChange={e => setCpExperience(e.target.value)} /></div>
               </div>
             </div>
             <div style={{ marginTop: '2rem' }}>

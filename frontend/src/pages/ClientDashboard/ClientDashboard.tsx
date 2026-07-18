@@ -1358,11 +1358,11 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
           <div className="form-row">
             <div className="form-field">
               <label>Weight Range</label>
-              <input type="text" value={refWeightRange} onChange={e => setRefWeightRange(e.target.value)} placeholder="e.g. 70-80 kg" />
+              <input type="text" value={refWeightRange} onChange={e => setRefWeightRange(e.target.value)} />
             </div>
             <div className="form-field">
               <label>Interest</label>
-              <input type="text" value={refInterest} onChange={e => setRefInterest(e.target.value)} placeholder="e.g. Weight Loss" />
+              <input type="text" value={refInterest} onChange={e => setRefInterest(e.target.value)} />
             </div>
           </div>
           <div className="form-field">
