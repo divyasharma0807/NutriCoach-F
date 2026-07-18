@@ -294,7 +294,7 @@ export const approveSession = async (req, res, next) => {
     });
 
     // Notify Requester
-    const requesterType = session.organizerRole === 'coach' ? 'coach' : (session.organizerRole === 'admin' ? 'admin' : 'client');
+    const requesterType = session.organizerRole;
     await Notification.create({
       recipientType: requesterType,
       recipientId: session.organizerId,
@@ -303,9 +303,9 @@ export const approveSession = async (req, res, next) => {
       relatedMeetingId: session._id
     });
 
-    // Notify Coach
+    // Notify Approver
     await Notification.create({
-      recipientType: 'coach',
+      recipientType: req.user.role,
       recipientId: req.user._id,
       text: 'Meeting successfully confirmed.',
       type: 'info',
@@ -358,7 +358,7 @@ export const rejectSession = async (req, res, next) => {
     });
 
     // Notify Requester
-    const requesterType = session.organizerRole === 'coach' ? 'coach' : (session.organizerRole === 'admin' ? 'admin' : 'client');
+    const requesterType = session.organizerRole;
     await Notification.create({
       recipientType: requesterType,
       recipientId: session.organizerId,
