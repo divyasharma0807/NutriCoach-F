@@ -55,6 +55,7 @@ export const getDashboardStats = async (req, res, next) => {
     const results = await Result.find({ coach: adminId });
 
     const dietPlan = await DietPlan.findOne({ coach: adminId, client: null });
+    const prospects = await Prospect.find({ addedByCoach: adminId });
 
     const coachesWithStats = await Promise.all(coaches.map(async (c) => {
       const coachClientsCount = await Client.countDocuments({ coach: c._id });
@@ -120,6 +121,7 @@ export const getDashboardStats = async (req, res, next) => {
           organizerId: s.organizerId,
           isOrganizer: s.organizerId ? s.organizerId.toString() === adminId.toString() : false
         })),
+        prospects,
         referrals: referrals.map(r => ({
           id: r._id,
           name: r.name,
