@@ -105,7 +105,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <div className="hero-trust fade-in" style={{ animationDelay: '0.4s' }}>✓ Free to join  ✓ No credit card  ✓ Cancel anytime</div>
           </div>
           <div className="hero-image">
-            <div className="hero-image-placeholder"><span>🌿</span></div>
+            <div className="hero-image-placeholder" style={{ background: 'none' }}>
+              <img 
+                src={`/assets/images/hero_${theme}.png`} 
+                alt="Health and Wellness Hero" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '24px' }} 
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -149,7 +155,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
               <Button variant="primary" onClick={() => onNavigate('login')}>Start as Client</Button>
             </div>
           </div>
-          <div className="how-image"><div className="how-image-placeholder"><span>🌿</span></div></div>
+          <div className="how-image">
+            <div className="how-image-placeholder" style={{ background: 'none' }}>
+              <img 
+                src={`/assets/images/lower_${theme}.png`} 
+                alt="Active Lifestyle" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '24px' }} 
+              />
+            </div>
+          </div>
         </div>
       </section>
 
