@@ -22,6 +22,7 @@ img { max-width: 100%; display: block; }
 button { font-family: inherit; cursor: pointer; }
 
 input, select, textarea { font-family: inherit; font-size: inherit; color: var(--dark); background-color: var(--white); }
+option { color: var(--dark); background-color: var(--white); }
 
 a { color: inherit; text-decoration: none; }
 
