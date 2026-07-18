@@ -375,12 +375,17 @@ export const uploadResult = async (req, res, next) => {
       }
     });
 
-    // Notify Admin
-    await Notification.create({
-      recipientType: 'admin',
-      text: `Coach ${req.user.name} uploaded transformation results for ${clientName}.`,
-      type: 'new_referral' // mapped as results/referral updates in notifications
-    });
+    // Notify Client
+    // Find a client with this exact name under the uploading coach (which can be admin or coach)
+    const client = await Client.findOne({ name: clientName, coach: coachId });
+    if (client) {
+      await Notification.create({
+        recipientType: 'client',
+        recipientId: client._id,
+        text: 'Your coach has uploaded a transformation.',
+        type: 'new_result'
+      });
+    }
 
     res.status(201).json({
       success: true,
