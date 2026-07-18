@@ -139,6 +139,7 @@ export const getDashboardStats = async (req, res, next) => {
       prospects,
       clientIds,
       coaches,
+      results,
       admin,
       dietPlan,
       notifications
@@ -163,6 +164,7 @@ export const getDashboardStats = async (req, res, next) => {
       Prospect.find(prospectQuery).lean(),
       Client.find({ coach: coachId }).distinct('_id'),
       Coach.find({ seniorCoach: coachId }).lean(),
+      Result.find({ coach: coachId }).lean(),
       Admin.findOne().lean(),
       DietPlan.findOne({ coach: coachId, client: null }).lean(),
       Notification.find({
