@@ -131,6 +131,7 @@
   background-color: #111111 !important; 
   border: 1px solid #262626 !important; 
   color: #FFFFFF !important; 
+  -webkit-text-fill-color: #FFFFFF !important;
 }
 .dark-theme .input-element:focus, .dark-theme .control-select:focus, .dark-theme select:focus, .dark-theme input:focus { 
   border-color: var(--green) !important; 
@@ -272,18 +273,26 @@
 }
 
 /* Catch-all for inline styles using var(--dark) or hardcoded black */
-.dark-theme [style*="color: var(--dark)"],
-.dark-theme [style*="color: 'var(--dark)'"],
-.dark-theme [style*="color:var(--dark)"] {
+.dark-theme [style*=" color: var(--dark)"],
+.dark-theme [style*=" color: 'var(--dark)'"],
+.dark-theme [style*=" color:var(--dark)"],
+.dark-theme [style^="color: var(--dark)"],
+.dark-theme [style^="color: 'var(--dark)'"],
+.dark-theme [style^="color:var(--dark)"] {
   color: #FFFFFF !important;
 }
-.dark-theme [style*="color: var(--white)"],
-.dark-theme [style*="color: 'var(--white)'"],
-.dark-theme [style*="color:var(--white)"] {
+.dark-theme [style*=" color: var(--white)"],
+.dark-theme [style*=" color: 'var(--white)'"],
+.dark-theme [style*=" color:var(--white)"],
+.dark-theme [style^="color: var(--white)"],
+.dark-theme [style^="color: 'var(--white)'"],
+.dark-theme [style^="color:var(--white)"] {
   color: #171717 !important;
 }
-.dark-theme [style*="color: var(--grey-700)"],
-.dark-theme [style*="color: 'var(--grey-700)'"] {
+.dark-theme [style*=" color: var(--grey-700)"],
+.dark-theme [style*=" color: 'var(--grey-700)'"],
+.dark-theme [style^="color: var(--grey-700)"],
+.dark-theme [style^="color: 'var(--grey-700)'"] {
   color: #D1D5DB !important;
 }
 
