@@ -756,7 +756,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
             ) : (
               <div className="search-results-list">
                 {coachResults.map((result: any) => (
-                  <div key={result.id} className="search-result-entry" style={{ padding: '1.25rem', border: '1px solid var(--grey-200)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--white)', marginBottom: '1rem', cursor: 'pointer' }} onClick={() => navigate(`/result/${result.id}`)}>
+                  <div key={result.id} className="search-result-entry" style={{ padding: '1.25rem', border: '1px solid var(--grey-200)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--white)', cursor: 'pointer' }} onClick={() => navigate(`/result/${result.id}`)}>
                     {/* Top Row: Client Name and Upload Date */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ fontWeight: 'bold', color: 'var(--dark)', fontSize: '1.15rem' }}>{result.clientName || 'Coach Update'}</div>
