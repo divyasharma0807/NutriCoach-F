@@ -5,7 +5,7 @@ import './LoginPage.css';
 
 import { api } from '../../data/api';
 
-interface LoginPageProps { onNavigate: (page: string) => void; onLogin: (role: 'client' | 'coach' | 'admin', name: string, profileComplete?: boolean, activeGoal?: string) => void; initialRole?: 'client' | 'coach' | 'admin'; }
+interface LoginPageProps { onNavigate: (page: string) => void; onLogin: (role: 'client' | 'coach' | 'admin', name: string, profileComplete?: boolean, activeGoal?: string, userData?: any) => void; initialRole?: 'client' | 'coach' | 'admin'; }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin, initialRole }) => {
   const [role, setRole] = useState<'client' | 'coach' | 'admin'>(initialRole || 'client');
@@ -32,7 +32,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onLogin, initi
     try {
       const res = await api.login(mobileNumber, password, role);
       if (res.success && res.data) {
-        onLogin(role, res.data.name, res.data.profileComplete, res.data.activeGoal);
+        onLogin(role, res.data.name, res.data.profileComplete, res.data.activeGoal, res.data);
       }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please verify credentials.');

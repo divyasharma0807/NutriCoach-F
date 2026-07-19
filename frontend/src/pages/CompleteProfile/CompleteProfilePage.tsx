@@ -20,7 +20,7 @@ const getLocalTodayString = () => {
 const healthGoals = ['Weight Loss', 'Muscle Gain', 'Better Energy', 'Heart Health', 'Diabetes Management', 'General Wellness', 'Sports Performance', 'Stress Management', 'Better Sleep', 'Digestive Health'];
 
 export interface CompleteProfilePageProps {
-  role: 'client' | 'coach';
+  role: 'client' | 'coach' | 'admin';
   onComplete: (name?: string, goal?: string, data?: any) => void;
   onNavigate?: (page: string) => void;
   profileData?: any;
@@ -34,6 +34,7 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
   const [age, setAge] = useState(profileData?.age || '');
   const [gender, setGender] = useState(profileData?.gender || '');
   const [coachName, setCoachName] = useState(profileData?.coachName || '');
+  const [experience, setExperience] = useState(profileData?.experience || '');
   const [isAssessmentExpanded, setIsAssessmentExpanded] = useState(false);
   const [error, setError] = useState('');
   
@@ -117,10 +118,28 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
           onComplete(fullName, activeGoal, res.data);
         }
       } else {
-        // Coach profile complete is handled similarly, or just setting basic info
-        // Wait, coach doesn't have a specific edit profile screen in requirements,
-        // so we just trigger completion locally or call a placeholder
-        onComplete(fullName, activeGoal, {});
+        // Coach/Admin profile complete
+        const adminCoachData = {
+          name: fullName, 
+          email: emailAddress, 
+          phone: phoneNumber, 
+          city, 
+          age, 
+          gender, 
+          coachName, 
+          experience
+        };
+        
+        let res;
+        if (role === 'admin') {
+          res = await api.updateAdminProfile(adminCoachData);
+        } else {
+          res = await api.updateCoachProfile(adminCoachData);
+        }
+
+        if (res.success) {
+          onComplete(fullName, activeGoal, res.data);
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Failed to save profile');
@@ -151,7 +170,7 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
       )}
       <div className="complete-profile-topbar" style={{ display: 'flex', alignItems: 'center', padding: '1rem 2rem', gap: '1.5rem' }}>
         <button 
-          onClick={() => onNavigate && onNavigate(role === 'coach' ? 'coach-dashboard' : 'client-dashboard')}
+          onClick={() => onNavigate && onNavigate(role === 'admin' ? 'admin-dashboard' : role === 'coach' ? 'coach-dashboard' : 'client-dashboard')}
           style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', color: 'var(--grey-500)', transition: 'background-color 0.2s', margin: 0 }}
           title="Back to Dashboard"
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--grey-100)'}
@@ -160,11 +179,13 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
           ←
         </button>
         <div className="complete-profile-logo" style={{ margin: 0 }}><span className="logo-icon">🌿</span><span className="logo-text">NutriCoach</span></div>
-        <div className="complete-profile-top-right" style={{ marginLeft: 'auto' }}><span className="step-counter">Step {currentStep} of 4</span></div>
+        {role === 'client' && <div className="complete-profile-top-right" style={{ marginLeft: 'auto' }}><span className="step-counter">Step {currentStep} of 4</span></div>}
       </div>
       <div className="complete-profile-content">
-        <StepIndicator totalSteps={4} currentStep={currentStep} stepLabels={['Personal Details', 'Body Parameters', 'Medical Records', 'Coach Details']} />
-        <div className="complete-profile-card">
+        {role === 'client' ? (
+          <>
+            <StepIndicator totalSteps={4} currentStep={currentStep} stepLabels={['Personal Details', 'Body Parameters', 'Medical Records', 'Coach Details']} />
+            <div className="complete-profile-card">
           {currentStep === 1 && (
             <div className="step-content">
               <h2>Personal Information</h2>
@@ -286,6 +307,36 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
             </div>
           )}
         </div>
+        </>
+        ) : (
+          <div className="complete-profile-card">
+            <div className="step-content">
+              <h2>Profile Details</h2>
+              <p className="step-subtitle">Update your personal information.</p>
+              <InputField label="Full Name" type="text" placeholder="" value={fullName} onChange={setFullName} required />
+              <InputField label="Email Address" type="email" placeholder="" value={emailAddress} onChange={setEmailAddress} required />
+              <InputField label="Phone Number" type="text" placeholder="" value={phoneNumber} onChange={setPhoneNumber} />
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1 }}><InputField label="City" type="text" placeholder="" value={city} onChange={setCity} /></div>
+                <div style={{ flex: 1 }}><InputField label="Age" type="number" placeholder="" value={age} onChange={setAge} /></div>
+              </div>
+              <div className="gender-selector" style={{ marginBottom: '1.5rem' }}>
+                <label className="input-label">Gender</label>
+                <div className="gender-options" style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                  <button className={`gender-option ${gender === 'Male' ? 'selected' : ''}`} onClick={() => setGender('Male')} style={{ flex: 1, padding: '0.5rem', border: '1.5px solid var(--grey-200)', borderRadius: 'var(--radius-full)', background: gender === 'Male' ? 'var(--dark)' : 'var(--white)', color: gender === 'Male' ? 'var(--white)' : 'inherit', cursor: 'pointer', textAlign: 'center' }}>Male</button>
+                  <button className={`gender-option ${gender === 'Female' ? 'selected' : ''}`} onClick={() => setGender('Female')} style={{ flex: 1, padding: '0.5rem', border: '1.5px solid var(--grey-200)', borderRadius: 'var(--radius-full)', background: gender === 'Female' ? 'var(--dark)' : 'var(--white)', color: gender === 'Female' ? 'var(--white)' : 'inherit', cursor: 'pointer', textAlign: 'center' }}>Female</button>
+                </div>
+              </div>
+              <InputField label="Coach Name" type="text" placeholder="" value={coachName} onChange={setCoachName} />
+              <InputField label="Experience (Years)" type="text" placeholder="" value={experience} onChange={setExperience} />
+              <div className="step-navigation" style={{ marginTop: '2rem' }}>
+                <Button variant="green" fullWidth onClick={handleSaveProfile} disabled={isSubmitting}>
+                  {isSubmitting ? 'Saving...' : 'Save Profile'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

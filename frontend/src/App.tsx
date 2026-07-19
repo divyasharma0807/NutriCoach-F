@@ -91,7 +91,8 @@ export function App() {
               role: user.role,
               userName: user.name,
               profileComplete: user.profileComplete,
-              activeGoal: user.activeGoal || ''
+              activeGoal: user.activeGoal || '',
+              profileData: user
             });
 
             // Redirect public page visits to dashboard if already authenticated
@@ -170,14 +171,15 @@ export function App() {
     }
   }, [currentPath, appState.role, isCheckingAuth]);
 
-  const handleLogin = (role: 'client' | 'coach' | 'admin', name: string, profileComplete: boolean = false, activeGoal: string = '') => {
+  const handleLogin = (role: 'client' | 'coach' | 'admin', name: string, profileComplete: boolean = false, activeGoal: string = '', userData?: any) => {
     setAppState(prev => ({ 
       ...prev, 
       page: role === 'coach' ? 'coach-dashboard' : role === 'admin' ? 'admin-dashboard' : 'client-dashboard', 
       role, 
       userName: name, 
       profileComplete,
-      activeGoal
+      activeGoal,
+      profileData: userData
     }));
     navigate('/dashboard', { replace: true });
   };
@@ -189,7 +191,7 @@ export function App() {
       userName: fullName || prev.userName, 
       activeGoal: activeGoal || prev.activeGoal, 
       profileData: data, 
-      page: prev.role === 'coach' ? 'coach-dashboard' : 'client-dashboard' 
+      page: prev.role === 'admin' ? 'admin-dashboard' : prev.role === 'coach' ? 'coach-dashboard' : 'client-dashboard' 
     }));
     navigate('/dashboard', { replace: true });
   };
@@ -206,10 +208,10 @@ export function App() {
       case 'login': return <LoginPage onNavigate={navigate} onLogin={handleLogin} initialRole={appState.role === 'coach' ? 'coach' : 'client'} />;
       case 'signup': return <SignupPage onNavigate={navigate} />;
       case 'forgot-password': return <ForgotPasswordPage onNavigate={navigate} />;
-      case 'complete-profile': return <CompleteProfilePage role={(appState.role as 'client' | 'coach') || 'client'} onComplete={handleProfileComplete} onNavigate={navigate} profileData={appState.profileData} />;
+      case 'complete-profile': return <CompleteProfilePage role={(appState.role as 'client' | 'coach' | 'admin') || 'client'} onComplete={handleProfileComplete} onNavigate={navigate} profileData={appState.profileData} />;
       case 'client-dashboard': return <ClientDashboard userName={appState.userName} onLogout={handleLogout} onNavigateApp={navigate} profileComplete={appState.profileComplete} activeGoal={appState.activeGoal} subscriptionStartDate="2026-06-15" profileData={appState.profileData} />;
-      case 'coach-dashboard': return <CoachDashboard userName={appState.userName} onLogout={handleLogout} />;
-      case 'admin-dashboard': return <AdminDashboard userName={appState.userName} onLogout={handleLogout} />;
+      case 'coach-dashboard': return <CoachDashboard userName={appState.userName} onLogout={handleLogout} profileData={appState.profileData} />;
+      case 'admin-dashboard': return <AdminDashboard userName={appState.userName} onLogout={handleLogout} profileData={appState.profileData} />;
       case 'about': return <AboutPage onNavigate={navigate} />;
       case 'privacy': return <PrivacyPolicyPage onNavigate={navigate} />;
       case 'terms': return <TermsOfServicePage onNavigate={navigate} />;

@@ -140,7 +140,7 @@ export const getDashboardStats = async (req, res, next) => {
       clientIds,
       coaches,
       results,
-      admin,
+      admins,
       dietPlan,
       notifications
     ] = await Promise.all([
@@ -165,7 +165,7 @@ export const getDashboardStats = async (req, res, next) => {
       Client.find({ coach: coachId }).distinct('_id'),
       Coach.find({ seniorCoach: coachId }).lean(),
       Result.find({ coach: coachId }).lean(),
-      Admin.findOne().lean(),
+      Admin.find().lean(),
       DietPlan.findOne({ coach: coachId, client: null }).lean(),
       Notification.find({
         recipientType: 'coach',
@@ -194,20 +194,32 @@ export const getDashboardStats = async (req, res, next) => {
         sessions: sessions.map(s => {
           let participantName = 'Unknown';
           let participantPhone = '';
-          if (s.clientId) {
+
+          const otherParticipantId = s.participants && s.participants.length > 0 
+            ? s.participants.find(pId => pId && pId.toString() !== coachId.toString())
+            : null;
+
+          if (s.clientId && s.clientId._id.toString() !== coachId.toString()) {
             participantName = s.clientId.name;
             participantPhone = s.clientId.phone;
-          } else {
-            if (s.coachId && s.coachId._id.toString() !== coachId.toString()) {
-              participantName = s.coachId.name;
-              participantPhone = s.coachId.phone;
-            } else if (s.parentCoachId) {
-              participantName = s.parentCoachId.name;
-              participantPhone = s.parentCoachId.phone;
+          } else if (s.coachId && s.coachId._id.toString() !== coachId.toString()) {
+            participantName = s.coachId.name;
+            participantPhone = s.coachId.phone;
+          } else if (s.parentCoachId && s.parentCoachId._id.toString() !== coachId.toString()) {
+            participantName = s.parentCoachId.name;
+            participantPhone = s.parentCoachId.phone;
+          } else if (otherParticipantId) {
+            const adminParticipant = admins.find(a => a._id.toString() === otherParticipantId.toString());
+            if (adminParticipant) {
+              participantName = adminParticipant.name;
+              participantPhone = adminParticipant.phone || '';
             } else {
-              participantName = admin ? admin.name : 'Super Coach';
+              participantName = admins.length > 0 ? admins[0].name : 'Super Coach';
               participantPhone = '';
             }
+          } else {
+            participantName = admins.length > 0 ? admins[0].name : 'Super Coach';
+            participantPhone = '';
           }
 
           return {
@@ -644,3 +656,49 @@ export const getClientDetails = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Update coach profile details
+// @route   PUT /api/coaches/profile
+// @access  Private (Coach)
+export const updateCoachProfile = async (req, res, next) => {
+  const { name, phone, email, age, gender, city, experience, coachName } = req.body;
+  const coachId = req.user._id;
+
+  try {
+    const coach = await Coach.findById(coachId);
+    if (!coach) {
+      res.status(404);
+      throw new Error('Coach not found');
+    }
+
+    coach.name = name !== undefined ? name : coach.name;
+    coach.phone = phone !== undefined ? phone : coach.phone;
+    coach.email = email !== undefined ? email : coach.email;
+    coach.age = age !== undefined ? age : coach.age;
+    coach.gender = gender !== undefined ? gender : coach.gender;
+    coach.city = city !== undefined ? city : coach.city;
+    coach.experience = experience !== undefined ? experience : coach.experience;
+    coach.coachName = coachName !== undefined ? coachName : coach.coachName;
+
+    await coach.save();
+
+    res.json({
+      success: true,
+      message: 'Coach profile updated successfully',
+      data: {
+        id: coach._id,
+        name: coach.name,
+        phone: coach.phone,
+        email: coach.email,
+        age: coach.age,
+        gender: coach.gender,
+        city: coach.city,
+        experience: coach.experience,
+        coachName: coach.coachName
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -289,6 +289,13 @@ export const api = {
       body: JSON.stringify(profileData)
     });
   },
+  updateCoachProfile: async (profileData: any) => {
+    return fetchAPI('/coaches/profile', {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(profileData)
+    });
+  },
 
   editResult: async (resultId: string, formData: FormData) => {
     return fetchAPI(`/results/${resultId}`, {

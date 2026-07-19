@@ -105,12 +105,12 @@ const SearchableSelect = ({ options, value, onChange, placeholder }: { options: 
   );
 };
 
-interface CoachDashboardProps { userName: string; onLogout: () => void; }
+interface CoachDashboardProps { userName: string; onLogout: () => void; profileData?: any; }
 
 const metricsOptions = ['Body Weight', 'Body Mass Index (BMI)', 'Body Fat Ratio', 'Muscle Rate', 'Body Water', 'Bone Mass', 'Basal Metabolic Rate', 'Metabolic Age', 'Visceral Fat', 'Subcutaneous Fat', 'Protein Mass', 'Muscle Mass', 'Weight Without Fat'];
 const measurementOptions = ['Belly', 'Waist', 'Thigh', 'Chest', 'Arm'];
 
-export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogout }) => {
+export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogout, profileData }) => {
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
@@ -234,14 +234,27 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [selectedClientPlan, setSelectedClientPlan] = useState<any | null>(null);
 
   // Complete Profile
-  const [cpName, setCpName] = useState(userName || '');
-  const [cpPhone, setCpPhone] = useState('');
-  const [cpEmail, setCpEmail] = useState('');
-  const [cpAge, setCpAge] = useState('');
-  const [cpGender, setCpGender] = useState('');
-  const [cpCity, setCpCity] = useState('');
-  const [cpCoachName, setCpCoachName] = useState('');
-  const [cpExperience, setCpExperience] = useState('');
+  const [cpName, setCpName] = useState(profileData?.fullName || profileData?.name || userName || '');
+  const [cpPhone, setCpPhone] = useState(profileData?.phoneNumber || profileData?.phone || '');
+  const [cpEmail, setCpEmail] = useState(profileData?.emailAddress || profileData?.email || '');
+  const [cpAge, setCpAge] = useState(profileData?.age || '');
+  const [cpGender, setCpGender] = useState(profileData?.gender || '');
+  const [cpCity, setCpCity] = useState(profileData?.city || '');
+  const [cpCoachName, setCpCoachName] = useState(profileData?.coachName || '');
+  const [cpExperience, setCpExperience] = useState(profileData?.experience || '');
+
+  useEffect(() => {
+    if (profileData) {
+      setCpName(profileData.fullName || profileData.name || userName || '');
+      setCpPhone(profileData.phoneNumber || profileData.phone || '');
+      setCpEmail(profileData.emailAddress || profileData.email || '');
+      setCpAge(profileData.age || '');
+      setCpGender(profileData.gender || '');
+      setCpCity(profileData.city || '');
+      setCpCoachName(profileData.coachName || '');
+      setCpExperience(profileData.experience || '');
+    }
+  }, [profileData, userName]);
 
   // Settings
   const [coachProfile, setCoachProfile] = useState<{ name: string; email: string; phone: string }>({ name: userName, email: '', phone: '' });

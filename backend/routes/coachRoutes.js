@@ -8,7 +8,8 @@ import {
   deleteClient,
   getClientDetails,
   updateClientSubscription,
-  updateSubcoachStatus
+  updateSubcoachStatus,
+  updateCoachProfile
 } from '../controllers/coachController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import upload from '../middleware/uploadMiddleware.js';
@@ -18,6 +19,7 @@ const router = express.Router();
 router.use(protect);
 
 router.post('/clients', authorize('coach', 'admin'), addClient);
+router.put('/profile', authorize('coach', 'admin'), updateCoachProfile);
 router.get('/clients/:id', authorize('coach', 'admin'), getClientDetails);
 router.put('/clients/:id/subscription', authorize('coach', 'admin'), updateClientSubscription);
 router.get('/dashboard', authorize('coach', 'admin'), getDashboardStats);

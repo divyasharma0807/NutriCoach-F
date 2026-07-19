@@ -59,7 +59,10 @@ export const getDashboardStats = async (req, res, next) => {
 
     const coachesWithStats = await Promise.all(coaches.map(async (c) => {
       const coachClientsCount = await Client.countDocuments({ coach: c._id });
-      const coachSessionsCount = await Session.countDocuments({ coachId: c._id });
+      const coachSessionsCount = await Session.countDocuments({ 
+        $or: [{ coachId: c._id }, { parentCoachId: c._id }],
+        status: { $in: ['APPROVED', 'PENDING'] }
+      });
       
       const coachProspectsCount = await Prospect.countDocuments({ addedByCoach: c._id });
       
