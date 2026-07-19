@@ -1117,7 +1117,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                       <div style={{ fontSize: '2rem' }}>📅</div>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <div style={{ fontWeight: 'bold', color: 'var(--dark)', fontSize: '1.1rem' }}>
-                          {session.title || (session.type === 'client' ? 'Client Session' : 'Coach Session')}
+                          {session.title || (session.type === 'client' ? '1-on-1 Consultation' : 'Coach Session')}
                         </div>
                         <div style={{ color: 'var(--grey-500)', fontSize: '0.95rem', marginTop: '0.5rem', fontWeight: 500 }}>
                           {session.type === 'client' ? 'Client: ' : 'Coach: '} <span style={{ color: 'var(--dark)', fontWeight: 'bold' }}>{session.participantName}</span>

@@ -1155,7 +1155,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
                     <div style={{ fontSize: '2rem' }}>📅</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 'bold', color: 'var(--dark)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span>{session.title || 'Client Session'}</span>
+                        <span>{session.title || '1-on-1 Consultation'}</span>
                         {session.status === 'PENDING' && (
                           <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', backgroundColor: '#FFF3E0', color: '#E65100', borderRadius: '4px' }}>Pending Approval</span>
                         )}
