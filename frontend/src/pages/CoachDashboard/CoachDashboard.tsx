@@ -2467,15 +2467,33 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
             <p style={{ margin: 0, fontSize: '1.1rem', color: 'var(--dark)' }}>Are you sure you want to delete this profile?<br/><br/>This action cannot be undone.</p>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', justifyContent: 'flex-end' }}>
               <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-              <Button variant="danger" onClick={() => {
+              <Button variant="danger" onClick={async () => {
                 if (itemToDelete) {
-                  if (itemToDelete.type === 'client') { setClients(clients.filter(c => c.id !== itemToDelete.id)); setSelectedClient(null); }
-                  if (itemToDelete.type === 'coach') { setCoaches(coaches.filter(c => c.id !== itemToDelete.id)); }
-                  if (itemToDelete.type === 'prospect') { setProspects(prospects.filter(c => c.id !== itemToDelete.id)); setSelectedProspect(null); }
-                  if (itemToDelete.type === 'referral') { setReferrals(referrals.filter(c => c.id !== itemToDelete.id)); setSelectedReferral(null); }
+                  try {
+                    if (itemToDelete.type === 'client') {
+                      await api.deleteClient(itemToDelete.id);
+                    }
+                    if (itemToDelete.type === 'coach') {
+                      await api.deleteSubcoach(itemToDelete.id);
+                    }
+                    if (itemToDelete.type === 'prospect') {
+                      await api.deleteProspect(itemToDelete.id);
+                    }
+                    if (itemToDelete.type === 'referral') {
+                      await api.deleteReferral(itemToDelete.id);
+                    }
+                    
+                    // Refresh data
+                    await fetchCoachData();
+                  } catch (err: any) {
+                    alert(err.message || 'Failed to delete');
+                  }
                 }
                 setIsDeleteModalOpen(false);
                 setItemToDelete(null);
+                setSelectedClient(null);
+                setSelectedProspect(null);
+                setSelectedReferral(null);
               }}>Delete</Button>
             </div>
           </div>

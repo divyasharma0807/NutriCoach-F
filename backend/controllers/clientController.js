@@ -440,3 +440,32 @@ export const getReferrals = async (req, res, next) => {
   }
 };
 
+// @desc    Delete referral
+// @route   DELETE /api/clients/referrals/:id
+// @access  Private
+export const deleteReferral = async (req, res, next) => {
+  const referralId = req.params.id;
+
+  try {
+    const referral = await Referral.findById(referralId);
+    if (!referral) {
+      res.status(404);
+      throw new Error('Referral not found');
+    }
+
+    // Verify ownership or role
+    if (req.user.role === 'client' && referral.client.toString() !== req.user._id.toString()) {
+      res.status(403);
+      throw new Error('Not authorized to delete this referral');
+    }
+
+    await Referral.findByIdAndDelete(referralId);
+
+    res.json({
+      success: true,
+      message: 'Referral deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

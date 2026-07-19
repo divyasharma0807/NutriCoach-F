@@ -20,6 +20,10 @@ const fetchAPI = async (endpoint: string, options: RequestInit = {}) => {
     const response = await fetch(url, options);
     const data = await response.json();
     if (!response.ok) {
+      if (response.status === 401 && endpoint !== '/auth/login') {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
       throw new Error(data.message || 'Something went wrong');
     }
     return data;
@@ -361,6 +365,27 @@ export const api = {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(settings)
+    });
+  },
+
+  deleteProspect: async (prospectId: string) => {
+    return fetchAPI(`/prospects/${prospectId}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+  },
+
+  deleteReferral: async (referralId: string) => {
+    return fetchAPI(`/referrals/${referralId}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+  },
+
+  deleteSubcoach: async (coachId: string) => {
+    return fetchAPI(`/coaches/sub-coaches/${coachId}`, {
+      method: 'DELETE',
+      headers: getHeaders()
     });
   }
 };

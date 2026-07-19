@@ -529,10 +529,10 @@ export const deleteClient = async (req, res, next) => {
     await BodyParameterHistory.deleteMany({ client: clientId });
     await MeasurementHistory.deleteMany({ client: clientId });
 
-    // Delete sessions
+    // Delete sessions and referrals
+    const Session = (await import('../models/Session.js')).default;
+    const Referral = (await import('../models/Referral.js')).default;
     await Session.deleteMany({ participants: { $in: [clientId] } });
-
-    // Delete referrals
     await Referral.deleteMany({ client: clientId });
 
     res.json({
@@ -702,3 +702,69 @@ export const updateCoachProfile = async (req, res, next) => {
   }
 };
 
+// @desc    Delete prospect
+// @route   DELETE /api/prospects/:id
+// @access  Private (Coach/Admin)
+export const deleteProspect = async (req, res, next) => {
+  const prospectId = req.params.id;
+  const userId = req.user._id;
+
+  try {
+    const prospect = await Prospect.findById(prospectId);
+    if (!prospect) {
+      res.status(404);
+      throw new Error('Prospect not found');
+    }
+
+    // Verify ownership
+    if (prospect.addedByCoach && prospect.addedByCoach.toString() !== userId.toString() && req.user.role !== 'admin') {
+      res.status(403);
+      throw new Error('Not authorized to delete this prospect');
+    }
+
+    await Prospect.findByIdAndDelete(prospectId);
+
+    res.json({
+      success: true,
+      message: 'Prospect deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete subcoach
+// @route   DELETE /api/coaches/sub-coaches/:id
+// @access  Private (Coach)
+export const deleteSubcoach = async (req, res, next) => {
+  const coachId = req.params.id;
+
+  try {
+    const coach = await Coach.findById(coachId);
+    if (!coach) {
+      res.status(404);
+      throw new Error('Coach not found');
+    }
+
+    if (coach.seniorCoach && coach.seniorCoach.toString() !== req.user._id.toString()) {
+      res.status(403);
+      throw new Error('Not authorized to delete this sub-coach');
+    }
+
+    // Unset seniorCoach for this subcoach's subcoaches (if any)
+    await Coach.updateMany({ seniorCoach: coachId }, { $unset: { seniorCoach: 1 } });
+    
+    // Set clients to have no coach
+    const Client = (await import('../models/Client.js')).default;
+    await Client.updateMany({ coach: coachId }, { $unset: { coach: 1 } });
+
+    await Coach.findByIdAndDelete(coachId);
+
+    res.json({
+      success: true,
+      message: 'Subcoach deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

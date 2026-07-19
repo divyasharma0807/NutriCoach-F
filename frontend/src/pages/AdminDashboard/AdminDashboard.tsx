@@ -2439,11 +2439,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                         setIsDeleteModalOpen(false);
                       }
                     } else if (itemToDelete.type === 'prospect') {
-                      setProspects(prospects.filter(c => c.id !== itemToDelete.id));
-                      setSelectedProspect(null);
+                      const res = await api.deleteProspect(itemToDelete.id);
+                      if (res.success) {
+                        await fetchAdminData();
+                        setSelectedProspect(null);
+                      }
                     } else if (itemToDelete.type === 'referral') {
-                      setReferrals(referrals.filter(c => c.id !== itemToDelete.id));
-                      setSelectedReferral(null);
+                      const res = await api.deleteReferral(itemToDelete.id);
+                      if (res.success) {
+                        await fetchAdminData();
+                        setSelectedReferral(null);
+                      }
                     }
                   } catch (err: any) {
                     alert(err.message || 'Failed to delete');
