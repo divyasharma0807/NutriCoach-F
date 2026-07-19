@@ -216,7 +216,7 @@ export const scheduleSession = async (req, res, next) => {
           participants: [user._id, targetClient._id],
           date,
           time,
-          title: 'Client Session',
+          title: '1-on-1 Consultation',
           status: 'APPROVED'
         });
 
@@ -280,8 +280,8 @@ export const approveSession = async (req, res, next) => {
     }
 
     session.status = 'APPROVED';
-    if (session.title === 'Client Session Request') {
-      session.title = 'Client Session';
+    if (session.title === 'Client Session Request' || session.title === 'Client Session' || session.title === '1-on-1 Consultation') {
+      session.title = '1-on-1 Consultation';
     } else if (session.title === 'Sub-Coach Session Request' || session.title === 'Coach Session Request') {
       session.title = 'Coach Session';
     }
