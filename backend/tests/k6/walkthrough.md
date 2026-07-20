@@ -1,12 +1,12 @@
 # K6 Load Testing - Walkthrough (Phases 5.1 - 6.0 + Optimization)
 
-This walkthrough documents the completion of the K6 load testing suite, including **Coach Dashboard Performance Optimization** for the NutriCoach backend.
+This walkthrough documents the completion of the K6 load testing suite, including **Coach and Admin Dashboard Performance Optimizations** for the NutriCoach backend.
 
 ---
 
-## Performance Optimization Results (20 VUs Load Test)
+## 1. Coach Dashboard Performance Optimization Results (20 VUs Load Test)
 
-Under identical conditions (`TEST_PROFILE=load`, `TEST_VUS=20` against the Railway backend), we verified the optimization of GET `/api/coaches/dashboard` compared to the original benchmark:
+Under identical conditions (`TEST_PROFILE=load`, `TEST_VUS=20` against the Railway backend), we verified the optimization of GET `/api/coaches/dashboard`:
 
 ### Benchmarking Comparison
 
@@ -17,14 +17,30 @@ Under identical conditions (`TEST_PROFILE=load`, `TEST_VUS=20` against the Railw
 | **P95 Latency** | 5.32 s | **2.64 s** | **50.4% Faster** |
 | **Max Latency** | 10.48 s | **4.15 s** | **60.4% Faster** |
 | **Throughput (Dashboard req/s)** | 3.85 req/s | **3.39 req/s** | *Within pacing range* |
-| **Total Throughput (HTTP reqs/s)** | - | **6.78 req/s** | - |
+| **Error Rate** | 0% | **0%** | **No regressions** |
+
+---
+
+## 2. Admin Dashboard Performance Optimization Results (20 VUs Load Test)
+
+Under identical conditions (`TEST_PROFILE=load`, `TEST_VUS=20` against the Railway backend), we verified the optimization of GET `/api/admin/dashboard`:
+
+### Benchmarking Comparison
+
+| Metric | Original Benchmark | Optimized Benchmark | Improvement (%) |
+|--------|--------------------|---------------------|-----------------|
+| **Average Latency** | 3.92 s | **1.25 s** | **68.1% Faster** |
+| **P90 Latency** | 4.07 s | **1.39 s** | **65.8% Faster** |
+| **P95 Latency** | 4.10 s | **1.60 s** | **61.0% Faster** |
+| **Max Latency** | 4.29 s | **3.40 s** | **20.7% Faster** |
+| **Throughput (Dashboard req/s)** | 2.29 req/s | **3.82 req/s** | **+66.8% More Throughput** |
 | **Error Rate** | 0% | **0%** | **No regressions** |
 
 ---
 
 ## Technical Enhancements Applied
 
-1. **Parallel Query Resolution**: Batched 12 independent database queries to resolve concurrently using `Promise.all`.
-2. **Distinct Key Queries**: Removed the redundant client document query (`allClients`), replacing it with `Client.find({ coach: coachId }).distinct('_id')` in Batch 1 to retrieve only client IDs, and queried `Referral.find` in Batch 2.
-3. **Lean Serialization**: Appended `.lean()` to all read-only query chains to skip document initialization in Mongoose.
-4. **Logic & Contract Preservation**: Cleaned timing hooks before staging. Validations passed 100% with no regressions.
+1. **Parallel Query Resolution (Batch 1)**: Batched 10 independent database queries (coaches, clients, sessions, notifications, results, dietPlan, and prospects) to resolve concurrently using `Promise.all`.
+2. **Dependent Query Optimization (Batch 2)**: Combined independent referrals search and nested senior coach statistics calculations concurrently using `Promise.all` after Batch 1 resolved.
+3. **Mongoose Overhead Elimination**: Appended `.lean()` to all read-only database queries to bypass Document hydration.
+4. **Redundant Query Cleanup**: Replaced Mongoose count query `Referral.countDocuments` with array length mapping, saving a database roundtrip.
