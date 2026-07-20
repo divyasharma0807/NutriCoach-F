@@ -21,10 +21,6 @@ export const getDashboardStats = async (req, res, next) => {
   try {
     const adminId = req.user._id;
 
-    const coachesCount = await Coach.countDocuments({ seniorCoach: adminId });
-    const clientsCount = await Client.countDocuments({ coach: adminId });
-    const sessionsCount = await Session.countDocuments({ participants: { $in: [adminId] }, status: { $in: ['APPROVED', 'PENDING'] } });
-    
     // Build coach query
     const coachQuery = { seniorCoach: adminId };
     if (coachLevel && coachLevel !== 'All') {
@@ -34,58 +30,71 @@ export const getDashboardStats = async (req, res, next) => {
       coachQuery.activeStatus = coachStatus;
     }
 
-    const coaches = await Coach.find(coachQuery).populate('seniorCoach', 'name');
-    const clients = await Client.find({ coach: adminId }).populate('coach', 'name');
-    const rawSessions = await Session.find({ participants: { $in: [adminId] } }).populate('clientId').populate('coachId').populate('parentCoachId');
+    // Execute independent queries in parallel using lean() where appropriate (Batch 1)
+    const [
+      coachesCount,
+      clientsCount,
+      sessionsCount,
+      coaches,
+      clients,
+      rawSessions,
+      notifications,
+      results,
+      dietPlan,
+      prospects
+    ] = await Promise.all([
+      Coach.countDocuments({ seniorCoach: adminId }),
+      Client.countDocuments({ coach: adminId }),
+      Session.countDocuments({ participants: { $in: [adminId] }, status: { $in: ['APPROVED', 'PENDING'] } }),
+      Coach.find(coachQuery).populate('seniorCoach', 'name').lean(),
+      Client.find({ coach: adminId }).populate('coach', 'name').lean(),
+      Session.find({ participants: { $in: [adminId] } }).populate('clientId').populate('coachId').populate('parentCoachId').lean(),
+      Notification.find({ recipientType: 'admin' }).sort({ createdAt: -1 }).limit(10).lean(),
+      Result.find({ coach: adminId }).lean(),
+      DietPlan.findOne({ coach: adminId, client: null }).lean(),
+      Prospect.find({ addedByCoach: adminId }).lean()
+    ]);
+
+    // Launch dependent queries and nested coach stats calculations concurrently (Batch 2)
+    const clientIds = clients.map(c => c._id);
+
+    const [referrals, coachesWithStats] = await Promise.all([
+      Referral.find({ client: { $in: clientIds } }).populate('client', 'name').lean(),
+      Promise.all(coaches.map(async (c) => {
+        const [coachClientsCount, coachSessionsCount, coachProspectsCount, coachSubCoachesCount] = await Promise.all([
+          Client.countDocuments({ coach: c._id }),
+          Session.countDocuments({ 
+            $or: [{ coachId: c._id }, { parentCoachId: c._id }],
+            status: { $in: ['APPROVED', 'PENDING'] }
+          }),
+          Prospect.countDocuments({ addedByCoach: c._id }),
+          Coach.countDocuments({ seniorCoach: c._id })
+        ]);
+        return {
+          id: c._id,
+          name: c.name,
+          email: c.email,
+          phone: c.phone,
+          level: c.level,
+          city: c.city,
+          gender: c.gender,
+          experience: c.experience,
+          status: c.activeStatus ? c.activeStatus.toLowerCase() : 'active',
+          activeStatus: c.activeStatus,
+          seniorCoachName: c.seniorCoach ? c.seniorCoach.name : 'N/A',
+          clientsCount: coachClientsCount,
+          sessionsCount: coachSessionsCount,
+          prospectsCount: coachProspectsCount,
+          coachesCount: coachSubCoachesCount
+        };
+      }))
+    ]);
+
+    const referralsCount = referrals.length; // Redundant query eliminated
+
     const sessions = rawSessions
       .filter(s => isSessionInFuture(s.date, s.time))
       .sort((a, b) => parseSessionDateTime(a.date, a.time) - parseSessionDateTime(b.date, b.time));
-    
-    // Referrals filtering by clients of adminId
-    const clientIds = clients.map(c => c._id);
-    const referrals = await Referral.find({ client: { $in: clientIds } }).populate('client', 'name');
-    const referralsCount = await Referral.countDocuments({ client: { $in: clientIds } });
-
-    // Get notifications
-    const notifications = await Notification.find({ recipientType: 'admin' })
-      .sort({ createdAt: -1 })
-      .limit(10);
-
-    // Get admin-uploaded results
-    const results = await Result.find({ coach: adminId });
-
-    const dietPlan = await DietPlan.findOne({ coach: adminId, client: null });
-    const prospects = await Prospect.find({ addedByCoach: adminId });
-
-    const coachesWithStats = await Promise.all(coaches.map(async (c) => {
-      const coachClientsCount = await Client.countDocuments({ coach: c._id });
-      const coachSessionsCount = await Session.countDocuments({ 
-        $or: [{ coachId: c._id }, { parentCoachId: c._id }],
-        status: { $in: ['APPROVED', 'PENDING'] }
-      });
-      
-      const coachProspectsCount = await Prospect.countDocuments({ addedByCoach: c._id });
-      
-      const coachSubCoachesCount = await Coach.countDocuments({ seniorCoach: c._id });
-
-      return {
-        id: c._id,
-        name: c.name,
-        email: c.email,
-        phone: c.phone,
-        level: c.level,
-        city: c.city,
-        gender: c.gender,
-        experience: c.experience,
-        status: c.activeStatus ? c.activeStatus.toLowerCase() : 'active',
-        activeStatus: c.activeStatus,
-        seniorCoachName: c.seniorCoach ? c.seniorCoach.name : 'N/A',
-        clientsCount: coachClientsCount,
-        sessionsCount: coachSessionsCount,
-        prospectsCount: coachProspectsCount,
-        coachesCount: coachSubCoachesCount
-      };
-    }));
 
     res.json({
       success: true,
