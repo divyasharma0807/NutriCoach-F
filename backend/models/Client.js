@@ -3,13 +3,13 @@ import bcrypt from 'bcryptjs';
 
 const ClientSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true },
+  email: { type: String, required: false },
   phone: { type: String, required: true, unique: true },
   password: { type: String }, // client added by coach won't have a password initially
   role: { type: String, default: 'client' },
-  city: { type: String, default: '' },
-  age: { type: Number },
-  gender: { type: String, default: '' },
+  city: { type: String, default: '', required: true },
+  age: { type: Number, required: true },
+  gender: { type: String, default: '', required: true },
   clientPlan: { type: String, default: '' }, // e.g. 'Basic', 'Premium', 'Elite'
   coach: { type: mongoose.Schema.Types.ObjectId, ref: 'Coach', default: null },
   coachName: { type: String, default: '' }, // Denormalized/fallback field as in UI

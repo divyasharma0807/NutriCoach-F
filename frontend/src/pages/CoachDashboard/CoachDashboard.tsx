@@ -1413,8 +1413,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                 <Button variant="ghost" fullWidth onClick={() => setIsAddClientOpen(false)}>Cancel</Button>
                  <Button variant="primary" fullWidth onClick={async () => {
-                   if (!newClientName || !newClientPhone || !newClientEmail || !newClientPlan || !newClientPassword) {
-                     alert("Please fill name, email, phone number, plan, and password");
+                   if (!newClientName || !newClientPhone || !newClientPlan || !newClientPassword || !newClientCity || !newClientAge || !newClientGender || !newClientWeight || !newClientHeight) {
+                     alert("Please fill all required fields except email (Name, Phone, Plan, Password, City, Age, Gender, Weight, Height)");
                      return;
                    }
                    try {
@@ -1771,8 +1771,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                 <Button variant="ghost" fullWidth onClick={() => setIsAddProspectOpen(false)}>Cancel</Button>
                  <Button variant="primary" fullWidth onClick={async () => {
-                   if (!newProspectName || !newProspectEmail || !newProspectPhone) {
-                     alert("Please fill required fields (Name, Email, Phone)");
+                   if (!newProspectName || !newProspectPhone || !newProspectCity || !newProspectAge || !newProspectGender || !newProspectWeight) {
+                     alert('Please fill all required fields except email (Name, Phone, City, Age, Gender, Weight)');
                      return;
                    }
                    try {

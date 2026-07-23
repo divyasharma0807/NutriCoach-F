@@ -635,7 +635,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
   };
 
   const handleSaveReferral = async () => {
-    if (!refName || !refEmail) return;
+    if (!refName || !refPhone) return;
     try {
       const res = await api.createReferral({ name: refName, email: refEmail, phone: refPhone, city: refCity, age: refAge, gender: refGender, weightRange: refWeightRange, interest: refInterest });
       if (res.success) {
@@ -1407,7 +1407,7 @@ export const ClientDashboard: React.FC<ClientDashboardProps> = ({ userName, onLo
         </div>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '2rem', borderTop: '1px solid var(--grey-200)', paddingTop: '1.5rem' }}>
           <Button variant="ghost" onClick={() => setIsReferralModalOpen(false)}>Cancel</Button>
-          <Button variant="primary" onClick={handleSaveReferral} disabled={!refName || !refEmail}>Save Referral</Button>
+          <Button variant="primary" onClick={handleSaveReferral} disabled={!refName || !refPhone}>Save Referral</Button>
         </div>
       </Modal>
     </div>

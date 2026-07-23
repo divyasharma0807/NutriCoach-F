@@ -3,14 +3,14 @@ import bcrypt from 'bcryptjs';
 
 const CoachSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true },
+  email: { type: String, required: false },
   phone: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, default: 'coach' },
-  level: { type: String, default: 'Coach' }, // 'Senior Coach', 'Coach'
-  city: { type: String, default: '' },
-  gender: { type: String, default: '' },
-  experience: { type: String, default: '' },
+  level: { type: String, default: 'Coach', required: true }, // 'Senior Coach', 'Coach'
+  city: { type: String, default: '', required: true },
+  gender: { type: String, default: '', required: true },
+  experience: { type: String, default: '', required: true },
   activeStatus: { type: String, enum: ['Active', 'Inactive'], default: 'Active' },
   seniorCoach: { type: mongoose.Schema.Types.ObjectId, ref: 'Coach', default: null },
   notificationTokens: [

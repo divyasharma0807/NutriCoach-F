@@ -73,6 +73,11 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
     setIsSubmitting(true);
     try {
       if (role === 'client') {
+        if (!coachName) {
+          setError('Please provide your coach name.');
+          setIsSubmitting(false);
+          return;
+        }
         const formData = new FormData();
         formData.append('fullName', fullName);
         formData.append('emailAddress', emailAddress);
@@ -119,6 +124,11 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
         }
       } else {
         // Coach/Admin profile complete
+        if (!fullName || !phoneNumber || !city || !age || !gender || !coachName || !experience) {
+          setError('Please fill all required fields.');
+          setIsSubmitting(false);
+          return;
+        }
         const adminCoachData = {
           name: fullName, 
           email: emailAddress, 
@@ -191,7 +201,7 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
               <h2>Personal Information</h2>
               <p className="step-subtitle">Tell us about yourself.</p>
               <InputField label="Full Name" type="text" placeholder="" value={fullName} onChange={setFullName} required />
-              <InputField label="Email Address" type="email" placeholder="" value={emailAddress} onChange={setEmailAddress} required />
+              <InputField label="Email Address" type="email" placeholder="" value={emailAddress} onChange={setEmailAddress} />
               <InputField label="Phone Number" type="text" placeholder="" value={phoneNumber} onChange={setPhoneNumber} />
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}><InputField label="City" type="text" placeholder="" value={city} onChange={setCity} /></div>
@@ -204,7 +214,14 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
                   <button className={`gender-option ${gender === 'Female' ? 'selected' : ''}`} onClick={() => setGender('Female')} style={{ flex: 1, padding: '0.5rem', border: '1.5px solid var(--grey-200)', borderRadius: 'var(--radius-full)', background: gender === 'Female' ? 'var(--dark)' : 'var(--white)', color: gender === 'Female' ? 'var(--white)' : 'inherit', cursor: 'pointer', textAlign: 'center' }}>Female</button>
                 </div>
               </div>
-              <Button variant="primary" fullWidth onClick={() => setCurrentStep(2)}>Next</Button>
+              <Button variant="primary" fullWidth onClick={() => {
+                if (!fullName || !phoneNumber || !city || !age || !gender) {
+                  setError('Please fill all required fields in this step.');
+                  return;
+                }
+                setError('');
+                setCurrentStep(2);
+              }}>Next</Button>
             </div>
           )}
           {currentStep === 2 && (
@@ -255,7 +272,14 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
 
               <div className="step-navigation" style={{ marginTop: '2rem' }}>
                 <Button variant="ghost" onClick={() => setCurrentStep(1)}>Previous</Button>
-                <Button variant="primary" onClick={() => setCurrentStep(3)}>Next</Button>
+                <Button variant="primary" onClick={() => {
+                  if (!height || !bodyWeight || !bodyMassIndex || !bodyFatRatio || !muscleRate || !bodyWater || !boneMass || !basalMetabolicRate || !metabolicAge || !visceralFat || !subcutaneousFat || !proteinMass || !muscleMass || !weightWithoutFat || !belly || !waist || !thigh || !chest || !arm || !activeGoal) {
+                    setError('Please fill all required fields in this step.');
+                    return;
+                  }
+                  setError('');
+                  setCurrentStep(3);
+                }}>Next</Button>
               </div>
             </div>
           )}
@@ -288,7 +312,14 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
 
               <div className="step-navigation" style={{ marginTop: '2rem' }}>
                 <Button variant="ghost" onClick={() => setCurrentStep(2)}>Previous</Button>
-                <Button variant="primary" onClick={() => setCurrentStep(4)}>Next</Button>
+                <Button variant="primary" onClick={() => {
+                  if (!medicalPdf || !allergies) {
+                    setError('Please upload your medical record and provide allergies information.');
+                    return;
+                  }
+                  setError('');
+                  setCurrentStep(4);
+                }}>Next</Button>
               </div>
             </div>
           )}
@@ -314,7 +345,7 @@ export const CompleteProfilePage: React.FC<CompleteProfilePageProps> = ({ role, 
               <h2>Profile Details</h2>
               <p className="step-subtitle">Update your personal information.</p>
               <InputField label="Full Name" type="text" placeholder="" value={fullName} onChange={setFullName} required />
-              <InputField label="Email Address" type="email" placeholder="" value={emailAddress} onChange={setEmailAddress} required />
+              <InputField label="Email Address" type="email" placeholder="" value={emailAddress} onChange={setEmailAddress} />
               <InputField label="Phone Number" type="text" placeholder="" value={phoneNumber} onChange={setPhoneNumber} />
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ flex: 1 }}><InputField label="City" type="text" placeholder="" value={city} onChange={setCity} /></div>
