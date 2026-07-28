@@ -1442,6 +1442,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
                       </svg>
                     )}
                   </button>
+                </div>
+              </div>
               
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                 <Button variant="ghost" fullWidth onClick={() => setIsAddClientOpen(false)}>Cancel</Button>
