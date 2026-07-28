@@ -20,6 +20,7 @@ import resultRoutes from './routes/resultRoutes.js';
 import referralRoutes from './routes/referralRoutes.js';
 import prospectRoutes from './routes/prospectRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 dotenv.config();
 
@@ -67,6 +68,7 @@ app.use('/api/results', resultRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/prospects', prospectRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Test API status
 app.get('/api/health', (req, res) => {
