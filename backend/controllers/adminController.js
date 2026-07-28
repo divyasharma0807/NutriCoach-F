@@ -9,6 +9,8 @@ import BodyParameterHistory from '../models/BodyParameterHistory.js';
 import MeasurementHistory from '../models/MeasurementHistory.js';
 import DietPlan from '../models/DietPlan.js';
 import Prospect from '../models/Prospect.js';
+import Transaction from '../models/Transaction.js';
+import Subscription from '../models/Subscription.js';
 import { deleteFromCloudinary } from '../services/cloudinaryService.js';
 import { isSessionInFuture, parseSessionDateTime } from '../utils/sessionHelper.js';
 
@@ -347,6 +349,191 @@ export const deleteClient = async (req, res, next) => {
     res.json({
       success: true,
       message: 'Client and all related records deleted permanently'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get paginated, filtered admin transactions
+// @route   GET /api/admin/transactions
+// @access  Private (Admin only)
+export const getTransactions = async (req, res, next) => {
+  try {
+    const { page = 1, search, status, paymentMethod, dateRange, startDate, endDate, sortBy } = req.query;
+    const limitNum = 15;
+    const pageNum = parseInt(page) || 1;
+    const skip = (pageNum - 1) * limitNum;
+
+    const transactionQuery = {};
+
+    // 1. Search filter: Coach Name, Coach Email, Coach Phone
+    if (search) {
+      const matchingCoaches = await Coach.find({
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { phone: { $regex: search, $options: 'i' } }
+        ]
+      }).select('_id');
+      const coachIds = matchingCoaches.map(c => c._id);
+
+      transactionQuery.$or = [
+        { coachId: { $in: coachIds } },
+        { 'coachSnapshot.name': { $regex: search, $options: 'i' } },
+        { 'coachSnapshot.phone': { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // 2. Status filter
+    if (status && status !== 'All') {
+      transactionQuery.status = status.toUpperCase();
+    }
+
+    // 3. Payment Method filter
+    if (paymentMethod && paymentMethod !== 'All') {
+      transactionQuery.paymentMethod = paymentMethod.toUpperCase();
+    }
+
+    // 4. Date Range filter
+    if (dateRange && dateRange !== 'All') {
+      const now = new Date();
+      let start;
+      if (dateRange === 'Today') {
+        start = new Date();
+        start.setHours(0, 0, 0, 0);
+      } else if (dateRange === 'Last 7 Days') {
+        start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (dateRange === 'Last 30 Days') {
+        start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      } else if (dateRange === 'Custom' && startDate && endDate) {
+        start = new Date(startDate);
+        const end = new Date(endDate);
+        transactionQuery.createdAt = { $gte: start, $lte: end };
+      }
+      if (start && dateRange !== 'Custom') {
+        transactionQuery.createdAt = { $gte: start };
+      }
+    }
+
+    // 5. Sorting
+    let sortOption = { createdAt: -1 };
+    if (sortBy === 'Newest First') sortOption = { createdAt: -1 };
+    else if (sortBy === 'Oldest First') sortOption = { createdAt: 1 };
+    else if (sortBy === 'Highest Amount') sortOption = { amount: -1 };
+    else if (sortBy === 'Lowest Amount') sortOption = { amount: 1 };
+
+    // 6. DB Queries
+    const [total, transactions] = await Promise.all([
+      Transaction.countDocuments(transactionQuery),
+      Transaction.find(transactionQuery)
+        .populate('coachId', 'name email phone')
+        .sort(sortOption)
+        .skip(skip)
+        .limit(limitNum)
+        .lean()
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        transactions,
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get transaction statistics summary
+// @route   GET /api/admin/transactions/summary
+// @access  Private (Admin only)
+export const getTransactionSummary = async (req, res, next) => {
+  try {
+    const now = new Date();
+    const todayMidnight = new Date();
+    todayMidnight.setUTCHours(0, 0, 0, 0);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [
+      totalRevenueResult,
+      monthRevenueResult,
+      successCount,
+      failedCount,
+      activeCoachesCount,
+      expiredCoachesCount
+    ] = await Promise.all([
+      // Total Revenue
+      Transaction.aggregate([
+        { $match: { status: 'SUCCESS' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      // Month Revenue
+      Transaction.aggregate([
+        { $match: { status: 'SUCCESS', createdAt: { $gte: startOfMonth } } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      // Successful Payments Count
+      Transaction.countDocuments({ status: 'SUCCESS' }),
+      // Failed Payments Count
+      Transaction.countDocuments({ status: 'FAILED' }),
+      // Active Coaches Count
+      Subscription.countDocuments({ status: 'ACTIVE', expiryDate: { $gt: todayMidnight } }),
+      // Expired Coaches Count
+      Subscription.countDocuments({
+        $or: [
+          { status: 'EXPIRED' },
+          { status: 'ACTIVE', expiryDate: { $lte: todayMidnight } }
+        ]
+      })
+    ]);
+
+    const totalRevenue = totalRevenueResult[0] ? totalRevenueResult[0].total : 0;
+    const thisMonthRevenue = monthRevenueResult[0] ? monthRevenueResult[0].total : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        thisMonthRevenue,
+        totalRevenue,
+        successfulPayments: successCount,
+        failedPayments: failedCount,
+        activeCoaches: activeCoachesCount,
+        expiredCoaches: expiredCoachesCount
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get detailed transaction by ID
+// @route   GET /api/admin/transactions/:id
+// @access  Private (Admin only)
+export const getTransactionById = async (req, res, next) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id)
+      .populate('coachId', 'name email phone')
+      .lean();
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
+
+    const subscription = await Subscription.findOne({ coachId: transaction.coachId }).lean();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        transaction,
+        subscription
+      }
     });
   } catch (error) {
     next(error);
