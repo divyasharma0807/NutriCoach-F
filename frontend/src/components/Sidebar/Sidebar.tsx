@@ -29,6 +29,7 @@ const coachNavItems = [
   { id: 'results', label: 'Results', icon: '🔍' },
   { id: 'diet-schedule', label: 'Diet Schedule', icon: '📋' },
   { id: 'client-plans', label: 'Client Plans', icon: '📋' },
+  { id: 'subscription', label: 'Subscription', icon: '💳' },
 ];
 
 const adminNavItems = [

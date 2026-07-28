@@ -8,6 +8,7 @@ import { Toggle } from '../../components/Toggle/Toggle';
 import './CoachDashboard.css';
 import { api } from '../../data/api';
 import { navigate, listenToRouteChanges, parseRoute } from '../../utils/navigation';
+import { loadRazorpaySDK } from '../../utils/razorpay';
 
 const getLocalTodayString = () => {
   const d = new Date();
@@ -105,6 +106,12 @@ const SearchableSelect = ({ options, value, onChange, placeholder }: { options: 
   );
 };
 
+interface RazorpaySuccessResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
 interface CoachDashboardProps { userName: string; onLogout: () => void; profileData?: any; }
 
 const metricsOptions = ['Body Weight', 'Body Mass Index (BMI)', 'Body Fat Ratio', 'Muscle Rate', 'Body Water', 'Bone Mass', 'Basal Metabolic Rate', 'Metabolic Age', 'Visceral Fat', 'Subcutaneous Fat', 'Protein Mass', 'Muscle Mass', 'Weight Without Fat'];
@@ -114,6 +121,70 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+
+  const handlePayment = async () => {
+    setPaymentLoading(true);
+    setPaymentError('');
+
+    try {
+      // 1. Load Razorpay SDK
+      const sdkLoaded = await loadRazorpaySDK();
+      if (!sdkLoaded) {
+        throw new Error('Unable to load payment gateway. Please try again later.');
+      }
+
+      // 2. Create Order on backend
+      const res = await api.createPaymentOrder();
+      
+      // 3. Configure Razorpay options
+      const options = {
+        key: res.keyId,
+        amount: res.amount * 100, // Converted to paise (499 -> 49900)
+        currency: res.currency,
+        name: 'NutriCoach',
+        description: 'Coach Monthly Subscription',
+        order_id: res.orderId,
+        prefill: {
+          name: profileData?.name || userName || '',
+          contact: profileData?.phone || '',
+          email: profileData?.email || ''
+        },
+        theme: {
+          color: '#4CAF50'
+        },
+        handler: function (response: RazorpaySuccessResponse) {
+          console.log('Payment Success Response:', response);
+          console.log('Payment received. Awaiting backend verification.');
+          console.log('razorpay_payment_id:', response.razorpay_payment_id);
+          console.log('razorpay_order_id:', response.razorpay_order_id);
+          console.log('razorpay_signature:', response.razorpay_signature);
+          setPaymentLoading(false);
+        },
+        modal: {
+          ondismiss: function () {
+            console.log('Razorpay payment popup closed by user');
+            setPaymentLoading(false);
+          }
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+
+      rzp.on('payment.failed', function (response: any) {
+        console.error('Payment Failed:', response.error);
+        alert(`Payment failed: ${response.error.description}`);
+        setPaymentLoading(false);
+      });
+
+      rzp.open();
+    } catch (err: any) {
+      console.error('Payment Error:', err);
+      setPaymentError(err.message || 'Something went wrong');
+      setPaymentLoading(false);
+    }
+  };
 
   // =========================================================================
   // STATE MANAGEMENT
@@ -2416,6 +2487,44 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
             <div style={{ marginTop: '2rem' }}>
               <Button variant="primary" onClick={() => navigate('/profile')}>Save Profile</Button>
             </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (currentSection === 'subscription') {
+      return (
+        <div className="section-content page-enter">
+          <div className="main-card" style={{ padding: '3rem 2rem', maxWidth: '500px', margin: '2rem auto', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: '12px', background: 'var(--white)' }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>🌿</div>
+            <h3 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 800, color: 'var(--dark)', marginBottom: '0.5rem' }}>Coach Subscription</h3>
+            <p style={{ color: 'var(--grey-500)', fontSize: '0.95rem', marginBottom: '2rem' }}>Renew your monthly access to maintain client support and premium features.</p>
+            
+            <div style={{ padding: '1.5rem', background: 'var(--grey-50)', borderRadius: '8px', marginBottom: '2rem', border: '1px solid var(--grey-100)' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--grey-500)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Standard Plan</div>
+              <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--primary)', margin: '0.5rem 0' }}>₹499 <span style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--grey-500)' }}>/ month</span></div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', marginTop: '0.5rem' }}>Includes full client dashboard features, diet scheduling, and coach-client session management.</div>
+            </div>
+
+            {paymentError && (
+              <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>⚠️</span>
+                <span>{paymentError}</span>
+              </div>
+            )}
+
+            <Button
+              variant="primary"
+              fullWidth
+              disabled={paymentLoading}
+              onClick={handlePayment}
+            >
+              {paymentLoading ? 'Processing Payment...' : 'Pay ₹499'}
+            </Button>
+            
+            <p style={{ fontSize: '0.75rem', color: 'var(--grey-400)', marginTop: '1.5rem' }}>
+              Payments are securely processed via Razorpay. Expiry extensions will be automatically applied.
+            </p>
           </div>
         </div>
       );

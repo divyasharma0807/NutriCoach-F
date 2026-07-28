@@ -387,5 +387,12 @@ export const api = {
       method: 'DELETE',
       headers: getHeaders()
     });
+  },
+
+  createPaymentOrder: async () => {
+    return fetchAPI('/payments/create-order', {
+      method: 'POST',
+      headers: getHeaders()
+    });
   }
 };
