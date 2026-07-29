@@ -479,6 +479,119 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
     }
   }, [scheduleDate, scheduleTime]);
 
+  // =========================================================================
+  // ADMIN TRANSACTIONS STATE & ACTIONS
+  // =========================================================================
+  const [txTransactions, setTxTransactions] = useState<any[]>([]);
+  const [txTotal, setTxTotal] = useState<number>(0);
+  const [txPage, setTxPage] = useState<number>(1);
+  const [txTotalPages, setTxTotalPages] = useState<number>(1);
+  const [txSummary, setTxSummary] = useState<any>({
+    thisMonthRevenue: 0,
+    totalRevenue: 0,
+    successfulPayments: 0,
+    failedPayments: 0,
+    activeCoaches: 0,
+    expiredCoaches: 0
+  });
+
+  const [txSearch, setTxSearch] = useState<string>('');
+  const [txStatus, setTxStatus] = useState<string>('All');
+  const [txPaymentMethod, setTxPaymentMethod] = useState<string>('All');
+  const [txDateRange, setTxDateRange] = useState<string>('All');
+  const [txStartDate, setTxStartDate] = useState<string>('');
+  const [txEndDate, setTxEndDate] = useState<string>('');
+  const [txSortBy, setTxSortBy] = useState<string>('Newest First');
+
+  const [txLoading, setTxLoading] = useState<boolean>(false);
+  const [txSummaryLoading, setTxSummaryLoading] = useState<boolean>(false);
+  const [txError, setTxError] = useState<string>('');
+  const [txSelectedTransaction, setTxSelectedTransaction] = useState<any | null>(null);
+  const [txSelectedSubscription, setTxSelectedSubscription] = useState<any | null>(null);
+  const [txDetailModalOpen, setTxDetailModalOpen] = useState<boolean>(false);
+
+  const fetchTxSummary = async () => {
+    setTxSummaryLoading(true);
+    try {
+      const res = await api.getAdminTransactionsSummary();
+      if (res.success && res.data) {
+        setTxSummary(res.data);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch transaction summary:', err);
+    } finally {
+      setTxSummaryLoading(false);
+    }
+  };
+
+  const fetchTxTransactions = async (pageToFetch: number = txPage) => {
+    setTxLoading(true);
+    setTxError('');
+    try {
+      const res = await api.getAdminTransactions({
+        page: pageToFetch,
+        search: txSearch,
+        status: txStatus,
+        paymentMethod: txPaymentMethod,
+        dateRange: txDateRange,
+        startDate: txStartDate,
+        endDate: txEndDate,
+        sortBy: txSortBy
+      });
+      if (res.success && res.data) {
+        setTxTransactions(res.data.transactions);
+        setTxTotal(res.data.total);
+        setTxTotalPages(res.data.totalPages);
+        setTxPage(res.data.page);
+      } else {
+        throw new Error(res.message || 'Failed to fetch transactions');
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch transactions:', err);
+      setTxError('Unable to load payment transactions. Please try again.');
+    } finally {
+      setTxLoading(false);
+    }
+  };
+
+  const handleResetTxFilters = () => {
+    setTxSearch('');
+    setTxStatus('All');
+    setTxPaymentMethod('All');
+    setTxDateRange('All');
+    setTxStartDate('');
+    setTxEndDate('');
+    setTxSortBy('Newest First');
+    setTxPage(1);
+  };
+
+  useEffect(() => {
+    if (currentSection === 'transactions') {
+      fetchTxSummary();
+    }
+  }, [currentSection]);
+
+  useEffect(() => {
+    if (currentSection === 'transactions') {
+      fetchTxTransactions(1);
+    }
+  }, [currentSection, txSearch, txStatus, txPaymentMethod, txDateRange, txStartDate, txEndDate, txSortBy]);
+
+  const handleViewTransactionDetails = async (id: string) => {
+    setTxDetailModalOpen(true);
+    setTxSelectedTransaction(null);
+    setTxSelectedSubscription(null);
+    try {
+      const res = await api.getAdminTransactionById(id);
+      if (res.success && res.data) {
+        setTxSelectedTransaction(res.data.transaction);
+        setTxSelectedSubscription(res.data.subscription);
+      }
+    } catch (err) {
+      console.error('Failed to load transaction details:', err);
+    }
+  };
+
   const handleApproveSession = async (sessionId: string) => {
     try {
       const res = await api.approveSession(sessionId);
@@ -727,6 +840,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
       else if (section === 'messages') path = '/messages';
       else if (section === 'my-profile') path = '/profile';
       else if (section === 'complete-profile') path = '/complete-profile';
+      else if (section === 'transactions') path = '/transactions';
 
       navigate(path);
     }
@@ -2257,6 +2371,275 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
       );
     }
 
+    if (currentSection === 'transactions') {
+      return (
+        <div className="section-content page-enter" style={{ maxWidth: '100%', margin: '0 auto', padding: '1rem' }}>
+          
+          {/* Summary Cards Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            
+            <div className="main-card" style={{ padding: '1.25rem', borderRadius: '8px', borderLeft: '4px solid var(--primary)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)', fontWeight: 600 }}>THIS MONTH REVENUE</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--dark)' }}>
+                {txSummaryLoading ? '...' : `₹${txSummary.thisMonthRevenue}`}
+              </div>
+            </div>
+
+            <div className="main-card" style={{ padding: '1.25rem', borderRadius: '8px', borderLeft: '4px solid #2196F3', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)', fontWeight: 600 }}>TOTAL REVENUE</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--dark)' }}>
+                {txSummaryLoading ? '...' : `₹${txSummary.totalRevenue}`}
+              </div>
+            </div>
+
+            <div className="main-card" style={{ padding: '1.25rem', borderRadius: '8px', borderLeft: '4px solid var(--primary)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)', fontWeight: 600 }}>SUCCESSFUL PAYMENTS</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--dark)' }}>
+                {txSummaryLoading ? '...' : txSummary.successfulPayments}
+              </div>
+            </div>
+
+            <div className="main-card" style={{ padding: '1.25rem', borderRadius: '8px', borderLeft: '4px solid var(--danger)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)', fontWeight: 600 }}>FAILED PAYMENTS</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--dark)' }}>
+                {txSummaryLoading ? '...' : txSummary.failedPayments}
+              </div>
+            </div>
+
+            <div className="main-card" style={{ padding: '1.25rem', borderRadius: '8px', borderLeft: '4px solid var(--primary)', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)', fontWeight: 600 }}>ACTIVE COACHES</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--dark)' }}>
+                {txSummaryLoading ? '...' : txSummary.activeCoaches}
+              </div>
+            </div>
+
+            <div className="main-card" style={{ padding: '1.25rem', borderRadius: '8px', borderLeft: '4px solid #FF9800', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--grey-500)', fontWeight: 600 }}>EXPIRED COACHES</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--dark)' }}>
+                {txSummaryLoading ? '...' : txSummary.expiredCoaches}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Filters Panel */}
+          <div className="main-card" style={{ padding: '1.5rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'flex-end' }}>
+              
+              <div style={{ flex: '1 1 200px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--grey-600)', marginBottom: '0.5rem' }}>Search Coach</label>
+                <input 
+                  type="text" 
+                  value={txSearch} 
+                  onChange={(e) => setTxSearch(e.target.value)} 
+                  placeholder="Name, email, phone..." 
+                  style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '6px', border: '1px solid var(--grey-200)', fontSize: '0.9rem', outline: 'none', backgroundColor: 'var(--white)', color: 'var(--dark)' }}
+                />
+              </div>
+
+              <div style={{ width: '120px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--grey-600)', marginBottom: '0.5rem' }}>Status</label>
+                <select 
+                  value={txStatus} 
+                  onChange={(e) => setTxStatus(e.target.value)}
+                  style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '6px', border: '1px solid var(--grey-200)', fontSize: '0.9rem', outline: 'none', cursor: 'pointer', backgroundColor: 'var(--white)', color: 'var(--dark)' }}
+                >
+                  <option value="All">All</option>
+                  <option value="Success">Success</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Failed">Failed</option>
+                </select>
+              </div>
+
+              <div style={{ width: '150px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--grey-600)', marginBottom: '0.5rem' }}>Payment Method</label>
+                <select 
+                  value={txPaymentMethod} 
+                  onChange={(e) => setTxPaymentMethod(e.target.value)}
+                  style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '6px', border: '1px solid var(--grey-200)', fontSize: '0.9rem', outline: 'none', cursor: 'pointer', backgroundColor: 'var(--white)', color: 'var(--dark)' }}
+                >
+                  <option value="All">All</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Card">Card</option>
+                  <option value="Netbanking">Net Banking</option>
+                  <option value="Wallet">Wallet</option>
+                </select>
+              </div>
+
+              <div style={{ width: '140px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--grey-600)', marginBottom: '0.5rem' }}>Date Range</label>
+                <select 
+                  value={txDateRange} 
+                  onChange={(e) => setTxDateRange(e.target.value)}
+                  style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '6px', border: '1px solid var(--grey-200)', fontSize: '0.9rem', outline: 'none', cursor: 'pointer', backgroundColor: 'var(--white)', color: 'var(--dark)' }}
+                >
+                  <option value="All">All</option>
+                  <option value="Today">Today</option>
+                  <option value="Last 7 Days">Last 7 Days</option>
+                  <option value="Last 30 Days">Last 30 Days</option>
+                  <option value="Custom">Custom</option>
+                </select>
+              </div>
+
+              {txDateRange === 'Custom' && (
+                <>
+                  <div style={{ width: '130px' }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--grey-600)', marginBottom: '0.5rem' }}>Start Date</label>
+                    <input 
+                      type="date" 
+                      value={txStartDate} 
+                      onChange={(e) => setTxStartDate(e.target.value)}
+                      style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '6px', border: '1px solid var(--grey-200)', fontSize: '0.9rem', outline: 'none', backgroundColor: 'var(--white)', color: 'var(--dark)' }}
+                    />
+                  </div>
+                  <div style={{ width: '130px' }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--grey-600)', marginBottom: '0.5rem' }}>End Date</label>
+                    <input 
+                      type="date" 
+                      value={txEndDate} 
+                      onChange={(e) => setTxEndDate(e.target.value)}
+                      style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '6px', border: '1px solid var(--grey-200)', fontSize: '0.9rem', outline: 'none', backgroundColor: 'var(--white)', color: 'var(--dark)' }}
+                    />
+                  </div>
+                </>
+              )}
+
+              <div style={{ width: '150px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--grey-600)', marginBottom: '0.5rem' }}>Sort By</label>
+                <select 
+                  value={txSortBy} 
+                  onChange={(e) => setTxSortBy(e.target.value)}
+                  style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '6px', border: '1px solid var(--grey-200)', fontSize: '0.9rem', outline: 'none', cursor: 'pointer', backgroundColor: 'var(--white)', color: 'var(--dark)' }}
+                >
+                  <option value="Newest First">Newest First</option>
+                  <option value="Oldest First">Oldest First</option>
+                  <option value="Highest Amount">Highest Amount</option>
+                  <option value="Lowest Amount">Lowest Amount</option>
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', height: '100%', marginTop: 'auto' }}>
+                <Button 
+                  variant="secondary" 
+                  onClick={handleResetTxFilters}
+                >
+                  Reset Filters
+                </Button>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Transactions Table / Content Area */}
+          <div className="main-card" style={{ padding: '1.5rem', borderRadius: '8px' }}>
+            
+            {txError && (
+              <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>⚠️ {txError}</span>
+                <Button variant="primary" size="sm" onClick={() => fetchTxTransactions()}>Retry</Button>
+              </div>
+            )}
+
+            {txLoading ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '4rem 0', gap: '0.75rem' }}>
+                <div style={{ width: '2.5rem', height: '2.5rem', border: '3px solid var(--grey-200)', borderTop: '3px solid var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                <div style={{ color: 'var(--grey-500)', fontSize: '0.95rem' }}>Loading transactions...</div>
+              </div>
+            ) : txTransactions.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--grey-500)' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💳</div>
+                <h3>No payment transactions found.</h3>
+              </div>
+            ) : (
+              <>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '850px' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '2px solid var(--grey-100)', color: 'var(--grey-600)', fontSize: '0.85rem', fontWeight: 700 }}>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Payment Date</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Coach Name</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Coach Email</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Amount</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Status</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Method</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Razorpay Payment ID</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Razorpay Order ID</th>
+                        <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {txTransactions.map((tx) => {
+                        const date = tx.paidAt || tx.createdAt ? new Date(tx.paidAt || tx.createdAt).toLocaleDateString() : 'N/A';
+                        const name = tx.coachId?.name || tx.coachSnapshot?.name || 'Unknown';
+                        const email = tx.coachId?.email || 'N/A';
+                        const statusColor = 
+                          tx.status === 'SUCCESS' ? 'rgba(76, 175, 80, 0.1)' :
+                          tx.status === 'FAILED' ? 'rgba(239, 68, 68, 0.1)' :
+                          'rgba(255, 152, 0, 0.1)';
+                        const statusTextCol = 
+                          tx.status === 'SUCCESS' ? 'var(--primary)' :
+                          tx.status === 'FAILED' ? 'var(--danger)' :
+                          '#FF9800';
+
+                        return (
+                          <tr key={tx._id} style={{ borderBottom: '1px solid var(--grey-100)', fontSize: '0.9rem', color: 'var(--dark)' }}>
+                            <td style={{ padding: '0.75rem 0.5rem' }}>{date}</td>
+                            <td style={{ padding: '0.75rem 0.5rem', fontWeight: 600 }}>{name}</td>
+                            <td style={{ padding: '0.75rem 0.5rem' }}>{email}</td>
+                            <td style={{ padding: '0.75rem 0.5rem', fontWeight: 700 }}>₹{tx.amount}</td>
+                            <td style={{ padding: '0.75rem 0.5rem' }}>
+                              <span style={{ display: 'inline-block', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, backgroundColor: statusColor, color: statusTextCol }}>
+                                {tx.status}
+                              </span>
+                            </td>
+                            <td style={{ padding: '0.75rem 0.5rem' }}>{tx.paymentMethod || 'N/A'}</td>
+                            <td style={{ padding: '0.75rem 0.5rem', fontFamily: 'monospace', fontSize: '0.8rem' }}>{tx.razorpayPaymentId || 'N/A'}</td>
+                            <td style={{ padding: '0.75rem 0.5rem', fontFamily: 'monospace', fontSize: '0.8rem' }}>{tx.razorpayOrderId || 'N/A'}</td>
+                            <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>
+                              <Button variant="primary" size="sm" onClick={() => handleViewTransactionDetails(tx._id)}>
+                                View
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Server-side Pagination Navigation */}
+                {txTotalPages > 1 && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '1.5rem', borderTop: '1px solid var(--grey-100)', paddingTop: '1.25rem' }}>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      disabled={txPage === 1} 
+                      onClick={() => fetchTxTransactions(txPage - 1)}
+                    >
+                      ← Previous
+                    </Button>
+                    <span style={{ fontSize: '0.9rem', color: 'var(--grey-600)', fontWeight: 600 }}>
+                      Page {txPage} of {txTotalPages}
+                    </span>
+                    <Button 
+                      variant="secondary" 
+                      size="sm" 
+                      disabled={txPage >= txTotalPages} 
+                      onClick={() => fetchTxTransactions(txPage + 1)}
+                    >
+                      Next →
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+
+          </div>
+
+        </div>
+      );
+    }
+
     if (currentSection === 'coach-performance') {
       return (
         <CoachPerformance
@@ -2576,6 +2959,80 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ userName, onLogo
               }}>Delete</Button>
             </div>
           </div>
+        </Modal>
+        <Modal isOpen={txDetailModalOpen} onClose={() => setTxDetailModalOpen(false)} title="Transaction Details" customWidth="650px">
+          {!txSelectedTransaction ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
+              <div style={{ width: '2rem', height: '2rem', border: '2px solid var(--grey-200)', borderTop: '2px solid var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxHeight: '75vh', overflowY: 'auto', paddingRight: '0.5rem' }}>
+              
+              {/* Coach Information */}
+              <div>
+                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--primary)', borderBottom: '1px solid var(--grey-200)', paddingBottom: '0.25rem', fontSize: '1rem' }}>Coach Information</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.9rem' }}>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Name:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedTransaction.coachId?.name || txSelectedTransaction.coachSnapshot?.name || 'N/A'}</strong></div>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Email:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedTransaction.coachId?.email || 'N/A'}</strong></div>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Phone:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedTransaction.coachId?.phone || txSelectedTransaction.coachSnapshot?.phone || 'N/A'}</strong></div>
+                </div>
+              </div>
+
+              {/* Payment Information */}
+              <div>
+                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--primary)', borderBottom: '1px solid var(--grey-200)', paddingBottom: '0.25rem', fontSize: '1rem' }}>Payment Information</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.9rem' }}>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Amount:</span> <strong style={{ color: 'var(--dark)' }}>₹{txSelectedTransaction.amount}</strong></div>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Currency:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedTransaction.currency}</strong></div>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Status:</span> <strong style={{ color: txSelectedTransaction.status === 'SUCCESS' ? 'var(--primary)' : txSelectedTransaction.status === 'FAILED' ? 'var(--danger)' : '#FF9800' }}>{txSelectedTransaction.status}</strong></div>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Payment Method:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedTransaction.paymentMethod || 'N/A'}</strong></div>
+                  {txSelectedTransaction.failureReason && (
+                    <div style={{ gridColumn: 'span 2' }}><span style={{ color: 'var(--grey-500)' }}>Failure Reason:</span> <strong style={{ color: 'var(--danger)' }}>{txSelectedTransaction.failureReason}</strong></div>
+                  )}
+                </div>
+              </div>
+
+              {/* Razorpay Information */}
+              <div>
+                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--primary)', borderBottom: '1px solid var(--grey-200)', paddingBottom: '0.25rem', fontSize: '1rem' }}>Razorpay Information</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem', fontFamily: 'monospace' }}>
+                  <div><span style={{ color: 'var(--grey-500)', fontFamily: 'sans-serif' }}>Order ID:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedTransaction.razorpayOrderId}</strong></div>
+                  <div><span style={{ color: 'var(--grey-500)', fontFamily: 'sans-serif' }}>Payment ID:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedTransaction.razorpayPaymentId || 'N/A'}</strong></div>
+                  <div style={{ wordBreak: 'break-all' }}><span style={{ color: 'var(--grey-500)', fontFamily: 'sans-serif' }}>Signature:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedTransaction.razorpaySignature || 'N/A'}</strong></div>
+                </div>
+              </div>
+
+              {/* Subscription Information */}
+              <div>
+                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--primary)', borderBottom: '1px solid var(--grey-200)', paddingBottom: '0.25rem', fontSize: '1rem' }}>Subscription Information</h4>
+                {txSelectedSubscription ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.9rem' }}>
+                    <div><span style={{ color: 'var(--grey-500)' }}>Status:</span> <strong style={{ color: txSelectedSubscription.status === 'ACTIVE' ? 'var(--primary)' : 'var(--danger)' }}>{txSelectedSubscription.status}</strong></div>
+                    <div><span style={{ color: 'var(--grey-500)' }}>Renewal Type:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedSubscription.autoRenew ? 'Automatic' : 'Manual'}</strong></div>
+                    <div><span style={{ color: 'var(--grey-500)' }}>Start Date:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedSubscription.startDate ? new Date(txSelectedSubscription.startDate).toLocaleDateString() : 'N/A'}</strong></div>
+                    <div><span style={{ color: 'var(--grey-500)' }}>Expiry Date:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedSubscription.expiryDate ? new Date(txSelectedSubscription.expiryDate).toLocaleDateString() : 'N/A'}</strong></div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.9rem', color: 'var(--grey-500)' }}>No active subscription record found.</div>
+                )}
+              </div>
+
+              {/* Timestamps */}
+              <div>
+                <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--primary)', borderBottom: '1px solid var(--grey-200)', paddingBottom: '0.25rem', fontSize: '1rem' }}>Timestamps</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.9rem' }}>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Paid At:</span> <strong style={{ color: 'var(--dark)' }}>{txSelectedTransaction.paidAt ? new Date(txSelectedTransaction.paidAt).toLocaleString() : 'N/A'}</strong></div>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Created At:</span> <strong style={{ color: 'var(--dark)' }}>{new Date(txSelectedTransaction.createdAt).toLocaleString()}</strong></div>
+                  <div><span style={{ color: 'var(--grey-500)' }}>Updated At:</span> <strong style={{ color: 'var(--dark)' }}>{new Date(txSelectedTransaction.updatedAt).toLocaleString()}</strong></div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+                <Button variant="secondary" onClick={() => setTxDetailModalOpen(false)}>Close</Button>
+              </div>
+
+            </div>
+          )}
         </Modal>
       </main>
     </div>

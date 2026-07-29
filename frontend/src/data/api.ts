@@ -413,5 +413,41 @@ export const api = {
       method: 'GET',
       headers: getHeaders()
     });
+  },
+
+  getAdminTransactions: async (params: {
+    page?: number;
+    search?: string;
+    status?: string;
+    paymentMethod?: string;
+    dateRange?: string;
+    startDate?: string;
+    endDate?: string;
+    sortBy?: string;
+  }) => {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== '') {
+        query.append(key, String(val));
+      }
+    });
+    return fetchAPI(`/admin/transactions?${query.toString()}`, {
+      method: 'GET',
+      headers: getHeaders()
+    });
+  },
+
+  getAdminTransactionsSummary: async () => {
+    return fetchAPI('/admin/transactions/summary', {
+      method: 'GET',
+      headers: getHeaders()
+    });
+  },
+
+  getAdminTransactionById: async (id: string) => {
+    return fetchAPI(`/admin/transactions/${id}`, {
+      method: 'GET',
+      headers: getHeaders()
+    });
   }
 };

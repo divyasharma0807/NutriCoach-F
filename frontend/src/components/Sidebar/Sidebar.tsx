@@ -42,6 +42,7 @@ const adminNavItems = [
   { id: 'results', label: 'Results', icon: '🔍' },
   { id: 'diet-schedule', label: 'Diet Schedule', icon: '📋' },
   { id: 'client-plans', label: 'Client Plans', icon: '📋' },
+  { id: 'transactions', label: 'Transactions', icon: '💳' },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ role, currentSection, onNavigate, userName, onClose, isOpen = true, profileComplete = false, isSubscriptionActive = true }) => {

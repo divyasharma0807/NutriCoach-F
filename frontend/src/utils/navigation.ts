@@ -82,6 +82,9 @@ export function parseRoute(pathname: string, role: 'client' | 'coach' | 'admin' 
   if (cleanPath === '/dashboard') {
     return { pathname: cleanPath, page, section: 'dashboard', detailId: null };
   }
+  if (cleanPath === '/transactions') {
+    return { pathname: cleanPath, page, section: 'transactions', detailId: null };
+  }
   if (cleanPath === '/clients') {
     return { pathname: cleanPath, page, section: 'my-clients', detailId: null };
   }
