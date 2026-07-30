@@ -406,5 +406,12 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify(paymentData)
     });
+  },
+
+  getSubscriptionStatus: async () => {
+    return fetchAPI('/payments/subscription-status', {
+      method: 'GET',
+      headers: getHeaders()
+    });
   }
 };

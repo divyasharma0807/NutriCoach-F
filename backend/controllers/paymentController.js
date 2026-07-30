@@ -287,3 +287,39 @@ export const verifyPayment = async (req, res, next) => {
     await session.endSession();
   }
 };
+
+// @desc    Get Coach Subscription status
+// @route   GET /api/payments/subscription-status
+// @access  Private (Coach only)
+export const getSubscriptionStatus = async (req, res, next) => {
+  try {
+    const coachId = req.user.id;
+
+    const subscription = await Subscription.findOne({ coachId });
+    const now = new Date();
+
+    if (!subscription) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          status: 'PENDING',
+          expiryDate: null,
+          isActive: false
+        }
+      });
+    }
+
+    const isActive = subscription.status === 'ACTIVE' && subscription.expiryDate && subscription.expiryDate > now;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        status: isActive ? 'ACTIVE' : (subscription.expiryDate && subscription.expiryDate <= now ? 'EXPIRED' : subscription.status),
+        expiryDate: subscription.expiryDate,
+        isActive: !!isActive
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

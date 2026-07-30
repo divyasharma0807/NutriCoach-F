@@ -127,6 +127,8 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [paymentStatusText, setPaymentStatusText] = useState('');
   const [subStatus, setSubStatus] = useState('');
   const [subExpiry, setSubExpiry] = useState('');
+  const [isSubscriptionActive, setIsSubscriptionActive] = useState<boolean>(true);
+  const [subStatusLoaded, setSubStatusLoaded] = useState<boolean>(false);
 
   const handlePayment = async () => {
     setPaymentLoading(true);
@@ -175,6 +177,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
             if (verifyRes.success && verifyRes.data) {
               setSubStatus(verifyRes.data.status);
               setSubExpiry(verifyRes.data.expiryDate);
+              setIsSubscriptionActive(true);
               setPaymentStatusText('Subscription Activated!');
               setPaymentSuccess('Subscription Activated Successfully');
 
@@ -417,6 +420,29 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
     };
     loadSettings();
   }, []);
+  useEffect(() => {
+    const checkSubscription = async () => {
+      try {
+        const res = await api.getSubscriptionStatus();
+        if (res.success && res.data) {
+          setIsSubscriptionActive(res.data.isActive);
+          setSubStatus(res.data.status);
+          setSubExpiry(res.data.expiryDate || '');
+          
+          if (!res.data.isActive) {
+            setCurrentSection('subscription');
+            navigate('/subscription', { replace: true });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load subscription status:', err);
+      } finally {
+        setSubStatusLoaded(true);
+      }
+    };
+    checkSubscription();
+  }, []);
+
 
   const handlePushNotificationChange = async (val: boolean) => {
     setPushNotifications(val);
@@ -715,9 +741,29 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
 
   // Synchronize router pathname with dashboard internal states
   useEffect(() => {
+    if (subStatusLoaded && !isSubscriptionActive) {
+      if (currentSection !== 'subscription') {
+        setCurrentSection('subscription');
+      }
+      if (window.location.pathname !== '/subscription') {
+        navigate('/subscription', { replace: true });
+      }
+      return;
+    }
+
+    if (subStatusLoaded && isSubscriptionActive) {
+      if (window.location.pathname === '/subscription') {
+        setCurrentSection('dashboard');
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+    }
+
     const handleRoute = () => {
       const parsed = parseRoute(window.location.pathname, 'coach');
-      if (parsed.section && parsed.section !== currentSection) {
+      if (parsed.pathname === '/subscription' || (parsed.section === 'settings' && parsed.detailId === 'subscription')) {
+        setCurrentSection('subscription');
+      } else if (parsed.section && parsed.section !== currentSection) {
         setCurrentSection(parsed.section);
       }
       
@@ -801,7 +847,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
       handleRoute();
     });
     return unsubscribe;
-  }, [clients, prospects, results, referrals, currentSection]);
+  }, [clients, prospects, results, referrals, currentSection, isSubscriptionActive, subStatusLoaded]);
 
   const handleNavigate = (section: string) => {
     if (section === 'logout') {
@@ -819,6 +865,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
       else if (section === 'messages') path = '/messages';
       else if (section === 'my-profile') path = '/profile';
       else if (section === 'complete-profile') path = '/complete-profile';
+      else if (section === 'subscription') path = '/subscription';
 
       navigate(path);
     }
@@ -2571,16 +2618,26 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
 
             {subStatus && (
               <div style={{ padding: '1.25rem', background: 'var(--grey-50)', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'left', border: '1px solid var(--grey-100)' }}>
-                <div style={{ fontWeight: 700, color: 'var(--dark)', marginBottom: '0.5rem', borderBottom: '1px solid var(--grey-200)', paddingBottom: '0.25rem' }}>Active Subscription Details</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                  <span style={{ color: 'var(--grey-600)' }}>Status:</span>
-                  <span style={{ fontWeight: 700, color: subStatus === 'ACTIVE' ? 'var(--primary)' : 'var(--danger)' }}>{subStatus}</span>
-                </div>
-                {subExpiry && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--grey-600)' }}>Expires On:</span>
-                    <span style={{ fontWeight: 600, color: 'var(--dark)' }}>{new Date(subExpiry).toLocaleDateString()}</span>
+                <div style={{ fontWeight: 700, color: 'var(--dark)', marginBottom: '0.5rem', borderBottom: '1px solid var(--grey-200)', paddingBottom: '0.25rem' }}>Subscription Status</div>
+                
+                {subStatus === 'PENDING' ? (
+                  <div style={{ color: 'var(--danger)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <span>⚠️</span>
+                    <span>No active subscription found.</span>
                   </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                      <span style={{ color: 'var(--grey-600)' }}>Status:</span>
+                      <span style={{ fontWeight: 700, color: subStatus === 'ACTIVE' ? 'var(--primary)' : 'var(--danger)' }}>{subStatus}</span>
+                    </div>
+                    {subExpiry && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--grey-600)' }}>{subStatus === 'ACTIVE' ? 'Expires On:' : 'Expired On:'}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--dark)' }}>{new Date(subExpiry).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -2624,9 +2681,18 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
     );
   };
 
+  if (!subStatusLoaded) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', backgroundColor: 'var(--grey-50)', color: 'var(--dark)', fontFamily: 'inherit' }}>
+        <div style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Loading...</div>
+        <div style={{ color: 'var(--grey-500)', fontSize: '0.95rem' }}>Checking your subscription...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="coach-dashboard">
-      <Sidebar role="coach" currentSection={currentSection} onNavigate={handleNavigate} userName={userName} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar role="coach" currentSection={currentSection} onNavigate={handleNavigate} userName={userName} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} isSubscriptionActive={isSubscriptionActive} />
       <main className="dashboard-main">
         <Topbar 
           title={

@@ -9,6 +9,7 @@ interface SidebarProps {
   onClose?: () => void;
   isOpen?: boolean;
   profileComplete?: boolean;
+  isSubscriptionActive?: boolean;
 }
 
 const clientNavItems = [
@@ -43,7 +44,7 @@ const adminNavItems = [
   { id: 'client-plans', label: 'Client Plans', icon: '📋' },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ role, currentSection, onNavigate, userName, onClose, isOpen = true, profileComplete = false }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ role, currentSection, onNavigate, userName, onClose, isOpen = true, profileComplete = false, isSubscriptionActive = true }) => {
   const dynamicClientNavItems = clientNavItems.map(item => {
     return item;
   });
@@ -52,7 +53,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ role, currentSection, onNaviga
      dynamicClientNavItems.splice(1, 0, { id: 'complete-profile', label: 'Complete Profile', icon: '📝' });
   }
   
-  const navItems = role === 'admin' ? adminNavItems : role === 'client' ? dynamicClientNavItems : coachNavItems;
+  const navItems = role === 'admin' 
+    ? adminNavItems 
+    : role === 'client' 
+      ? dynamicClientNavItems 
+      : (isSubscriptionActive === false 
+          ? [{ id: 'subscription', label: 'Subscription', icon: '💳' }] 
+          : coachNavItems);
   const initials = userName ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U';
 
   const handleNavClick = (section: string) => {
