@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+import mongoose from 'mongoose';
 import Coach from '../models/Coach.js';
 import Subscription from '../models/Subscription.js';
 import Transaction from '../models/Transaction.js';
@@ -129,5 +131,159 @@ export const createOrder = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// @desc    Verify a Razorpay Payment and activate/renew subscription
+// @route   POST /api/payments/verify
+// @access  Private (Coach only)
+export const verifyPayment = async (req, res, next) => {
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+
+  // Start MongoDB Session for atomic transaction processing
+  const session = await mongoose.startSession();
+
+  try {
+    // 1. Validate Input Fields
+    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+      res.status(400);
+      throw new Error('Missing required fields for signature verification');
+    }
+
+    const coachId = req.user.id;
+
+    // Start Transaction
+    session.startTransaction();
+
+    // 2. Find and Validate Transaction inside the session
+    const transaction = await Transaction.findOne({
+      coachId,
+      razorpayOrderId: razorpay_order_id
+    }).session(session);
+
+    if (!transaction) {
+      res.status(404);
+      throw new Error('Transaction record not found');
+    }
+
+    // Check if transaction has already been processed
+    if (transaction.status === 'SUCCESS') {
+      res.status(400);
+      throw new Error('Transaction has already been successfully verified');
+    }
+    if (transaction.status === 'FAILED') {
+      res.status(400);
+      throw new Error('Transaction has already been marked as FAILED');
+    }
+    if (transaction.status === 'CANCELLED') {
+      res.status(400);
+      throw new Error('Transaction has already been CANCELLED');
+    }
+
+    // 3. Cryptographic Signature Verification
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+    if (!secret) {
+      res.status(500);
+      throw new Error('Razorpay secret configuration is missing on the server');
+    }
+
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(razorpay_order_id + '|' + razorpay_payment_id)
+      .digest('hex');
+
+    const expectedBuf = Buffer.from(expectedSignature, 'utf8');
+    const actualBuf = Buffer.from(razorpay_signature, 'utf8');
+
+    let isValid = false;
+    if (expectedBuf.length === actualBuf.length) {
+      isValid = crypto.timingSafeEqual(expectedBuf, actualBuf);
+    }
+
+    if (!isValid) {
+      // Failure Flow: Update Transaction status to FAILED
+      transaction.status = 'FAILED';
+      transaction.failureReason = 'Invalid payment signature';
+      await transaction.save({ session });
+
+      // Commit the transaction for the failure status update
+      await session.commitTransaction();
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment signature"
+      });
+    }
+
+    // 4. Success Flow: Update Transaction Details
+    transaction.status = 'SUCCESS';
+    transaction.razorpayPaymentId = razorpay_payment_id;
+    transaction.razorpaySignature = razorpay_signature;
+    transaction.paidAt = new Date();
+    transaction.failureReason = null;
+    await transaction.save({ session });
+
+    // 5. Subscription Logic with improved duration calculation
+    const SUBSCRIPTION_DURATION_DAYS = 30;
+    let subscription = await Subscription.findOne({ coachId }).session(session);
+    const now = new Date();
+
+    if (!subscription) {
+      // Create Subscription using Date operations
+      const expiryDate = new Date(now);
+      expiryDate.setDate(expiryDate.getDate() + SUBSCRIPTION_DURATION_DAYS);
+
+      subscription = new Subscription({
+        coachId,
+        status: 'ACTIVE',
+        startDate: now,
+        expiryDate,
+        lastTransactionId: transaction._id
+      });
+      await subscription.save({ session });
+    } else {
+      // Update Subscription
+      const isExpired = !subscription.expiryDate || subscription.expiryDate < now;
+      if (isExpired) {
+        const expiryDate = new Date(now);
+        expiryDate.setDate(expiryDate.getDate() + SUBSCRIPTION_DURATION_DAYS);
+
+        subscription.status = 'ACTIVE';
+        subscription.startDate = now;
+        subscription.expiryDate = expiryDate;
+      } else {
+        // subscription is still active, append 30 days to existing expiry date
+        const expiryDate = new Date(subscription.expiryDate);
+        expiryDate.setDate(expiryDate.getDate() + SUBSCRIPTION_DURATION_DAYS);
+
+        subscription.status = 'ACTIVE';
+        subscription.expiryDate = expiryDate;
+      }
+      subscription.lastTransactionId = transaction._id;
+      await subscription.save({ session });
+    }
+
+    // Commit Transaction on SUCCESS
+    await session.commitTransaction();
+
+    // 6. Return response
+    res.status(200).json({
+      success: true,
+      message: 'Payment verified and subscription activated successfully',
+      data: {
+        status: subscription.status,
+        expiryDate: subscription.expiryDate,
+        transactionId: transaction._id
+      }
+    });
+  } catch (error) {
+    // Abort Transaction if any error occurs
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    next(error);
+  } finally {
+    // Always end the session
+    await session.endSession();
   }
 };
