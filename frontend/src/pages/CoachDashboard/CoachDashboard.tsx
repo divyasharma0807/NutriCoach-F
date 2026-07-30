@@ -123,10 +123,15 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [paymentSuccess, setPaymentSuccess] = useState('');
+  const [paymentStatusText, setPaymentStatusText] = useState('');
+  const [subStatus, setSubStatus] = useState('');
+  const [subExpiry, setSubExpiry] = useState('');
 
   const handlePayment = async () => {
     setPaymentLoading(true);
     setPaymentError('');
+    setPaymentSuccess('');
 
     try {
       // 1. Load Razorpay SDK
@@ -154,18 +159,56 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
         theme: {
           color: '#4CAF50'
         },
-        handler: function (response: RazorpaySuccessResponse) {
-          console.log('Payment Success Response:', response);
-          console.log('Payment received. Awaiting backend verification.');
-          console.log('razorpay_payment_id:', response.razorpay_payment_id);
-          console.log('razorpay_order_id:', response.razorpay_order_id);
-          console.log('razorpay_signature:', response.razorpay_signature);
-          setPaymentLoading(false);
+        handler: async function (response: RazorpaySuccessResponse) {
+          setPaymentStatusText('Verifying Payment...');
+          setPaymentLoading(true);
+          setPaymentError('');
+          setPaymentSuccess('');
+
+          try {
+            const verifyRes = await api.verifyPayment({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature
+            });
+
+            if (verifyRes.success && verifyRes.data) {
+              setSubStatus(verifyRes.data.status);
+              setSubExpiry(verifyRes.data.expiryDate);
+              setPaymentStatusText('Subscription Activated!');
+              setPaymentSuccess('Subscription Activated Successfully');
+
+              // After a short delay (1.5s), navigate back to dashboard
+              setTimeout(() => {
+                setPaymentLoading(false);
+                setPaymentStatusText('');
+                setCurrentSection('dashboard');
+                navigate('/dashboard');
+              }, 1500);
+            } else {
+              throw new Error(verifyRes.message || 'Payment verification failed');
+            }
+          } catch (err: any) {
+            console.error('Verification Error:', err);
+            
+            let userMessage = 'Something went wrong. Please try again later.';
+            const errMsg = err.message || '';
+
+            if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError') || !navigator.onLine) {
+              userMessage = 'Unable to connect to the server. Please check your internet connection.';
+            } else if (errMsg.includes('signature') || errMsg.includes('verification') || errMsg.includes('failed') || errMsg.includes('400')) {
+              userMessage = 'Payment verification failed.';
+            }
+
+            setPaymentError(userMessage);
+            setPaymentLoading(false);
+            setPaymentStatusText('');
+          }
         },
         modal: {
           ondismiss: function () {
-            console.log('Razorpay payment popup closed by user');
             setPaymentLoading(false);
+            setPaymentStatusText('');
           }
         }
       };
@@ -174,14 +217,34 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
 
       rzp.on('payment.failed', function (response: any) {
         console.error('Payment Failed:', response.error);
-        alert(`Payment failed: ${response.error.description}`);
+        
+        let userMessage = 'Something went wrong. Please try again later.';
+        const errDesc = response.error ? (response.error.description || '') : '';
+        
+        if (errDesc.includes('internet') || !navigator.onLine) {
+          userMessage = 'Unable to connect to the server. Please check your internet connection.';
+        } else if (errDesc) {
+          userMessage = `Payment failed: ${errDesc}`;
+        }
+        
+        setPaymentError(userMessage);
         setPaymentLoading(false);
       });
 
       rzp.open();
     } catch (err: any) {
       console.error('Payment Error:', err);
-      setPaymentError(err.message || 'Something went wrong');
+      
+      let userMessage = 'Something went wrong. Please try again later.';
+      const errMsg = err.message || '';
+      
+      if (errMsg.includes('Failed to fetch') || !navigator.onLine) {
+        userMessage = 'Unable to connect to the server. Please check your internet connection.';
+      } else if (errMsg) {
+        userMessage = errMsg;
+      }
+      
+      setPaymentError(userMessage);
       setPaymentLoading(false);
     }
   };
@@ -2506,6 +2569,29 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               <div style={{ fontSize: '0.85rem', color: 'var(--grey-600)', marginTop: '0.5rem' }}>Includes full client dashboard features, diet scheduling, and coach-client session management.</div>
             </div>
 
+            {subStatus && (
+              <div style={{ padding: '1.25rem', background: 'var(--grey-50)', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'left', border: '1px solid var(--grey-100)' }}>
+                <div style={{ fontWeight: 700, color: 'var(--dark)', marginBottom: '0.5rem', borderBottom: '1px solid var(--grey-200)', paddingBottom: '0.25rem' }}>Active Subscription Details</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                  <span style={{ color: 'var(--grey-600)' }}>Status:</span>
+                  <span style={{ fontWeight: 700, color: subStatus === 'ACTIVE' ? 'var(--primary)' : 'var(--danger)' }}>{subStatus}</span>
+                </div>
+                {subExpiry && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: 'var(--grey-600)' }}>Expires On:</span>
+                    <span style={{ fontWeight: 600, color: 'var(--dark)' }}>{new Date(subExpiry).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {paymentSuccess && (
+              <div style={{ padding: '1rem', background: 'rgba(76, 175, 80, 0.1)', color: 'var(--primary)', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.95rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                <span>✅</span>
+                <span>{paymentSuccess}</span>
+              </div>
+            )}
+
             {paymentError && (
               <div style={{ padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <span>⚠️</span>
@@ -2519,7 +2605,7 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
               disabled={paymentLoading}
               onClick={handlePayment}
             >
-              {paymentLoading ? 'Processing Payment...' : 'Pay ₹499'}
+              {paymentLoading ? (paymentStatusText || 'Processing Payment...') : 'Pay ₹499'}
             </Button>
             
             <p style={{ fontSize: '0.75rem', color: 'var(--grey-400)', marginTop: '1.5rem' }}>

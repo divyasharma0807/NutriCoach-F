@@ -394,5 +394,17 @@ export const api = {
       method: 'POST',
       headers: getHeaders()
     });
+  },
+
+  verifyPayment: async (paymentData: {
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+  }) => {
+    return fetchAPI('/payments/verify', {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(paymentData)
+    });
   }
 };
