@@ -129,6 +129,11 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
   const [subExpiry, setSubExpiry] = useState('');
   const [isSubscriptionActive, setIsSubscriptionActive] = useState<boolean>(true);
   const [subStatusLoaded, setSubStatusLoaded] = useState<boolean>(false);
+  const [reminderModalOpen, setReminderModalOpen] = useState(false);
+  const [reminderModalTitle, setReminderModalTitle] = useState('');
+  const [reminderModalMessage, setReminderModalMessage] = useState('');
+  const [hasShownReminder, setHasShownReminder] = useState(false);
+  const [reminderModalKey, setReminderModalKey] = useState('');
 
   const handlePayment = async () => {
     setPaymentLoading(true);
@@ -427,11 +432,40 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
         if (res.success && res.data) {
           setIsSubscriptionActive(res.data.isActive);
           setSubStatus(res.data.status);
-          setSubExpiry(res.data.expiryDate || '');
+          const expiryDateStr = res.data.expiryDate || '';
+          setSubExpiry(expiryDateStr);
           
           if (!res.data.isActive) {
             setCurrentSection('subscription');
             navigate('/subscription', { replace: true });
+          } else if (expiryDateStr) {
+            const expiry = new Date(expiryDateStr);
+            const now = new Date();
+            const expiryMidnight = new Date(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
+            const nowMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const daysRemaining = Math.round((expiryMidnight.getTime() - nowMidnight.getTime()) / (24 * 60 * 60 * 1000));
+
+            if (!hasShownReminder) {
+              if (daysRemaining === 10) {
+                const key = `nutricoach_rem_10_${expiryDateStr}`;
+                if (!localStorage.getItem(key)) {
+                  setReminderModalTitle('Subscription Reminder');
+                  setReminderModalMessage('Your subscription plan will expire in 10 days.\n\nPlease renew your subscription before it expires to avoid interruption of your coaching dashboard.');
+                  setReminderModalKey(key);
+                  setReminderModalOpen(true);
+                  setHasShownReminder(true);
+                }
+              } else if (daysRemaining === 3) {
+                const key = `nutricoach_rem_3_${expiryDateStr}`;
+                if (!localStorage.getItem(key)) {
+                  setReminderModalTitle('Subscription Reminder');
+                  setReminderModalMessage('Your subscription plan will expire in 3 days.\n\nPlease renew your subscription to continue uninterrupted access.');
+                  setReminderModalKey(key);
+                  setReminderModalOpen(true);
+                  setHasShownReminder(true);
+                }
+              }
+            }
           }
         }
       } catch (err) {
@@ -1121,8 +1155,57 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
     // DASHBOARD SECTION
     // -----------------------------------------------------------------------
     if (currentSection === 'dashboard') {
+      const showWarningBanner = (() => {
+        if (!isSubscriptionActive || !subExpiry) return false;
+        const expiry = new Date(subExpiry);
+        const now = new Date();
+        const expiryMidnight = new Date(expiry.getFullYear(), expiry.getMonth(), expiry.getDate());
+        const nowMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const daysRemaining = Math.round((expiryMidnight.getTime() - nowMidnight.getTime()) / (24 * 60 * 60 * 1000));
+        return daysRemaining === 1;
+      })();
+
       return (
         <div className="section-content page-enter">
+          {showWarningBanner && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between', 
+              padding: '1.25rem 1.5rem', 
+              background: 'rgba(220, 38, 38, 0.12)', 
+              color: '#B91C1C', 
+              border: '1px solid rgba(220, 38, 38, 0.35)',
+              borderRadius: '8px', 
+              marginBottom: '1.5rem', 
+              boxShadow: '0 2px 8px rgba(220, 38, 38, 0.05)' 
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>⚠️</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.15rem' }}>Subscription Expiring Tomorrow</div>
+                  <div style={{ fontSize: '0.88rem', opacity: 0.9 }}>Your subscription expires tomorrow. Renew your subscription today to avoid losing access to your dashboard.</div>
+                </div>
+              </div>
+              <button 
+                onClick={() => handleNavigate('subscription')}
+                style={{ 
+                  backgroundColor: '#DC2626', 
+                  color: '#FFFFFF', 
+                  border: 'none', 
+                  borderRadius: '6px', 
+                  padding: '0.6rem 1.2rem', 
+                  fontWeight: 700, 
+                  cursor: 'pointer', 
+                  fontSize: '0.85rem', 
+                  boxShadow: '0 2px 4px rgba(220, 38, 38, 0.2)',
+                  outline: 'none' 
+                }}
+              >
+                Renew Now
+              </button>
+            </div>
+          )}
           <div className="dashboard-top-section">
             <div className="welcome-banner">
               <div>
@@ -2879,6 +2962,26 @@ export const CoachDashboard: React.FC<CoachDashboardProps> = ({ userName, onLogo
                   alert(err.message || 'Failed to delete result');
                 }
               }}>Delete</Button>
+            </div>
+          </div>
+        </Modal>
+        <Modal isOpen={reminderModalOpen} onClose={() => {
+          setReminderModalOpen(false);
+          if (reminderModalKey) {
+            localStorage.setItem(reminderModalKey, 'true');
+          }
+        }} title={reminderModalTitle}>
+          <div style={{ padding: '1rem 0' }}>
+            <p style={{ margin: 0, fontSize: '1.05rem', color: 'var(--dark)', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+              {reminderModalMessage}
+            </p>
+            <div style={{ display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' }}>
+              <Button variant="secondary" onClick={() => {
+                setReminderModalOpen(false);
+                if (reminderModalKey) {
+                  localStorage.setItem(reminderModalKey, 'true');
+                }
+              }}>Close</Button>
             </div>
           </div>
         </Modal>
