@@ -112,7 +112,6 @@ export const login = async (req, res, next) => {
             password, // Mongoose pre-save hashes it
             role: 'admin',
           });
-          console.log(`Auto-seeded first Admin with phone: ${phone}`);
         } else {
           res.status(401);
           throw new Error('Invalid phone or password');

@@ -43,7 +43,6 @@ export const requestPushPermission = async (
 
   // Do not prompt if denied previously
   if (Notification.permission === 'denied') {
-    console.log('Notification permission has been previously denied by user.');
     return null;
   }
 
@@ -55,13 +54,10 @@ export const requestPushPermission = async (
       });
       if (token) {
         await onTokenSuccess(token);
-        console.log('FCM Device Token registered:', token);
         return token;
       } else {
         console.warn('No FCM token obtained. Check VAPID key configurations.');
       }
-    } else {
-      console.log('Notification permission denied by user.');
     }
   } catch (error) {
     console.error('An error occurred while requesting notification permission:', error);
@@ -77,7 +73,6 @@ export const listenForForegroundMessages = (
 ) => {
   if (!messaging) return () => {};
   return onMessage(messaging, (payload) => {
-    console.log('Foreground message received:', payload);
     onNotificationReceived(payload);
   });
 };

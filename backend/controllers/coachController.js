@@ -48,6 +48,7 @@ export const addClient = async (req, res, next) => {
     const subscriptionStartDate = new Date();
     const subscriptionExpiryDate = new Date();
     subscriptionExpiryDate.setDate(subscriptionStartDate.getDate() + 30);
+    subscriptionExpiryDate.setUTCHours(0, 0, 0, 0);
 
     const client = await Client.create({
       name,

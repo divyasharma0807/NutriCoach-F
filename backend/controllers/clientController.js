@@ -88,7 +88,6 @@ export const completeProfile = async (req, res, next) => {
 
           // Delete the temporary coach-created record
           await Client.findByIdAndDelete(existingClient._id);
-          console.log(`Merged and deleted coach-created client record for phone: ${phoneNumber}`);
         } else {
           res.status(400);
           throw new Error('Phone number is already associated with another active profile');
@@ -240,8 +239,12 @@ export const getDashboardStats = async (req, res, next) => {
     // Calculate subscription days remaining
     let subscriptionDays = 'N/A';
     if (client.subscriptionExpiryDate) {
-      const diffMs = new Date(client.subscriptionExpiryDate).getTime() - Date.now();
-      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      const todayMidnight = new Date();
+      todayMidnight.setUTCHours(0, 0, 0, 0);
+      const expiryMidnight = new Date(client.subscriptionExpiryDate);
+      expiryMidnight.setUTCHours(0, 0, 0, 0);
+      const diffMs = expiryMidnight.getTime() - todayMidnight.getTime();
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
       subscriptionDays = diffDays > 0 ? `${diffDays} Days` : 'Expired';
     }
 

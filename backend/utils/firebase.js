@@ -24,7 +24,6 @@ try {
         privateKey,
       });
       app = initializeApp({ credential });
-      console.log('Firebase Admin SDK initialized successfully.');
     } else {
       app = getApps()[0];
     }
@@ -41,7 +40,6 @@ try {
  * @param {Object} doc - The Notification model instance.
  */
 export const sendPushForNotification = async (doc) => {
-  console.log('[NOTIFICATION DEBUG] sendPushForNotification called');
   try {
     const { recipientType, recipientId, text, type } = doc;
 
@@ -65,12 +63,10 @@ export const sendPushForNotification = async (doc) => {
     }
 
     if (recipients.length === 0) {
-      console.log('[NOTIFICATION DEBUG] No recipients found for type:', recipientType);
       return;
     }
 
     for (const user of recipients) {
-      console.log('[NOTIFICATION DEBUG] Recipient resolved:', user.name || user.email);
       // 2. Cross-reference notificationSettings and pushEnabled status
       const settings = user.notificationSettings || {
         pushEnabled: true,
@@ -82,7 +78,6 @@ export const sendPushForNotification = async (doc) => {
       };
 
       if (!settings.pushEnabled) {
-        console.log(`[NOTIFICATION DEBUG] Push disabled for user ${user._id}. Skipping push message.`);
         continue;
       }
 
@@ -94,29 +89,23 @@ export const sendPushForNotification = async (doc) => {
       const isMarketing = type && type.includes('marketing');
 
       if (isSession && settings.sessions === false) {
-        console.log('[NOTIFICATION DEBUG] Sessions notification muted by settings');
         continue;
       }
       if (isDiet && settings.dietPlans === false) {
-        console.log('[NOTIFICATION DEBUG] Diet plans notification muted by settings');
         continue;
       }
       if (isResult && settings.results === false) {
-        console.log('[NOTIFICATION DEBUG] Results notification muted by settings');
         continue;
       }
       if (isSubscription && settings.subscriptions === false) {
-        console.log('[NOTIFICATION DEBUG] Subscriptions notification muted by settings');
         continue;
       }
       if (isMarketing && settings.marketing === false) {
-        console.log('[NOTIFICATION DEBUG] Marketing notification muted by settings');
         continue;
       }
 
       // 3. Collect active device tokens
       const tokens = (user.notificationTokens || []).map(t => t.token);
-      console.log('[NOTIFICATION DEBUG] Tokens found:', tokens.length);
       if (tokens.length === 0) continue;
 
       // 4. Construct payload title and click action
@@ -152,23 +141,16 @@ export const sendPushForNotification = async (doc) => {
           notification_id: doc._id.toString()
         }
       };
-      console.log('[NOTIFICATION DEBUG] Payload generated:', payload);
-
       if (!messagingInstance) {
-        console.log('[FCM STUB/MOCK] Send to tokens:', tokens, 'Payload:', payload);
         continue;
       }
 
       // 5. Send FCM message
-      console.log('[NOTIFICATION DEBUG] Sending FCM multicast');
       const response = await messagingInstance.sendEachForMulticast({
         tokens,
         notification: payload.notification,
         data: payload.data
       });
-
-      console.log('[NOTIFICATION DEBUG] Success count:', response.successCount);
-      console.log('[NOTIFICATION DEBUG] Failure count:', response.failureCount);
 
       // 6. Token Cleanup: if there are any failures, find and remove stale tokens
       if (response.failureCount > 0) {
@@ -184,7 +166,6 @@ export const sendPushForNotification = async (doc) => {
         });
 
         if (badTokens.length > 0) {
-          console.log('[NOTIFICATION DEBUG] Cleaning up stale/invalid FCM tokens:', badTokens);
           user.notificationTokens = user.notificationTokens.filter(t => !badTokens.includes(t.token));
           await user.save();
         }

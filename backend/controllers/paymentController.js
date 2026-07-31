@@ -20,10 +20,13 @@ export const createOrder = async (req, res, next) => {
     }
 
     // 2. Check if the coach already has an ACTIVE subscription
+    const todayMidnight = new Date();
+    todayMidnight.setUTCHours(0, 0, 0, 0);
+
     const activeSubscription = await Subscription.findOne({
       coachId: coach._id,
       status: 'ACTIVE',
-      expiryDate: { $gt: new Date() }
+      expiryDate: { $gt: todayMidnight }
     });
 
     if (activeSubscription) {
@@ -65,7 +68,6 @@ export const createOrder = async (req, res, next) => {
         pendingTransaction.status = 'CANCELLED';
         pendingTransaction.failureReason = 'Order expired or no longer reusable';
         await pendingTransaction.save();
-        console.log(`Updated old pending transaction ${pendingTransaction._id} to CANCELLED`);
       }
     }
 
@@ -227,11 +229,14 @@ export const verifyPayment = async (req, res, next) => {
     const SUBSCRIPTION_DURATION_DAYS = 30;
     let subscription = await Subscription.findOne({ coachId }).session(session);
     const now = new Date();
+    const todayMidnight = new Date();
+    todayMidnight.setUTCHours(0, 0, 0, 0);
 
     if (!subscription) {
       // Create Subscription using Date operations
       const expiryDate = new Date(now);
       expiryDate.setDate(expiryDate.getDate() + SUBSCRIPTION_DURATION_DAYS);
+      expiryDate.setUTCHours(0, 0, 0, 0);
 
       subscription = new Subscription({
         coachId,
@@ -243,10 +248,11 @@ export const verifyPayment = async (req, res, next) => {
       await subscription.save({ session });
     } else {
       // Update Subscription
-      const isExpired = !subscription.expiryDate || subscription.expiryDate < now;
+      const isExpired = !subscription.expiryDate || new Date(subscription.expiryDate).getTime() <= todayMidnight.getTime();
       if (isExpired) {
         const expiryDate = new Date(now);
         expiryDate.setDate(expiryDate.getDate() + SUBSCRIPTION_DURATION_DAYS);
+        expiryDate.setUTCHours(0, 0, 0, 0);
 
         subscription.status = 'ACTIVE';
         subscription.startDate = now;
@@ -255,6 +261,7 @@ export const verifyPayment = async (req, res, next) => {
         // subscription is still active, append 30 days to existing expiry date
         const expiryDate = new Date(subscription.expiryDate);
         expiryDate.setDate(expiryDate.getDate() + SUBSCRIPTION_DURATION_DAYS);
+        expiryDate.setUTCHours(0, 0, 0, 0);
 
         subscription.status = 'ACTIVE';
         subscription.expiryDate = expiryDate;
@@ -296,7 +303,8 @@ export const getSubscriptionStatus = async (req, res, next) => {
     const coachId = req.user.id;
 
     const subscription = await Subscription.findOne({ coachId });
-    const now = new Date();
+    const todayMidnight = new Date();
+    todayMidnight.setUTCHours(0, 0, 0, 0);
 
     if (!subscription) {
       return res.status(200).json({
@@ -309,12 +317,12 @@ export const getSubscriptionStatus = async (req, res, next) => {
       });
     }
 
-    const isActive = subscription.status === 'ACTIVE' && subscription.expiryDate && subscription.expiryDate > now;
+    const isActive = subscription.status === 'ACTIVE' && subscription.expiryDate && new Date(subscription.expiryDate).getTime() > todayMidnight.getTime();
 
     res.status(200).json({
       success: true,
       data: {
-        status: isActive ? 'ACTIVE' : (subscription.expiryDate && subscription.expiryDate <= now ? 'EXPIRED' : subscription.status),
+        status: isActive ? 'ACTIVE' : (subscription.expiryDate && new Date(subscription.expiryDate).getTime() <= todayMidnight.getTime() ? 'EXPIRED' : subscription.status),
         expiryDate: subscription.expiryDate,
         isActive: !!isActive
       }
