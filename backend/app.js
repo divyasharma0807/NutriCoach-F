@@ -32,7 +32,12 @@ const app = express();
 app.use(helmet({
   crossOriginResourcePolicy: false, // Allow loading uploaded images/PDFs across domains
 }));
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'];
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'https://nutricoachgs.vercel.app'
+];
 if (process.env.CLIENT_URL) {
   allowedOrigins.push(process.env.CLIENT_URL);
 }
@@ -50,7 +55,7 @@ app.use(cors({
     ) {
       return callback(null, true);
     }
-    return callback(new Error('Not allowed by CORS'), false);
+    return callback(null, false);
   },
   credentials: true,
 }));
